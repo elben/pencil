@@ -7,8 +7,8 @@ import Pencil
 config :: Config
 config =
   (updateEnv (insertText "title" "My Simple Website") .
-   setSourceDir "test/Example/Simple/site/" .
-   setOutputDir "test/Example/Simple/out/") defaultConfig
+   setSourceDir "examples/Simple/site/" .
+   setOutputDir "examples/Simple/out/") defaultConfig
 
 website :: PencilApp ()
 website = do

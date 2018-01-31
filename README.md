@@ -14,7 +14,7 @@ stack build
 stack exec pencil-example-simple
 ```
 
-Open the `test/Example/Simple/out/` folder to see the rendered web pages.
+Open the `examples/Simple/out/` folder to see the rendered web pages.
 
 # Development
 
