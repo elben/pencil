@@ -4,10 +4,13 @@ Pencil is a static site generator. Use it to generate your personal website!
 Pencil comes pre-loaded with goodies such as blogging, tagging, templating,
 and Markdown Sass/Scss support. Flexible enough to extend for your own needs.
 
-Start building with Pencil with these [tutorials](http://elbenshira.com/pencil)
-along with the [documentation](https://hackage.haskell.org/package/pencil).
+> The blue-backed notebooks, the two pencils and the pencil sharpener... the
+> marble topped tables, the smell of early morning... and luck were all you
+> needed. — Ernest Hemingway, A Moveable Feast
 
-Also checkout the [examples provided](https://github.com/elben/pencil/blob/master/test/Example/). To run the [Simple](https://github.com/elben/pencil/blob/master/test/Example/Simple) example:
+# Examples
+
+Checkout the [examples provided](https://github.com/elben/pencil/blob/master/test/Example/). To run the [Simple](https://github.com/elben/pencil/blob/master/test/Example/Simple) example:
 
 ```
 stack build
