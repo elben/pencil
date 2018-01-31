@@ -3,7 +3,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 
-module Pencil.Internal where
+module Pencil.Internal.Pencil where
 
 import Pencil.Internal.Env
 import Pencil.Internal.Parser
@@ -590,6 +590,7 @@ listDir recursive dir = do
   fps <- listDir_ recursive dir'
   return $ map (dir' ++) fps
 
+-- | 'listDir' helper.
 listDir_ :: Bool -> FilePath -> PencilApp [FilePath]
 listDir_ recursive dir = do
   sitePrefix <- asks getSourceDir
@@ -860,7 +861,7 @@ renderCss fp =
 -- the outer @Page@ to set the @\<title\>@ tag.
 --
 -- In this way, @Structure@ allows efficient @Page@ reuse. See the private
--- function 'Pencil.Internal.apply' to learn more about how @Structure@s are
+-- function 'apply' to learn more about how @Structure@s are
 -- evaluated.
 --
 -- Note that this differs than the @${partial(...)}@ directive, which has no

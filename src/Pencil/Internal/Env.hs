@@ -9,12 +9,9 @@ import qualified Data.Time.Format as TF
 import qualified Data.Vector as V
 import qualified Data.Yaml as A
 
--- We should use that hack that allows ppl to extend this with their own types?
--- Example: we want a "tags" type for a list of blog post tags
--- https://two-wrongs.com/dynamic-dispatch-in-haskell-how-to-make-code-extendable
+-- | Represents the data types found in an environment.
 --
--- Represents the data types found in an environment. This includes at least
--- Data.Aeson Value type
+-- This includes at least Data.Aeson Value type
 -- (https://hackage.haskell.org/package/aeson-1.2.3.0/docs/Data-Aeson.html#t:Value),
 -- plus other useful ones.
 data Value =
@@ -26,8 +23,10 @@ data Value =
   | VEnvList [Env]
   deriving (Eq, Show)
 
+-- | Environment map of variables to 'Value's.
 type Env = H.HashMap T.Text Value
 
+-- | Converts an Aeson @Value@ to a Pencil 'Value'.
 toValue :: A.Value -> Maybe Value
 toValue A.Null = Just VNull
 toValue (A.Bool b) = Just $ VBool b
@@ -82,6 +81,8 @@ dateOrdering :: Value -> Value -> Ordering
 dateOrdering (VDateTime a) (VDateTime b) = compare b a
 dateOrdering _ _ = EQ
 
+-- | Returns true if the given @Value@ is a @VArray@ that contains the given
+-- string.
 arrayContainsString :: T.Text -> Value -> Bool
 arrayContainsString t (VArray arr) =
   any (\d -> case d of

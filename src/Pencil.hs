@@ -76,7 +76,7 @@ module Pencil
 
   ) where
 
-import Pencil.Internal
+import Pencil.Internal.Pencil
 
 import Control.Monad.Reader as Reader
 
@@ -177,7 +177,7 @@ import Control.Monad.Reader as Reader
 -- and a @style.css@ file in the @examples\/Simple\/out\/@ folder.
 --
 -- To learn more, read through the documentation found in this module. To build
--- a blog, look at 'Pencil.Blog'.
+-- a blog, look at the Pencil.Blog module.
 
 ----------------------------------------------------------------------
 

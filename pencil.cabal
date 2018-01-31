@@ -22,7 +22,7 @@ library
   hs-source-dirs:      src
   exposed-modules:     Pencil
                      , Pencil.Blog
-                     , Pencil.Internal
+                     , Pencil.Internal.Pencil
                      , Pencil.Internal.Env
                      , Pencil.Internal.Parser
   build-depends:       base >= 4.8 && < 5

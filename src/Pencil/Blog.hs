@@ -146,6 +146,8 @@ buildTagPages tagPageFp pagesVar fpf pages = do
     H.empty
     (H.toList tagMap)
 
+-- | Inject the given tagging map into the given @Page@'s environment, as the
+-- @tags@ variable, whose value is a @VEnvList@.
 injectTagsEnv :: H.HashMap Tag Page -> Page -> Page
 injectTagsEnv tagMap page =
   -- Build up an env list of tag to that tag page's env. This is so that we can
