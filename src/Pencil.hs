@@ -33,10 +33,10 @@ module Pencil
   , listDir
 
   , Render(..)
-  , asHtml
-  , asDir
-  , asCss
-  , asIntended
+  , toHtml
+  , toDir
+  , toCss
+  , toExpected
 
   -- * Environment Manipulation
 
@@ -113,8 +113,8 @@ import Control.Monad.Reader as Reader
 -- >
 -- > website :: PencilApp ()
 -- > website = do
--- >   layout <- load asHtml "layout.html"
--- >   index <- load asHtml "index.markdown"
+-- >   layout <- load toHtml "layout.html"
+-- >   index <- load toHtml "index.markdown"
 -- >   render (layout <|| index)
 -- >
 -- >   renderCss "style.scss"
@@ -145,17 +145,17 @@ import Control.Monad.Reader as Reader
 -- @
 --
 -- Now let's dissect the @website@ function itself. The first thing we do is
--- @'load' asHtml "layout.html"@, which loads our layout file into something
+-- @'load' toHtml "layout.html"@, which loads our layout file into something
 -- called a 'Page'. In short, a 'Page' holds the contents of the file, plus the
 -- environment of that file, plus the final output destination of that file if
--- it is rendered. The 'asHtml' function tells 'load' that you want the output
+-- it is rendered. The 'toHtml' function tells 'load' that you want the output
 -- file to have the @.html@ extension.
 --
--- It's important to realize that 'asHtml' is not telling 'load' /how/ to load
+-- It's important to realize that 'toHtml' is not telling 'load' /how/ to load
 -- @layout.html@; it's telling it what kind of file you want when you spit it
 -- out. 'load' itself looks at the file extension to figure out that
 -- @layout.html@ is an HTML file, and @index.markdown@ is a Markdown file. So we
--- use 'asHtml' when loading @index.markdown@ because we want the index page to
+-- use 'toHtml' when loading @index.markdown@ because we want the index page to
 -- be rendered as an @.html@ file.
 --
 -- Now, what about @render (layout <|| index)@. What the heck is going on here?

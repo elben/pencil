@@ -12,8 +12,8 @@ config =
 
 website :: PencilApp ()
 website = do
-  layout <- load asHtml "layout.html"
-  index <- load asHtml "index.markdown"
+  layout <- load toHtml "layout.html"
+  index <- load toHtml "index.markdown"
   render (layout <|| index)
 
   renderCss "style.scss"

@@ -712,11 +712,11 @@ copyFile fpIn fpOut = do
 -- | Replaces the file path's extension with @.html@.
 --
 -- @
--- 'load' asHtml "about.markdown"
+-- 'load' toHtml "about.markdown"
 -- @
 --
-asHtml :: FilePath -> FilePath
-asHtml fp = FP.dropExtension fp ++ ".html"
+toHtml :: FilePath -> FilePath
+toHtml fp = FP.dropExtension fp ++ ".html"
 
 -- | Converts a file path into a directory name, dropping the extension.
 -- Pages with a directory as its FilePath is rendered as an index file in that
@@ -724,29 +724,29 @@ asHtml fp = FP.dropExtension fp ++ ".html"
 -- @pages\/about\/@, which 'render' would render the 'Page' to the file path
 -- @pages\/about\/index.html@.
 --
-asDir :: FilePath -> FilePath
-asDir fp = FP.replaceFileName fp (FP.takeBaseName fp) ++ "/"
+toDir :: FilePath -> FilePath
+toDir fp = FP.replaceFileName fp (FP.takeBaseName fp) ++ "/"
 
 -- | Replaces the file path's extension with @.css@.
 --
 -- @
--- 'load' asCss "style.sass"
+-- 'load' toCss "style.sass"
 -- @
 --
-asCss :: FilePath -> FilePath
-asCss fp = FP.dropExtension fp ++ ".css"
+toCss :: FilePath -> FilePath
+toCss fp = FP.dropExtension fp ++ ".css"
 
--- | Converts file path into the intended converted formats. This means
--- @.markdown@ become @.html@, @.sass@ becomes @.css@, and so forth. See
--- 'extensionMap' for conversion table.
+-- | Converts file path into the expected extensions. This means @.markdown@
+-- become @.html@, @.sass@ becomes @.css@, and so forth. See 'extensionMap' for
+-- conversion table.
 --
 -- @
 -- -- Load everything inside the "assets/" folder, renaming converted files as
--- -- intended, and leaving everything else alone.
--- 'loadResources' asIntended True True "assets/"
+-- -- expected, and leaving everything else alone.
+-- 'loadResources' toExpected True True "assets/"
 -- @
-asIntended :: FilePath -> FilePath
-asIntended fp = maybe fp ((FP.dropExtension fp ++ ".") ++) (toExtension (fileType fp))
+toExpected :: FilePath -> FilePath
+toExpected fp = maybe fp ((FP.dropExtension fp ++ ".") ++) (toExtension (fileType fp))
 
 -- | Loads a file as a 'Resource'. Use this for binary files (e.g. images) and
 -- for files without template directives. Regular files are still converted to
@@ -758,7 +758,7 @@ asIntended fp = maybe fp ((FP.dropExtension fp ++ ".") ++) (toExtension (fileTyp
 -- loadResource id "images/profile.jpg" >> render
 --
 -- -- Loads and renders to about.index
--- loadResource asHtml "about.markdown" >> render
+-- loadResource toHtml "about.markdown" >> render
 -- @
 loadResource :: (FilePath -> FilePath) -> FilePath -> PencilApp Resource
 loadResource fpf fp =
@@ -798,7 +798,7 @@ passthrough fp = return $ Passthrough fp fp
 --
 -- @
 -- -- Loads index.markdown with the designated file path of index.html
--- load 'asHtml' "index.markdown"
+-- load 'toHtml' "index.markdown"
 --
 -- -- Keep the file path as-is
 -- load id "about.html"
@@ -827,7 +827,7 @@ findEnv nodes =
 renderCss :: FilePath -> PencilApp ()
 renderCss fp =
   -- Drop .scss/sass extension and replace with .css.
-  load asCss fp >>= render
+  load toCss fp >>= render
 
 -- | A @Structure@ is a list of 'Page's, defining a nesting order. Think of them
 -- like <https://en.wikipedia.org/wiki/Matryoshka_doll Russian nesting dolls>.
@@ -840,9 +840,9 @@ renderCss fp =
 -- Build structures using 'structure', '<||' and '<|'.
 --
 -- @
--- layout <- load asHtml "layout.html"
--- index <- load asHtml "index.markdown"
--- about <- load asHtml "about.markdown"
+-- layout <- load toHtml "layout.html"
+-- index <- load toHtml "index.markdown"
+-- about <- load toHtml "about.markdown"
 -- render (layout <|| index)
 -- render (layout <|| about)
 -- @
@@ -872,8 +872,8 @@ type Structure = NonEmpty Page
 -- | Creates a new @Structure@ from two @Page@s.
 --
 -- @
--- layout <- load asHtml "layout.html"
--- index <- load asHtml "index.markdown"
+-- layout <- load toHtml "layout.html"
+-- index <- load toHtml "index.markdown"
 -- render (layout <|| index)
 -- @
 (<||) :: Page -> Page -> Structure
@@ -882,9 +882,9 @@ type Structure = NonEmpty Page
 -- | Pushes @Page@ into @Structure@.
 --
 -- @
--- layout <- load asHtml "layout.html"
--- blogLayout <- load asHtml "blog-layout.html"
--- blogPost <- load asHtml "myblogpost.markdown"
+-- layout <- load toHtml "layout.html"
+-- blogLayout <- load toHtml "blog-layout.html"
+-- blogPost <- load toHtml "myblogpost.markdown"
 -- render (layout <|| blogLayout <| blogPost)
 -- @
 (<|) :: Structure -> Page -> Structure

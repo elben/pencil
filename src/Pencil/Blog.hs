@@ -65,8 +65,8 @@ import qualified System.FilePath as FP
 -- @${date}@, and @${body}@ for the post body.
 --
 -- @
--- layout <- 'load' asHtml "layout.html"
--- postLayout <- 'load' asHtml "blog-post.html"
+-- layout <- 'load' toHtml "layout.html"
+-- postLayout <- 'load' toHtml "blog-post.html"
 -- posts <- 'loadBlogPosts' "blog/"
 -- forM_ posts (\\post -> render (layout <|| postLayout <| post))
 -- @
