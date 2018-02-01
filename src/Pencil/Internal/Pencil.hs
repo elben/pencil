@@ -460,8 +460,11 @@ evalNodes env (PVar var : rest) = do
   nodes <- evalNodes env rest
   case H.lookup var env of
     Nothing ->
-      -- Can't find var in env; throw exception.
-      throwError (VarNotInEnv var "")
+      -- Can't find var in env. Skip over it for now and we'll just render the
+      -- directive to help user debug missing variables. Later on we'll do some
+      -- nice error handling w/o crashing the system (throw warnings instead of
+      -- errors).
+      return $ PVar var : nodes
     Just envData -> do
       displayValue <- asks getDisplayValue
       return $ PText (displayValue envData) : nodes
@@ -479,8 +482,8 @@ evalNodes env (PFor var nodes : rest) = do
   rest' <- evalNodes env rest
   case H.lookup var env of
     Nothing ->
-      -- Can't find var in env; throw exception.
-      throwError (VarNotInEnv var "")
+      -- Can't find var in env; everything inside the for-statement is throw away
+      return rest'
     Just (VEnvList envs) -> do
       -- Render the for nodes once for each given env, and append them together
       forNodes <-
@@ -916,10 +919,6 @@ instance Render Resource where
   render (Passthrough fpIn fpOut) = copyFile fpIn fpOut
 
 -- This requires FlexibleInstances.
-instance Render [Resource] where
-  render resources = forM_ resources render
-
--- This requires FlexibleInstances.
 instance Render Structure where
   render s = apply s >>= render
 
@@ -931,3 +930,6 @@ instance Render Page where
     liftIO $ D.createDirectoryIfMissing True (FP.takeDirectory fpOut')
     liftIO $ TIO.writeFile fpOut' (renderNodes nodes)
 
+-- This requires FlexibleInstances.
+instance Render r => Render [r] where
+  render rs = forM_ rs render

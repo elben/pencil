@@ -1,6 +1,11 @@
 <div>
   <h2>${postTitle}</h2>
   <div>${date}</div>
+  <div>
+    ${if(tags)}
+      Tags: ${for(tags)} <a href="${this.url}">${tag}</a> ${end}
+    ${end}
+  </div>
   <hr />
   <div>
     ${body}

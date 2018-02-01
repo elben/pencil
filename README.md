@@ -19,7 +19,16 @@ stack build
 stack exec pencil-example-simple
 ```
 
-Open the `examples/Simple/out/` folder to see the rendered web pages.
+Open the `examples/Simple/out/` folder to see the rendered web pages. To serve
+the web pages (so that relative URLs work), using `python`'s built in web server
+is easiest:
+
+```
+cd examples/Simple/out/
+python -m SimpleHTTPServer 8000
+```
+
+And go to [localhost:8000](http://localhost:8000).
 
 # Development
 
@@ -50,11 +59,6 @@ Make sure it builds, passes tests, and works:
 stack build
 stack test
 stack exec pencil-example-simple
-```
-
-Check the documentation:
-
-```
 stack haddock
 ```
 
