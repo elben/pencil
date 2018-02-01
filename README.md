@@ -12,7 +12,7 @@ and Markdown Sass/Scss support. Flexible enough to extend for your own needs.
 
 # Examples
 
-Checkout the [examples provided](https://github.com/elben/pencil/blob/master/test/Example/). To run the [Simple](https://github.com/elben/pencil/blob/master/test/Example/Simple) example:
+Checkout the [examples provided](https://github.com/elben/pencil/tree/master/examples). To run the [Simple](https://github.com/elben/pencil/tree/master/examples/Simple) example:
 
 ```
 stack build
