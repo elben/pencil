@@ -1,5 +1,5 @@
 name:                pencil
-version:             0.1.0
+version:             0.1.1
 synopsis: Static site generator
 description:
   Pencil is a static site generator. Use it to generate your personal website!

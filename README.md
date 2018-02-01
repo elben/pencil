@@ -59,6 +59,7 @@ Make sure it builds, passes tests, and works:
 stack build
 stack test
 stack exec pencil-example-simple
+stack exec pencil-example-blog
 stack haddock
 ```
 
