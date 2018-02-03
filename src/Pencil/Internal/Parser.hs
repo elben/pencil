@@ -43,6 +43,8 @@ data Token =
   | TokEnd
   deriving (Show, Eq)
 
+-- | Convert Tokens to PNode AST.
+--
 -- >>> transform [TokText "hello", TokText "world"]
 -- [PText "hello",PText "world"]
 --
@@ -91,7 +93,6 @@ data Token =
 -- >>> transform [TokPreamble "foo: bar\ndo:\n  - re\n  -me", TokText "Hello world ", TokVar "foo"]
 -- [PPreamble "foo: bar\ndo:\n  - re\n  -me",PText "Hello world ",PVar "foo"]
 --
--- | Convert Tokens to PNode AST.
 transform :: [Token] -> [PNode]
 transform toks =
   let stack = ast [] toks
@@ -184,6 +185,7 @@ parseText text = do
   toks <- parse parseEverything (T.unpack "") (T.unpack text)
   return $ transform toks
 
+-- | Parse everything.
 --
 -- >>> parse parseEverything "" "Hello ${man} and ${woman}."
 -- Right [TokText "Hello ",TokVar "man",TokText " and ",TokVar "woman",TokText "."]
@@ -194,8 +196,8 @@ parseText text = do
 -- >>> parse parseEverything "" "Hi ${for(people)} ${name}, ${end} everyone!"
 -- Right [TokText "Hi ",TokFor "people",TokText " ",TokVar "name",TokText ", ",TokEnd,TokText " everyone!"]
 --
--- >>> parse parseEverything "" "${realvar} $.get(javascript) $$ $$$ $} $( $45.50 $$escape wonderful life! ${truth}"
--- Right [TokVar "realvar",TokText " $.get(javascript) $$ $$$ $} $( $45.50 $$escape wonderful life! ",TokVar "truth"]
+-- >>> parse parseEverything "" "${realvar} $.get(javascript) $$ $$$ $} $( $45.50 $$escape $${escape2} wonderful life! ${truth}"
+-- Right [TokVar "realvar",TokText " $.get(javascript) $$ $$$ $} $( $45.50 $$escape ",TokText "${",TokText "escape2} wonderful life! ",TokVar "truth"]
 --
 -- >>> parse parseEverything "" "<!--PREAMBLE  \n  foo: bar\ndo:\n  - re\n  -me\n  -->waffle house ${lyfe}"
 -- Right [TokPreamble "  \n  foo: bar\ndo:\n  - re\n  -me\n  ",TokText "waffle house ",TokVar "lyfe"]
@@ -207,13 +209,12 @@ parseText text = do
 -- >>> parse parseEverything "" "<b>this ${var never closes</b> ${realvar}"
 -- Right [TokText "<b>this ",TokVar "var never closes</b> ${realvar"]
 --
--- | Parse everything.
---
 parseEverything :: Parser [Token]
 parseEverything =
   -- Note that order matters here. We want "most general" to be last (variable
   -- names).
   many1 (try parsePreamble
+     <|> try parseEscape
      <|> try parseContent
      <|> try parseEnd
      <|> try parseFor
@@ -259,10 +260,11 @@ parsePreambleStart :: Parser String
 parsePreambleStart = string "<!--PREAMBLE"
 
 
+-- | Parse partial commands.
+--
 -- >>> parse parsePartial "" "${partial(\"my/file/name.html\")}"
 -- Right (TokPartial "my/file/name.html")
 --
--- | Parse partial commands.
 parsePartial :: Parser Token
 parsePartial = do
   _ <- string "${partial(\""
@@ -270,6 +272,18 @@ parsePartial = do
   _ <- string "\")}"
   return $ TokPartial (T.pack filename)
 
+-- | Parse escape sequence "$${"
+--
+-- >>> parse parseEscape "" "$${example}"
+-- Right (TokText "${")
+--
+parseEscape :: Parser Token
+parseEscape = do
+  try $ string "$${"
+  return (TokText "${")
+
+-- | Parse boring, boring text.
+--
 -- >>> parse parseContent "" "hello ${ffwe} you!"
 -- Right (TokText "hello ")
 --
@@ -285,7 +299,6 @@ parsePartial = do
 -- >>> isLeft $ parse parseContent "" "${name}!!"
 -- True
 --
--- | Parse boring, boring text.
 parseContent :: Parser Token
 parseContent = do
   -- The manyTill big parser below will accept an empty string, which is bad. So
@@ -296,10 +309,17 @@ parseContent = do
   -- both lookAhead (does not consume successful "${" found) and try (does not
   -- consume failure to find "${"). Not having both produces bugs, so.
   --
+  -- Also grab "$${", which should be captured as an escape (parseEscape).
+  --
   -- https://stackoverflow.com/questions/20020350/parsec-difference-between-try-and-lookahead
-  stuff <- manyTill anyChar (try (lookAhead (string "${")) <|> try (lookAhead parsePreambleStart) <|> (eof >> return " "))
+  stuff <- manyTill anyChar (try (lookAhead (string "$${")) <|>
+                             try (lookAhead (string "${")) <|>
+                             try (lookAhead parsePreambleStart) <|>
+                             (eof >> return " "))
   return $ TokText (T.pack (h : stuff))
 
+-- | Parse for loop declaration.
+--
 -- >>> parse parseFor "" "${for(posts)}"
 -- Right (TokFor "posts")
 --
@@ -312,7 +332,6 @@ parseContent = do
 -- >>> isLeft $ parse parseFor "" "${for foo}"
 -- True
 --
--- | Parse for loop declaration.
 parseFor :: Parser Token
 parseFor = parseFunction "for" TokFor
 
@@ -331,13 +350,14 @@ parseFunction keyword ctor = do
   _ <- char '}'
   return $ ctor (T.pack varName)
 
+-- | Parse end keyword.
+--
 -- >>> parse parseEnd "" "${end}"
 -- Right TokEnd
 --
 -- >>> isLeft $ parse parseEnd "" "${enddd}"
 -- True
 --
--- | Parse end keyword.
 parseEnd :: Parser Token
 parseEnd = do
   _ <- try $ string "${end}"

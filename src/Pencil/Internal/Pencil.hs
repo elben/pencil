@@ -838,7 +838,7 @@ renderCss fp =
 -- The first element defines the outer-most container, and subsequent elements
 -- are /inside/ the previous element.
 --
--- You commonly @Structure@s to insert a @Page@ containing content (e.g. a blog
+-- You commonly use @Structure@s to insert a @Page@ containing content (e.g. a blog
 -- post) into a container (e.g. a layout shared across all your web pages).
 --
 -- Build structures using 'structure', '<||' and '<|'.
