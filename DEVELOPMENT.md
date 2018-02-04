@@ -16,7 +16,7 @@ stack haddock
 
 ```bash
 stack install hasktags
-hasktags --ignore-close-implementation --ctags .
+make tags
 ```
 
 ## Release
