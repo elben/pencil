@@ -51,6 +51,8 @@ git tag v0.1.0
 git push --tags
 ```
 
+Make sure the [Travis build is green](https://travis-ci.org/elben/pencil).
+
 Push to Hackage:
 
 ```
