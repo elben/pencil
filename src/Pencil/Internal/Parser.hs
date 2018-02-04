@@ -279,7 +279,7 @@ parsePartial = do
 --
 parseEscape :: Parser Token
 parseEscape = do
-  try $ string "$${"
+  _ <- try $ string "$${"
   return (TokText "${")
 
 -- | Parse boring, boring text.
