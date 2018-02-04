@@ -29,6 +29,7 @@ stack test
 stack exec pencil-example-simple
 stack exec pencil-example-blog
 stack haddock
+stack sdist
 ```
 
 Check that tutorials are updated.
@@ -38,6 +39,10 @@ Update the CHANGELOG.md.
 Update the version number in `pencil.cabal`.
 
 Commit the changes.
+
+```
+git commit -m "Release version 0.x.x"
+```
 
 Tag the release:
 

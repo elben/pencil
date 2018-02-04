@@ -2,9 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
+## [Unreleased]
 
-## [0.1.1](https://github.com/elben/pencil/)
+## [0.1.2]
+
+### Added
+- Escape template directives using `$${example}`. This will be rendered
+  literally as `${example}`.
+
+## [0.1.1]
 
 ### Added
 - Blog example.
@@ -27,3 +33,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 ### Removed
 ### Deprecated
 ### Security
+
+The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
+
+[Unreleased]: https://github.com/elben/pencil/compare/v1.0.0...HEAD
+[0.1.2]: https://github.com/elben/pencil/compare/v0.1.1...v0.1.2
+[0.1.1]: https://github.com/elben/pencil/compare/cb14e3610aa18dd3c71279bd56231c6bb23bae7b...v0.1.1
