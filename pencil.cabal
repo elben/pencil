@@ -55,7 +55,8 @@ test-suite pencil-test
   ghc-options:         -Wall -threaded -rtsopts -with-rtsopts=-N
   default-language:    Haskell2010
 
-executable pencil-example-simple
+test-suite pencil-example-simple
+  type:                exitcode-stdio-1.0
   hs-source-dirs:      examples/Simple
   main-is:             Main.hs
   ghc-options:         -Wall -threaded -rtsopts -with-rtsopts=-N
@@ -63,7 +64,8 @@ executable pencil-example-simple
                      , pencil
   default-language:    Haskell2010
 
-executable pencil-example-blog
+test-suite pencil-example-blog
+  type:                exitcode-stdio-1.0
   hs-source-dirs:      examples/Blog
   main-is:             Main.hs
   ghc-options:         -Wall -threaded -rtsopts -with-rtsopts=-N

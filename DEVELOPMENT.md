@@ -21,13 +21,18 @@ make tags
 
 ## Release
 
+Check for newer dependency versions: http://packdeps.haskellers.com/feed?needle=pencil
+
 Make sure it builds, passes tests, and works:
 
 ```
 stack build
+
+# stack test runs tests and also the example websites (e.g.
+# pencil-example-blog), generating files in their perspective `examples/out/`
+# directories.
 stack test
-stack exec pencil-example-simple
-stack exec pencil-example-blog
+
 stack haddock
 stack sdist
 ```
