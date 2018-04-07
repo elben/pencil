@@ -814,7 +814,7 @@ load fpf fp = do
   let env = findEnv nodes
   let fp' = "/" ++ fpf fp
   let env' = H.insert "this.url" (VText (T.pack fp')) env
-  return $ Page nodes env' ("/" ++ fpf fp)
+  return $ Page nodes env' fp'
 
 -- | Find preamble node, and load as an Env. If no preamble is found, return a
 -- blank Env.
