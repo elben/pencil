@@ -4,8 +4,7 @@ This example contains a full blogging system. Your blog posts can have tags.
 This example also renders tag index pages.
 
 ```
-stack build
-stack exec pencil-example-blog
+stack test
 cd examples/Blog/out
 python -m SimpleHTTPServer 8000
 ```

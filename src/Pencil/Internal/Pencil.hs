@@ -188,34 +188,38 @@ run :: PencilApp a -> Config -> IO ()
 run app config = do
   e <- runExceptT $ runReaderT app config
   case e of
-    Left err ->
-      case err of
-        FileNotFound mfp ->
-          case mfp of
-            Just fp -> do
-              e2 <- runExceptT $ runReaderT (mostSimilarFile fp) config
-              case e2 of
-                Left _ -> return ()
-                Right mBest ->
-                  case mBest of
-                    Just best -> putStrLn ("Maybe you mean this: " ++ best)
-                    Nothing -> return ()
-            Nothing -> return ()
-        VarNotInEnv var fp ->
-          putStrLn ("Variable ${" ++ T.unpack var ++ "}" ++ " not found in the environment when rendering file " ++ fp ++ ".")
+    Left (VarNotInEnv var fp) ->
+      putStrLn ("Variable ${" ++ T.unpack var ++ "}" ++ " not found in the environment when rendering file " ++ fp ++ ".")
+    Left (FileNotFound (Just fp)) -> do
+      e2 <- runExceptT $ runReaderT (mostSimilarFiles fp) config
+      case e2 of
+        Right closestFiles ->
+          if not (null closestFiles)
+          then do
+            putStrLn ("File " ++ fp ++ " not found. Maybe you meant: ")
+            printAsList (take 3 closestFiles)
+          else putStrLn ("File " ++ fp ++ " not found.")
         _ -> return ()
-    Right _ -> return ()
+    _ -> return ()
+
+-- Print the list of Strings, one line at a time, prefixed with "-".
+printAsList :: [String] -> IO ()
+printAsList [] = return ()
+printAsList (a:as) = do
+  putStr "- "
+  putStrLn a
+  printAsList as
 
 -- | Given a file path, look at all file paths and find the one that seems most
 -- similar.
-mostSimilarFile :: FilePath -> PencilApp (Maybe FilePath)
-mostSimilarFile fp = do
+mostSimilarFiles :: FilePath -> PencilApp [FilePath]
+mostSimilarFiles fp = do
   sitePrefix <- asks getSourceDir
   fps <- listDir True ""
   let fps' = map (sitePrefix ++) fps -- add site prefix for distance search
   let costs = map (\f -> (f, levenshteinDistance defaultEditCosts fp f)) fps'
   let sorted = L.sortBy (\(_, d1) (_, d2) -> compare d1 d2) costs
-  return $ fst <$> M.listToMaybe sorted
+  return $ map fst sorted
 
 -- | Known Pencil errors that we know how to either recover from or quit
 -- gracefully.
@@ -589,7 +593,7 @@ listDir :: Bool
         -> FilePath
         -> PencilApp [FilePath]
 listDir recursive dir = do
-  let dir' = FP.addTrailingPathSeparator dir
+  let dir' = if null dir then dir else FP.addTrailingPathSeparator dir
   fps <- listDir_ recursive dir'
   return $ map (dir' ++) fps
 
