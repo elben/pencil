@@ -8,8 +8,10 @@ stack exec doctest src/
 
 ## Documentation
 
+Generate documentation.
+
 ```
-stack haddock
+stack haddock --keep-going
 ```
 
 ## Ctags

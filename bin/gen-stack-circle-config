@@ -1,0 +1,115 @@
+#!/bin/bash
+
+mkdir -p .circleci
+touch .circleci/config.yml
+
+CONFIG_GITHUB_USER=$(git config --get github.user)
+
+if [ -z "${CONFIG_GITHUB_USER}" ]; then
+  read -p "GitHub repo (e.g. jdoe.github.io): " REPO
+else
+  read -p "GitHub repo (defaults to ${CONFIG_GITHUB_USER}.github.io): " REPO
+fi
+
+if [ -z "${CONFIG_GITHUB_USER}" ] && [ -z "${REPO}" ]; then
+  echo "ERROR: repo can't be blank."
+  exit 1
+fi
+
+if [ -z "${REPO}" ]; then
+  REPO="${CONFIG_GITHUB_USER}.github.io"
+fi
+
+read -p "Cabal file name (defaults to my-website.cabal): " PROJECT_NAME
+
+if [ -z "${PROJECT_NAME}" ]; then
+  PROJECT_NAME="my-website.cabal"
+fi
+
+cat << EOF > .circleci/config.yml
+version: 2
+
+jobs:
+  build:
+    docker:
+      - image: fpco/stack-build
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-${REPO}-{{ checksum "${PROJECT_NAME}" }}-{{ checksum "stack.yaml" }}
+            - v1-${REPO}-
+      - run:
+          name: Upgrade stack
+          command: stack upgrade
+      - run:
+          name: Setup GHC
+          command: stack setup
+      - run:
+          name: Build dependencies
+          command: stack build --pedantic
+      - save_cache:
+          key: v1-${REPO}-{{ checksum "${PROJECT_NAME}" }}-{{ checksum "stack.yaml" }}
+          paths:
+            - ~/.stack
+      - run:
+          name: Generate website
+          command: make all
+          no_output_timeout: 30m
+      - save_cache:
+          # Save the built files to be deployed later
+          key: v1-${REPO}-build-{{ .Branch }}-{{ .Revision }}
+          paths:
+            - out
+  deploy:
+    docker:
+      - image: buildpack-deps:xenial
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-${REPO}-build-{{ .Branch }}-{{ .Revision }}
+            - v1-${REPO}-build
+      - run:
+          name: Deploy website
+          command: make deploy
+
+workflows:
+  version: 2
+  build-deploy:
+    jobs:
+      - build:
+          filters:
+            # Don't build master since that's for GitHub pages
+            branches:
+              ignore: master
+      - deploy:
+          requires:
+            - build
+          filters:
+            branches:
+              # Only deploy website files from the \`source\` branch
+              only: source
+EOF
+
+cat << EOF > .circleci/noop.yml
+version: 2
+
+jobs:
+  build:
+    branches:
+      ignore:
+        - master
+EOF
+
+echo "========================================="
+echo ".circleci/config.yml generated:"
+echo "========================================="
+
+cat .circleci/config.yml
+
+echo "========================================="
+echo ".circleci/noop.yml generated:"
+echo "========================================="
+
+cat .circleci/noop.yml

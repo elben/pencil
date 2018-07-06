@@ -1,16 +1,36 @@
 #!/bin/bash
 
-read -p "GitHub username (e.g. jdoe): " username
-read -p "GitHub repo (e.g. jdoe.github.io): " repo
-read -p "Your Pencil executable defined in your .cabal file (e.g. my-website-exe): " exe
+CONFIG_GITHUB_USER=$(git config --get github.user)
 
-echo "=========="
+if [ -z "${CONFIG_GITHUB_USER}" ]; then
+  read -p "GitHub username (e.g. jdoe): " GITHUB_USER
+else
+  read -p "GitHub username (defaults to ${CONFIG_GITHUB_USER}): " GITHUB_USER
+fi
+
+if [ -z "${GITHUB_USER}" ]; then
+  GITHUB_USER="${CONFIG_GITHUB_USER}"
+fi
+
+read -p "GitHub repo (defaults to ${GITHUB_USER}.github.io): " REPO
+
+if [ -z "${REPO}" ]; then
+  REPO="${GITHUB_USER}.github.io"
+fi
+
+read -p "Your Pencil executable defined in your .cabal file (defaults to my-website-exe): " exe
+
+if [ -z "${exe}" ]; then
+  exe="my-website-exe"
+fi
+
+echo "========================================="
 echo "Makefile generated:"
-echo
+echo "========================================="
 
 # Spit out this heredoc as a Makefile
 cat << EOF > Makefile
-REPO := git@github.com:${username}/${repo}.git
+REPO := git@github.com:${GITHUB_USER}/${REPO}.git
 
 EXE := stack
 
@@ -40,4 +60,4 @@ deploy:
 	cd out && git push -f origin master:master
 EOF
 
-cat Makefile3
+cat Makefile
