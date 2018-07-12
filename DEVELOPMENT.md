@@ -67,6 +67,16 @@ stack sdist
 stack upload
 ```
 
+## Testing against other GHC
+
+The Travis CS build below tests against other GHC. We can also test other GHCs
+using stack:
+
+```
+stack --stack-yaml=stack-ghc-8.2.yaml build
+stack --stack-yaml=stack-ghc-8.2.yaml exec ...
+```
+
 ## Travis CI
 
 [travis-ci.org/elben/pencil](https://travis-ci.org/elben/pencil)
@@ -76,3 +86,7 @@ Note that `.travis.yml` was generated using [multi-ghc-travis](https://github.co
 ```
 stack exec runghc ~/code/multi-ghc-travis/make_travis_yml_2.hs pencil.cabal > .travis.yml
 ```
+
+This build checks to make sure that Pencil can build against other versions of
+GHC specified in the `.travis.yml`. We want to make sure that our dependency
+bounds are large enough to support multiple versions of GHC.
