@@ -1,6 +1,15 @@
 # Development
 
 ```bash
+nix-env -iA nixpkgs.haskellPackages.doctest
+
+nix-shell --attr env release.nix
+
+# Inside a nix-shell:
+doctest src/
+```
+
+```bash
 stack build --pedantic
 stack test
 stack exec doctest src/

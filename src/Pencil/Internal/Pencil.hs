@@ -29,6 +29,7 @@ import qualified Data.Maybe as M
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
 import qualified Data.Yaml as A
+import qualified Skylighting
 import qualified System.Directory as D
 import qualified System.FilePath as FP
 import qualified Text.Pandoc as P
@@ -89,7 +90,7 @@ defaultConfig = Config
   , configEnv = H.empty
   , configSassOptions = Text.Sass.Options.defaultSassOptions
   , configPandocReaderOptions = P.def
-  , configPandocWriterOptions = P.def { P.writerHighlight = True }
+  , configPandocWriterOptions = P.def { P.writerHighlightStyle = Just Skylighting.pygments }
   , configDisplayValue = toText
   }
 
@@ -441,7 +442,7 @@ parseAndConvertTextFiles fp = do
         pandocWriterOptions <- asks getPandocWriterOptions
         case P.readMarkdown pandocReaderOptions (T.unpack content) of
           Left _ -> return content
-          Right pandoc -> return $ T.pack $ P.writeHtmlString pandocWriterOptions pandoc
+          Right pandoc -> return $ T.pack $ P.writeHtml5String pandocWriterOptions pandoc
       Sass -> do
         sassOptions <- asks getSassOptions
         sitePrefix <- asks getSourceDir
