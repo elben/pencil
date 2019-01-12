@@ -29,10 +29,10 @@ import qualified Data.Maybe as M
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
 import qualified Data.Yaml as A
-import qualified Skylighting
 import qualified System.Directory as D
 import qualified System.FilePath as FP
 import qualified Text.Pandoc as P
+import qualified Text.Pandoc.Highlighting
 import qualified Text.Sass as Sass
 
 -- | The main monad transformer stack for a Pencil application.
@@ -78,7 +78,7 @@ instance Default Config where
 --  , 'configDisplayValue' = 'toText'
 --  , 'configSassOptions' = Text.Sass.Options.defaultSassOptions
 --  , 'configPandocReaderOptions' = Text.Pandoc.def
---  , 'configPandocWriterOptions' = Text.Pandoc.def { Text.Pandoc.writerHighlight = True }
+--  , 'configPandocWriterOptions' = Text.Pandoc.def { Text.Pandoc.writerHighlightStyle = Just Text.Pandoc.Highlighting.monochrome }
 --  , 'configDisplayValue = 'toText'
 --  }
 -- @
@@ -90,7 +90,7 @@ defaultConfig = Config
   , configEnv = H.empty
   , configSassOptions = Text.Sass.Options.defaultSassOptions
   , configPandocReaderOptions = P.def
-  , configPandocWriterOptions = P.def { P.writerHighlightStyle = Just Skylighting.pygments }
+  , configPandocWriterOptions = P.def { P.writerHighlightStyle = Just Text.Pandoc.Highlighting.monochrome }
   , configDisplayValue = toText
   }
 
@@ -430,6 +430,11 @@ isInvalidByteSequence e = ioe_description e == "invalid byte sequence"
 isNoSuchFile :: IOError -> Bool
 isNoSuchFile e = ioe_type e == NoSuchThing
 
+readMarkdownWriteHtml :: P.PandocMonad m => P.ReaderOptions -> P.WriterOptions -> T.Text -> m T.Text
+readMarkdownWriteHtml readerOptions writerOptions content  = do
+  pandoc <- P.readMarkdown readerOptions content
+  P.writeHtml5String writerOptions pandoc
+
 -- | Loads and parses the given file path. Converts 'Markdown' files to HTML,
 -- compiles 'Sass' files into CSS, and leaves everything else alone.
 parseAndConvertTextFiles :: FilePath -> PencilApp (T.Text, [PNode])
@@ -440,9 +445,10 @@ parseAndConvertTextFiles fp = do
       Markdown -> do
         pandocReaderOptions <- asks getPandocReaderOptions
         pandocWriterOptions <- asks getPandocWriterOptions
-        case P.readMarkdown pandocReaderOptions (T.unpack content) of
+        result <- liftIO $ P.runIO (readMarkdownWriteHtml pandocReaderOptions pandocWriterOptions content)
+        case result of
           Left _ -> return content
-          Right pandoc -> return $ T.pack $ P.writeHtml5String pandocWriterOptions pandoc
+          Right text -> return text
       Sass -> do
         sassOptions <- asks getSassOptions
         sitePrefix <- asks getSourceDir
@@ -775,7 +781,7 @@ loadResource fpf fp =
   -- wasn't a text file, then return a Passthroguh resource. This is where we
   -- finally handle the "checked" exception; that is, converting the Left error
   -- case (NotTextFile) into a Right case (Passthrough).
-  liftM Single (load fpf fp)
+  fmap Single (load fpf fp)
     `catchError` handle
   -- 'handle' requires FlexibleContexts
   where handle e = case e of
@@ -825,7 +831,7 @@ load fpf fp = do
 -- blank Env.
 findEnv :: [PNode] -> Env
 findEnv nodes =
-  aesonToEnv $ M.fromMaybe H.empty (findPreambleText nodes >>= (A.decode . encodeUtf8 . T.strip))
+  aesonToEnv $ M.fromMaybe H.empty (findPreambleText nodes >>= (A.decodeThrow . encodeUtf8 . T.strip))
 
 -- | Loads and renders file as CSS.
 --

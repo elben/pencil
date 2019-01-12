@@ -6,3 +6,5 @@ dist/
 tags
 TODO.md
 out/
+.vscode
+dist-newstyle/
