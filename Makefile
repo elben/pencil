@@ -8,7 +8,7 @@ docs:
 	stack haddock
 
 tags:
-	@hasktags --ignore-close-implementation --ctags .
+	@hasktags --ctags .
 
 example-simple: build
 	stack exec pencil-example-simple

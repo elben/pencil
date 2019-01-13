@@ -19,6 +19,10 @@ docs](https://hackage.haskell.org/package/pencil).
 Checkout the [examples provided](https://github.com/elben/pencil/tree/master/examples). To run the [Simple](https://github.com/elben/pencil/tree/master/examples/Simple) example:
 
 ```
+curl https://nixos.org/nix/install | sh
+
+# TODO fix
+
 stack build
 stack exec pencil-example-simple
 ```

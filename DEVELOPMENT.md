@@ -1,18 +1,59 @@
+Migration to nix:
+
+- validate everything works, testing the various things
+
 # Development
 
+Pencil uses Nix to build its development environment. We develop against
+
+First, install and set up `nix`:
+
 ```bash
-nix-env -iA nixpkgs.haskellPackages.doctest
-
-nix-shell --attr env release.nix
-
-# Inside a nix-shell:
-doctest src/
+# Install nix
+curl https://nixos.org/nix/install | sh
 ```
 
+Pin nixpkgs to version 18.09. The nixpkgs-unstable version (19.03) had problems
+building pandoc-2.5:
+
+```
+nix-channel --add https://nixos.org/channels/nixos-18.09 nixpkgs
+nix-channel --update
+```
+
+See that pencil builds:
+
 ```bash
-stack build --pedantic
-stack test
-stack exec doctest src/
+nix-build --attr env release.nix
+```
+
+We'll need to install a couple of Haskell packages that we use for development.
+On my macOS, this is how I would install these packages. If this doesn't work,
+try following the instructions found
+[here](https://nixos.org/nixpkgs/manual/#users-guide-to-the-haskell-infrastructure)
+to figure out the namespace that your OS uses for packages. You may need to just
+replace 'nixpkgs' with 'nixos'.
+
+```bash
+nix-env -iA nixpkgs.haskellPackages.cabal-install
+nix-env -iA nixpkgs.haskellPackages.doctest
+```
+
+Once that's installed, we'll want to go into a `nix-shell`. Whereas `nix-build`
+builds all the dependencies and the pencil library itself, when we are
+developing pencil we want to be dropped into an environment where everything is
+set up as if we are about to build pencil, but not actually build it. To do
+this, we need to go into a nix shell:
+
+```bash
+nix-shell --attr env release.nix
+```
+
+And now, inside the `nix-shell`:
+
+```bash
+[nix-shell]$ cabal new-test
+[nix-shell]$ doctest src/
 ```
 
 ## Documentation
@@ -20,14 +61,29 @@ stack exec doctest src/
 Generate documentation.
 
 ```
-stack haddock --keep-going
+[nix-shell]$ cabal new-haddock
 ```
 
 ## Ctags
 
 ```bash
-stack install hasktags
+nix-env -iA nixpkgs.haskellPackages.hasktags
 make tags
+```
+
+## Nix Maintenance
+
+```bash
+# Figure out which release of nixpkgs we are using.
+nix-instantiate --eval --expr 'builtins.readFile <nixpkgs/.version>'
+nix-instantiate --eval --expr 'builtins.readFile <nixpkgs/.git-revision>'
+
+# Update the current nix channel
+nix-channel --update
+
+# Pinning the current channel to a specific version
+# Available channels: https://nixos.org/channels/
+nix-channel --add https://nixos.org/channels/nixos-18.09 nixpkgs
 ```
 
 ## Release
@@ -37,6 +93,18 @@ Check for newer dependency versions: http://packdeps.haskellers.com/feed?needle=
 Make sure it builds, passes tests, and works:
 
 ```
+[nix-shell]$ cabal configure
+
+# Run tests and generate the example websites (e.g. pencil-example-blog).
+# The generated websites can be found in this path:
+# ./dist-newstyle/build/x86_64-osx/ghc-8.6.3/pencil-0.1.3/t/pencil-example-blog
+[nix-shell]$ cabal new-test
+
+[nix-shell]$ cabal new-haddock
+
+# Generate a source distribution file (.tar.gz).
+[nix-shell]$ cabal new-sdist
+
 stack build
 
 # stack test runs tests and also the example websites (e.g.
