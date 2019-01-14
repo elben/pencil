@@ -33,6 +33,7 @@ import qualified System.Directory as D
 import qualified System.FilePath as FP
 import qualified Text.Pandoc as P
 import qualified Text.Pandoc.Highlighting
+import Text.Pandoc.Extensions (enableExtension, Extension(..))
 import qualified Text.Sass as Sass
 
 -- | The main monad transformer stack for a Pencil application.
@@ -77,7 +78,9 @@ instance Default Config where
 --  , 'configEnv' = HashMap.empty
 --  , 'configDisplayValue' = 'toText'
 --  , 'configSassOptions' = Text.Sass.Options.defaultSassOptions
---  , 'configPandocReaderOptions' = Text.Pandoc.def
+--  , 'configPandocReaderOptions' = Text.Pandoc.def {
+--       Text.Pandoc.readerExtensions = Text.Pandoc.Extensions.enableExtension Text.Pandoc.Extensions.Ext_raw_html (Text.Pandoc.readerExtensions Text.Pandoc.def)
+--    }
 --  , 'configPandocWriterOptions' = Text.Pandoc.def { Text.Pandoc.writerHighlightStyle = Just Text.Pandoc.Highlighting.monochrome }
 --  , 'configDisplayValue = 'toText'
 --  }
@@ -89,8 +92,12 @@ defaultConfig = Config
   , configOutputDir = "out/"
   , configEnv = H.empty
   , configSassOptions = Text.Sass.Options.defaultSassOptions
-  , configPandocReaderOptions = P.def
-  , configPandocWriterOptions = P.def { P.writerHighlightStyle = Just Text.Pandoc.Highlighting.monochrome }
+  , configPandocReaderOptions = P.def {
+      P.readerExtensions = enableExtension Ext_raw_html (P.readerExtensions P.def)
+    }
+  , configPandocWriterOptions = P.def {
+      P.writerHighlightStyle = Just Text.Pandoc.Highlighting.monochrome
+    }
   , configDisplayValue = toText
   }
 
