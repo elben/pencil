@@ -16,7 +16,7 @@ curl https://nixos.org/nix/install | sh
 Pin nixpkgs to version 18.09. The nixpkgs-unstable version (19.03) had problems
 building pandoc-2.5:
 
-```
+```bash
 nix-channel --add https://nixos.org/channels/nixos-18.09 nixpkgs
 nix-channel --update
 ```
@@ -96,9 +96,10 @@ Make sure it builds, passes tests, and works:
 [nix-shell]$ cabal configure
 
 # Run tests and generate the example websites (e.g. pencil-example-blog).
-# The generated websites can be found in this path:
-# ./dist-newstyle/build/x86_64-osx/ghc-8.6.3/pencil-0.1.3/t/pencil-example-blog
+# Check the ./examples/**/out/ directories for the generated websites.
 [nix-shell]$ cabal new-test
+[nix-shell]$ cabal new-run pencil-example-simple
+[nix-shell]$ cabal new-run pencil-example-blog
 
 [nix-shell]$ cabal new-haddock
 
