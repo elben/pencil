@@ -24,7 +24,7 @@ nix-channel --update
 See that pencil builds:
 
 ```bash
-nix-build --attr env release.nix
+nix-build --attr env default.nix
 ```
 
 We'll need to install a couple of Haskell packages that we use for development.
@@ -46,7 +46,7 @@ set up as if we are about to build pencil, but not actually build it. To do
 this, we need to go into a nix shell:
 
 ```bash
-nix-shell --attr env release.nix
+nix-shell --attr env default.nix
 ```
 
 And now, inside the `nix-shell`:
@@ -62,6 +62,31 @@ Generate documentation.
 
 ```
 [nix-shell]$ cabal new-haddock
+```
+
+## IDE
+
+Getting various IDEs set up to develop Pencil.
+
+First, install [hie-nix](https://github.com/domenkozar/hie-nix). Follow the instructions in the repo, but beware that installing all versions of hie for all versions of GHC takes a LONG time on macOS (because it needs to compile them all). I just install the specific version of hie-nix/ghc I need.
+
+There is a script in Pencil's directory, `hie-start.sh`, that properly runs `hie-wrapper` in the context of our `nix-shell`. We're going to use this script to run the Haskell Language Server.
+
+### Visual Studio Code
+
+Install the [vscode-hie-server](https://marketplace.visualstudio.com/items?itemName=alanz.vscode-hie-server) extension.
+
+In the workspace settings, turn on **Language Server Haskell: Use Custom Hie Wrapper**.
+Then set **Language Server Haskell: Use Custom Hie Wrapper Path** to `${workspaceFolder}/hie-start.sh`.
+This way, we use the `hie-start.sh` script to properly start HIE in a nix-shell.
+
+The JSON setting would look like:
+
+```json
+{
+    "languageServerHaskell.useCustomHieWrapper": true,
+    "languageServerHaskell.useCustomHieWrapperPath": "${workspaceFolder}/hie-start.sh"
+}
 ```
 
 ## Ctags
