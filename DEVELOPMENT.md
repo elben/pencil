@@ -130,16 +130,6 @@ Make sure it builds, passes tests, and works:
 
 # Generate a source distribution file (.tar.gz).
 [nix-shell]$ cabal new-sdist
-
-stack build
-
-# stack test runs tests and also the example websites (e.g.
-# pencil-example-blog), generating files in their perspective `examples/out/`
-# directories.
-stack test
-
-stack haddock
-stack sdist
 ```
 
 Check that tutorials are updated.

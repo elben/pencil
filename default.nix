@@ -1,6 +1,1 @@
-let
-  pkgs = import <nixpkgs> { };
-
-in
-  pkgs.haskellPackages.callPackage ./pencil.nix { }
-
+release-ghc-8.4.nix
