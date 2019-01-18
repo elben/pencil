@@ -28,35 +28,42 @@ jobs:
 
       # - restore_cache:
       #     keys:
-      #       - v1-pencil-{{ checksum "elbenshiracom.cabal" }}-{{ checksum "release.nix" }}
+      #       - v1-pencil-{{ .Branch }}-{{ .Revision }}
+      #       - v1-pencil-{{ .Branch }}-
       #       - v1-pencil-
+
       # - run:
-      #     name: Install nix
-      #     command: curl https://nixos.org/nix/install | sh
+      #     name: Restore nix cache
+      #     command: |
+      #       if [ -e /nix-cache/pencil-nix-cache.nar ]; then
+      #         echo "/nix-cache/pencil-nix-cache.nar present, importing into store."
+      #         nix-store --import < /nix-cache/pencil-nix-cache.nar
+      #       else
+      #         echo "/nix-cache/pencil-nix-cache.nar missing, skipping store import."
+      #       fi
 
       - run:
           name: Run tests using ghc-8.4
           command: |
-            nix-shell --attr env release-ghc-8.4.nix --run "cabal new-test"
-            nix-shell --attr env release-ghc-8.4.nix --run "doctest src/"
+            nix-shell --attr env release-ghc-8.4.nix --run "cabal update && cabal new-test"
+            # nix-shell --attr env release-ghc-8.4.nix --run "doctest src/"
       - run:
           name: Run tests using ghc-8.2
           command: |
-            nix-shell --attr env release-ghc-8.2.nix --run "cabal new-test"
-            nix-shell --attr env release-ghc-8.2.nix --run "doctest src/"
+            nix-shell --attr env release-ghc-8.2.nix --run "cabal update && cabal new-test"
+            # nix-shell --attr env release-ghc-8.2.nix --run "doctest src/"
       - run:
           name: Build using nix-build
           command: nix-build --attr env
-      # - save_cache:
-      #     key: v1-pencil-{{ checksum "elbenshiracom.cabal" }}-{{ checksum "release.nix" }}
-      #     paths:
-      #       - /nix/
+
       # - run:
-      #     name: Generate website
-      #     command: make all
-      #     no_output_timeout: 45m
+      #     name: Create nix cache
+      #     command: |
+      #       mkdir -p /nix-cache
+      #       nix-store --export $(nix-store -qR the-pencil-build-path) > /nix-cache/pencil-nix-cache.nar
+      #       NIXSH
+
       # - save_cache:
-      #     # Save the built files to be deployed later
-      #     key: v1-pencil-build-{{ .Branch }}-{{ .Revision }}
+      #     key: v1-pencil-{{ .Branch }}-{{ .Revision }}
       #     paths:
-      #       - out
+      #       - /nix-cache/pencil-nix-cache.nar
