@@ -1,4 +1,6 @@
 let
   buildPkg = import ./release.nix;
 in
-  buildPkg "nixos-18.09"
+  buildPkg {
+    channel = "nixos-18.09";
+  }

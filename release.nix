@@ -3,7 +3,10 @@
 # Takes in a channel string, and checks for the channel's latest commit hash (every N days).
 # That way, we can make sure that we are testing with a recent version of the channel.
 # Allows us to pass in different channels, so that we can test different versions of GHC.
-channel:
+#
+# config is an attribute set that is inherited into pkgs. Useful for, say, overriding
+# certain Haskell packages.
+{ channel, config ? {} }:
 let
   sysPkgs = import <nixpkgs> { };
 
@@ -28,7 +31,10 @@ let
      sed 's#\(.*\)#"\1"#' > $out
     ''
   );
-  pkgs = import (builtins.fetchTarball "https://github.com/NixOS/nixpkgs-channels/archive/${latestRevision}.tar.gz") {};
+
+  pkgs = import
+            (builtins.fetchTarball "https://github.com/NixOS/nixpkgs-channels/archive/${latestRevision}.tar.gz")
+            { inherit config; };
 in
   pkgs.haskellPackages.callPackage ./pencil.nix { }
 
