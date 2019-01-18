@@ -10,6 +10,8 @@ references:
         nix-channel --add \
         https://nixos.org/channels/nixpkgs-unstable nixpkgs && \
         nix-channel --update
+        nix-env -iA nixpkgs.haskellPackages.cabal-install
+        nix-env -iA nixpkgs.haskellPackages.doctest
 
 jobs:
   build:
@@ -34,10 +36,14 @@ jobs:
 
       - run:
           name: Run tests using ghc-8.4
-          command: nix-shell --attr env release-ghc-8.4.nix --run "cabal new-test"
+          command: |
+            nix-shell --attr env release-ghc-8.4.nix --run "cabal new-test"
+            nix-shell --attr env release-ghc-8.4.nix --run "doctest src/"
       - run:
           name: Run tests using ghc-8.2
-          command: nix-shell --attr env release-ghc-8.2.nix --run "cabal new-test"
+          command: |
+            nix-shell --attr env release-ghc-8.2.nix --run "cabal new-test"
+            nix-shell --attr env release-ghc-8.2.nix --run "doctest src/"
       - run:
           name: Build using nix-build
           command: nix-build --attr env
