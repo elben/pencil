@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/elben/pencil.svg?branch=master)](https://travis-ci.org/elben/pencil)
+[![CircleCI](https://circleci.com/gh/elben/pencil/tree/master.svg?style=svg)](https://circleci.com/gh/elben/pencil/tree/master)
 
 # Pencil
 
