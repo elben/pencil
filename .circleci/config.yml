@@ -1,20 +1,24 @@
 version: 2
 
+# Also based off: https://github.com/johnae/circleci-nix
+
 jobs:
   build:
     docker:
       # https://circleci.com/docs/2.0/circleci-images/#buildpack-deps
       # https://hub.docker.com/r/circleci/buildpack-deps/tags/
-      - image: circleci/buildpack-deps:bionic-curl
+      # - image: circleci/buildpack-deps:bionic-curl
+
+      - image: nixorg/nix:circleci
     steps:
       - checkout
       # - restore_cache:
       #     keys:
       #       - v1-pencil-{{ checksum "elbenshiracom.cabal" }}-{{ checksum "release.nix" }}
       #       - v1-pencil-
-      - run:
-          name: Install nix
-          command: curl https://nixos.org/nix/install | sh
+      # - run:
+      #     name: Install nix
+      #     command: curl https://nixos.org/nix/install | sh
       - run:
           name: Run tests using ghc-8.4
           command: nix-shell --attr env release-ghc-8.4.nix --run "cabal new-test"
@@ -37,32 +41,3 @@ jobs:
       #     key: v1-pencil-build-{{ .Branch }}-{{ .Revision }}
       #     paths:
       #       - out
-  # deploy:
-  #   docker:
-  #     - image: circleci/buildpack-deps:bionic-curl
-  #   steps:
-  #     - checkout
-  #     # - restore_cache:
-  #     #     keys:
-  #     #       - v1-pencil-build-{{ .Branch }}-{{ .Revision }}
-  #     #       - v1-pencil-build
-  #     - run:
-  #         name: Deploy website
-  #         command: make deploy
-
-workflows:
-  version: 2
-  build-deploy:
-    jobs:
-      - build:
-          filters:
-            branches:
-              only: update-packages-for-nix
-      # - deploy:
-      #     requires:
-      #       - build
-      #     filters:
-      #       branches:
-      #         # Only deploy website files from the `source` branch
-      #         only: source
-      #
