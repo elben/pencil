@@ -45,13 +45,11 @@ jobs:
       - run:
           name: Run tests using ghc-8.4
           command: |
-            nix-shell --attr env release-ghc-8.4.nix --run "cabal update && cabal new-test"
-            # nix-shell --attr env release-ghc-8.4.nix --run "doctest src/"
+            nix-shell --attr env release-ghc-8.4.nix --run "cabal update && cabal new-test && doctest src/"
       - run:
           name: Run tests using ghc-8.2
           command: |
-            nix-shell --attr env release-ghc-8.2.nix --run "cabal update && cabal new-test"
-            # nix-shell --attr env release-ghc-8.2.nix --run "doctest src/"
+            nix-shell --attr env release-ghc-8.2.nix --run "cabal update && cabal new-test && doctest src/"
       - run:
           name: Build using nix-build
           command: nix-build --attr env

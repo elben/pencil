@@ -13,6 +13,11 @@ in
             # cabal2nix --no-check cabal://hsass-0.5.0 > nix/ghc-8.2/hsass-0.5.0.nix
             hsass =
               haskellPackagesNew.callPackage ./nix/ghc-8.2/hsass-0.5.0.nix { };
+
+            # test failing to build
+            # cabal2nix --no-check cabal://hlibsass-0.1.6.1 > nix/ghc-8.2/hlibsass-0.1.6.1.nix
+            hlibsass =
+              haskellPackagesNew.callPackage ./nix/ghc-8.2/hlibsass-0.1.6.1.nix { };
           };
         };
       };
