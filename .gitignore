@@ -5,7 +5,7 @@ dist/
 dist-newstyle/
 .ghc.environment.*
 result
-pencil-result
+pencil-result*
 
 tags
 TODO.md
