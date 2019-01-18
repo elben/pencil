@@ -2,6 +2,15 @@ version: 2
 
 # Also based off: https://github.com/johnae/circleci-nix
 
+references:
+  prepare_ci: &prepare_container
+    run:
+      name: Prepare Container
+      command: |
+        nix-channel --add \
+        https://nixos.org/channels/nixpkgs-unstable nixpkgs && \
+        nix-channel --update
+
 jobs:
   build:
     docker:
@@ -12,6 +21,9 @@ jobs:
       - image: nixorg/nix:circleci
     steps:
       - checkout
+
+      - *prepare_container
+
       # - restore_cache:
       #     keys:
       #       - v1-pencil-{{ checksum "elbenshiracom.cabal" }}-{{ checksum "release.nix" }}
@@ -19,6 +31,7 @@ jobs:
       # - run:
       #     name: Install nix
       #     command: curl https://nixos.org/nix/install | sh
+
       - run:
           name: Run tests using ghc-8.4
           command: nix-shell --attr env release-ghc-8.4.nix --run "cabal new-test"
