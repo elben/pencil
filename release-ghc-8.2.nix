@@ -18,6 +18,11 @@ in
             # cabal2nix --no-check cabal://hlibsass-0.1.6.1 > nix/ghc-8.2/hlibsass-0.1.6.1.nix
             hlibsass =
               haskellPackagesNew.callPackage ./nix/ghc-8.2/hlibsass-0.1.6.1.nix { };
+
+            # Need at least 0.8.31 to get `decodeThrow`
+            # cabal2nix cabal://yaml-0.8.32 > nix/ghc-8.2/yaml-0.8.32.nix
+            yaml =
+              haskellPackagesNew.callPackage ./nix/ghc-8.2/yaml-0.8.32.nix { };
           };
         };
       };
