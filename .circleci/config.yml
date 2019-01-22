@@ -73,8 +73,9 @@ jobs:
             # nix-store --export $({ nix-store -qR pencil-result-ghc-8.2 & nix-store -qR pencil-result-ghc-8.4 }) > /nix-cache/pencil-nix-cache.nar
             # nix-store --export $(nix-store -qR pencil-result-ghc-8.4) > /nix-cache/pencil-nix-cache.nar
             nix-shell --attr env release-ghc-8.4.nix --run bash <<'EOF'
+            set -eu -o pipefail
             mkdir -p /nix-cache
-            nix-store --export $(out) > /nix-cache/pencil-nix-cache-ghc-8.4.nar
+            nix-store --export $out > /nix-cache/pencil-nix-cache-ghc-8.4.nar
             EOF
 
       - save_cache:
