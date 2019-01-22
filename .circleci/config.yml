@@ -75,7 +75,7 @@ jobs:
             nix-shell --attr env release-ghc-8.4.nix --run bash <<'EOF'
             set -eu -o pipefail
             mkdir -p /nix-cache
-            nix-store --export $out > /nix-cache/pencil-nix-cache-ghc-8.4.nar
+            nix-store --export $(nix-store -qR $out) > /nix-cache/pencil-nix-cache-ghc-8.4.nar
             EOF
 
       - save_cache:
