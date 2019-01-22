@@ -35,11 +35,12 @@ jobs:
       - run:
           name: Restore nix cache
           command: |
-            if [ -e /nix-cache/pencil-nix-cache.nar ]; then
-              echo "/nix-cache/pencil-nix-cache.nar present, importing into store."
-              nix-store --import < /nix-cache/pencil-nix-cache.nar
+            # TODO generalize this
+            if [ -e /nix-cache/pencil-nix-cache-ghc-8.4.nar ]; then
+              echo "/nix-cache/pencil-nix-cache-ghc-8.4.nar present, importing into store."
+              nix-store --import < /nix-cache/pencil-nix-cache-ghc-8.4.nar
             else
-              echo "/nix-cache/pencil-nix-cache.nar missing, skipping store import."
+              echo "/nix-cache/pencil-nix-cache-ghc-8.4.nar missing, skipping store import."
             fi
 
       # Get a nix-shell running, which means all the derivations worked. We do
@@ -51,28 +52,35 @@ jobs:
             nix-shell --attr env release-ghc-8.4.nix --run "echo 'Inside a nix-shell'"
 
       # - run:
+      #     name: Build using nix-build for ghc-8.4
+      #     command: |
+      #       nix-build --attr env --out-link pencil-result-ghc-8.2 release-ghc-8.4.nix
+
+      # - run:
       #     name: Prepare nix-shell for ghc-8.2
       #     command: |
       #       nix-shell --attr env release-ghc-8.2.nix --run "echo 'Inside a nix-shell'"
 
-      - run:
-          name: Build using nix-build
-          command: |
-            # nix-build --attr env --out-link pencil-result-ghc-8.2 release-ghc-8.2.nix
-            nix-build --attr env --out-link pencil-result-ghc-8.4 release-ghc-8.4.nix
+      # - run:
+      #     name: Build using nix-build for ghc-8.2
+      #     command: |
+      #       nix-build --attr env --out-link pencil-result-ghc-8.2 release-ghc-8.2.nix
 
       - run:
-          name: Create nix cache
+          name: Create nix cache for ghc-8.4
           command: |
-            mkdir -p /nix-cache
             # Use the `pencil-result-*` file thats nix built in the previous step.
             # nix-store --export $({ nix-store -qR pencil-result-ghc-8.2 & nix-store -qR pencil-result-ghc-8.4 }) > /nix-cache/pencil-nix-cache.nar
-            nix-store --export $(nix-store -qR pencil-result-ghc-8.4) > /nix-cache/pencil-nix-cache.nar
+            # nix-store --export $(nix-store -qR pencil-result-ghc-8.4) > /nix-cache/pencil-nix-cache.nar
+            nix-shell --attr env release-ghc-8.4.nix --run bash <<'EOF'
+            mkdir -p /nix-cache
+            nix-store --export $(out) > /nix-cache/pencil-nix-cache-ghc-8.4.nar
+            EOF
 
       - save_cache:
           key: v1-pencil-{{ .Branch }}-{{ .Revision }}
           paths:
-            - /nix-cache/pencil-nix-cache.nar
+            - /nix-cache/pencil-nix-cache-8.4.nar
 
       - run:
           name: Run tests using ghc-8.4
