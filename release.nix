@@ -1,11 +1,14 @@
 # Based off https://gist.github.com/mayhewluke/e2f67c65c2e135f16a8e
 #
-# Takes in a channel string, and checks for the channel's latest commit hash (every N days).
-# That way, we can make sure that we are testing with a recent version of the channel.
-# Allows us to pass in different channels, so that we can test different versions of GHC.
 #
-# config is an attribute set that is inherited into pkgs. Useful for, say, overriding
-# certain Haskell packages.
+# Args:
+#
+# - channel - A channel string (see http://howoldis.herokuapp.com). Used to check for the channel's latest commit hash
+#   (every N days). That way, we can make sure that we are testing with a recent version of the channel. Allows us to
+#   pass in different channels, so that we can test different versions of GHC.
+#
+# - config - An attribute set that is inherited into pkgs. Useful for, say, overriding certain Haskell packages.
+#
 { channel, config ? {} }:
 let
   sysPkgs = import <nixpkgs> { };
