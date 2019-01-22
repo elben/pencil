@@ -18,8 +18,8 @@ jobs:
     docker:
       # https://circleci.com/docs/2.0/circleci-images/#buildpack-deps
       # https://hub.docker.com/r/circleci/buildpack-deps/tags/
-      # - image: circleci/buildpack-deps:bionic-curl
 
+      # https://github.com/NixOS/docker
       - image: nixorg/nix:circleci
     steps:
       - checkout
@@ -35,16 +35,20 @@ jobs:
       - run:
           name: Restore nix cache
           command: |
-            # TODO generalize this
-            if [ -e /nix-cache/pencil-nix-cache-ghc-8.4.nar ]; then
-              echo "/nix-cache/pencil-nix-cache-ghc-8.4.nar present, importing into store."
-              nix-store --import < /nix-cache/pencil-nix-cache-ghc-8.4.nar
-            else
-              echo "/nix-cache/pencil-nix-cache-ghc-8.4.nar missing, skipping store import."
-            fi
+            for version in "8.4" "8.6"
+            do
+              if [ -e /nix-cache/pencil-nix-cache-ghc-${version}.nar ]; then
+                echo "/nix-cache/pencil-nix-cache-ghc-${version}.nar present, importing into store."
+                nix-store --import < /nix-cache/pencil-nix-cache-ghc-${version}.nar
+              else
+                echo "/nix-cache/pencil-nix-cache-ghc-${version}.nar missing, skipping store import."
+              fi
+            done
 
       # Get a nix-shell running, which means all the derivations worked. We do
       # this so that we can cache the nix store before running tests.
+
+      ############# GHC 8.4 #############
 
       - run:
           name: Prepare nix-shell for ghc-8.4
@@ -56,46 +60,53 @@ jobs:
           command: |
             nix-build --attr env --out-link pencil-result-ghc-8.2 release-ghc-8.4.nix
 
-      # - run:
-      #     name: Prepare nix-shell for ghc-8.2
-      #     command: |
-      #       nix-shell --attr env release-ghc-8.2.nix --run "echo 'Inside a nix-shell'"
-
-      # - run:
-      #     name: Build using nix-build for ghc-8.2
-      #     command: |
-      #       nix-build --attr env --out-link pencil-result-ghc-8.2 release-ghc-8.2.nix
-
+      # Use the derivate built by nix-build, above, which $out points to
       - run:
           name: Create nix cache for ghc-8.4
           command: |
-            # Use the `pencil-result-*` file thats nix built in the previous step.
-            # nix-store --export $({ nix-store -qR pencil-result-ghc-8.2 & nix-store -qR pencil-result-ghc-8.4 }) > /nix-cache/pencil-nix-cache.nar
-            # nix-store --export $(nix-store -qR pencil-result-ghc-8.4) > /nix-cache/pencil-nix-cache.nar
             nix-shell --attr env release-ghc-8.4.nix --run bash <<'EOF'
             set -eu -o pipefail
             mkdir -p /nix-cache
             nix-store --export $(nix-store -qR $out) > /nix-cache/pencil-nix-cache-ghc-8.4.nar
             EOF
 
+      ############# GHC 8.6 #############
+
+      - run:
+          name: Prepare nix-shell for ghc-8.6
+          command: |
+            nix-shell --attr env release-ghc-8.6.nix --run "echo 'Inside a nix-shell'"
+
+      - run:
+          name: Build using nix-build for ghc-8.6
+          command: |
+            nix-build --attr env --out-link pencil-result-ghc-8.2 release-ghc-8.6.nix
+
+      # Use the derivate built by nix-build, above, which $out points to
+      - run:
+          name: Create nix cache for ghc-8.6
+          command: |
+            nix-shell --attr env release-ghc-8.6.nix --run bash <<'EOF'
+            set -eu -o pipefail
+            mkdir -p /nix-cache
+            nix-store --export $(nix-store -qR $out) > /nix-cache/pencil-nix-cache-ghc-8.6.nar
+            EOF
+
+
+      ##########################
+
       - save_cache:
           key: v1-pencil-{{ .Branch }}-{{ .Revision }}
           paths:
             - /nix-cache/pencil-nix-cache-ghc-8.4.nar
+            - /nix-cache/pencil-nix-cache-ghc-8.6.nar
 
       - run:
           name: Run tests using ghc-8.4
           command: |
             nix-shell --attr env release-ghc-8.4.nix --run "cabal new-update && cabal new-test && doctest src/"
 
-      # - run:
-      #     name: Run tests using ghc-8.2
-      #     command: |
-      #       # Don't run doctest for now, because it's failing with this error
-      #       # when using the ghc 8.2 setup:
-      #       #
-      #       # ### Failure in src/Pencil/Internal/Pencil.hs:286: expression `toExtension Markdown'
-      #       # expected: Just "html"
-      #       # but got: can't load .so/.DLL for: /nix/store/ymvqbs9p3m44sjrx5b05zf9yigw07297-hlibsass-0.1.6.1/lib/ghc-8.2.2/x86_64-linux-ghc-8.2.2/libHShlibsass-0.1.6.1-IUTRxGlHW62EGpAf3DeFYb-ghc8.2.2.so (/nix/store/ymvqbs9p3m44sjrx5b05zf9yigw07297-hlibsass-0.1.6.1/lib/ghc-8.2.2/x86_64-linux-ghc-8.2.2/libHShlibsass-0.1.6.1-IUTRxGlHW62EGpAf3DeFYb-ghc8.2.2.so: undefined symbol: sass_resolve_file)
-      #       #
-      #       nix-shell --attr env release-ghc-8.2.nix --run "cabal new-update && cabal new-test"
+      - run:
+          name: Run tests using ghc-8.6
+          command: |
+            nix-shell --attr env release-ghc-8.6.nix --run "cabal new-update && cabal new-test && doctest src/"
