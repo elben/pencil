@@ -118,11 +118,11 @@ Check for newer dependency versions: http://packdeps.haskellers.com/feed?needle=
 Make sure it builds, passes tests, and works:
 
 ```
-[nix-shell]$ cabal configure
+[nix-shell]$ cabal new-configure
 
 # Run tests and generate the example websites (e.g. pencil-example-blog).
 # Check the ./examples/**/out/ directories for the generated websites.
-[nix-shell]$ cabal new-test
+[nix-shell]$ cabal new-test && doctest src/
 [nix-shell]$ cabal new-run pencil-example-simple
 [nix-shell]$ cabal new-run pencil-example-blog
 
@@ -151,7 +151,7 @@ git tag v0.1.0
 git push --tags
 ```
 
-Make sure the [Travis build is green](https://travis-ci.org/elben/pencil).
+Make sure the [Circle build is green](https://circleci.com/gh/elben/pencil).
 
 Push to Hackage:
 

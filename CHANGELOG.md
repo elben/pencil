@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.1.3]
+
+### Changed
+- Updated dependencies. Should be able to use with recent versions of Stack LTS releases and Nix channels.
+
 ## [0.1.2]
 
 ### Added
