@@ -46,7 +46,7 @@ set up as if we are about to build pencil, but not actually build it. To do
 this, we need to go into a nix shell:
 
 ```bash
-nix-shell --attr env default.nix
+nix-shell --attr env
 ```
 
 And now, inside the `nix-shell`:
@@ -156,30 +156,14 @@ Make sure the [Circle build is green](https://circleci.com/gh/elben/pencil).
 Push to Hackage:
 
 ```
-stack sdist
-stack upload
+cabal new-sdist
+cabal upload
 ```
 
 ## Testing against other GHC
 
-The Travis CS build below tests against other GHC. We can also test other GHCs
-using stack:
+CircleCI build also checks against other versions of GHC. To manually test it, just specify the correct .nix file:
 
 ```
-stack --stack-yaml=stack-ghc-8.2.yaml build
-stack --stack-yaml=stack-ghc-8.2.yaml exec ...
+nix-shell --attr env release-ghc-8.6.nix
 ```
-
-## Travis CI
-
-[travis-ci.org/elben/pencil](https://travis-ci.org/elben/pencil)
-
-Note that `.travis.yml` was generated using [multi-ghc-travis](https://github.com/haskell-hvr/multi-ghc-travis) this:
-
-```
-stack exec runghc ~/code/multi-ghc-travis/make_travis_yml_2.hs pencil.cabal > .travis.yml
-```
-
-This build checks to make sure that Pencil can build against other versions of
-GHC specified in the `.travis.yml`. We want to make sure that our dependency
-bounds are large enough to support multiple versions of GHC.
