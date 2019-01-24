@@ -79,7 +79,7 @@ instance Default Config where
 --  , 'configDisplayValue' = 'toText'
 --  , 'configSassOptions' = Text.Sass.Options.defaultSassOptions
 --  , 'configPandocReaderOptions' = Text.Pandoc.def {
---       Text.Pandoc.readerExtensions = Text.Pandoc.Extensions.enableExtension Text.Pandoc.Extensions.Ext_raw_html (Text.Pandoc.readerExtensions Text.Pandoc.def)
+--       Text.Pandoc.readerExtensions = Text.Pandoc.Extensions.getDefaultExtensions "markdown"
 --    }
 --  , 'configPandocWriterOptions' = Text.Pandoc.def { Text.Pandoc.writerHighlightStyle = Just Text.Pandoc.Highlighting.monochrome }
 --  , 'configDisplayValue = 'toText'
