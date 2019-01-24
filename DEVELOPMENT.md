@@ -156,8 +156,36 @@ Make sure the [Circle build is green](https://circleci.com/gh/elben/pencil).
 Push to Hackage:
 
 ```
-cabal new-sdist
-cabal upload
+[nix-shell]$ cabal check
+[nix-shell]$ cabal new-sdist
+[nix-shell]$ cabal upload path/to/pencil-blah.tar.gz.
+
+# Uploading dist-newstyle/sdist/pencil-0.1.3.tar.gz...
+# Package successfully uploaded as candidate. You can now preview the result at
+# 'https://hackage.haskell.org/package/pencil-0.1.3/candidate'. To publish the
+# candidate, use 'cabal upload --publish'.
+
+# If the documentation build failed in the candidate page, we may need to upload
+# our own docs. See https://hackage.haskell.org/upload for more info.
+
+[nix-shell]$ cabal new-haddock --haddock-for-hackage --haddock-hyperlink-source
+[nix-shell]$ cabal upload -d ./dist-newstyle/pencil-x.x.x-docs.tar.gz
+```
+
+Once a candidate is published, you can test the candidate package on another project
+by installing the candidate:
+
+```
+cabal install http://hackage.haskell.org/package/pencil-0.1.3/candidate/pencil-0.1.3.tar.gz
+
+# When I tried to do this for elben.github.io, I had to run nix-shell with these packages
+# included in the shell, for compiling the various Haskell dependencies through cabal.
+# See: https://groups.google.com/forum/#!msg/haskell-stack/_ZBh01VP_fo/0v4SxPw7GwAJ
+nix-shell -p zlib libiconv
+```
+
+```
+[nix-shell]$ cabal upload --publish
 ```
 
 ## Testing against other GHC

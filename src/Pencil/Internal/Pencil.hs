@@ -92,8 +92,11 @@ defaultConfig = Config
   , configOutputDir = "out/"
   , configEnv = H.empty
   , configSassOptions = Text.Sass.Options.defaultSassOptions
+
+  -- For markdown reader. We use getDefaultExtensions "markdown" here to get default Markdown extensions.
+  -- See https://hackage.haskell.org/package/pandoc-2.5/docs/Text-Pandoc-Extensions.html#v:getDefaultExtensions
   , configPandocReaderOptions = P.def {
-      P.readerExtensions = enableExtension Ext_raw_html (P.readerExtensions P.def)
+      P.readerExtensions = P.getDefaultExtensions "markdown"
     }
   , configPandocWriterOptions = P.def {
       P.writerHighlightStyle = Just Text.Pandoc.Highlighting.monochrome
