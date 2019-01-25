@@ -184,6 +184,8 @@ cabal install http://hackage.haskell.org/package/pencil-0.1.3/candidate/pencil-0
 nix-shell -p zlib libiconv
 ```
 
+Finally, to publish a new version:
+
 ```
 [nix-shell]$ cabal upload --publish
 ```
