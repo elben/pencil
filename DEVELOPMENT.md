@@ -1,7 +1,3 @@
-Migration to nix:
-
-- validate everything works, testing the various things
-
 # Development
 
 Pencil uses Nix to build its development environment. We develop against
