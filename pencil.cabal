@@ -9,7 +9,7 @@ homepage:            https://github.com/elben/pencil
 license:             BSD3
 license-file:        LICENSE
 author:              Elben Shira
-maintainer:          elbenshira@gmail.com
+maintainer:          elben@shira.im
 copyright:           2018 Elben Shira
 category:            Web
 build-type:          Simple
