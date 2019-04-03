@@ -45,11 +45,27 @@ this, we need to go into a nix shell:
 nix-shell --attr env
 ```
 
+We need to specify the `env` attribute for Haskell development, so that
+`nix-shell` knows to load the `env` attribute from the final derivation, which
+holds all the Haskell goodies that we need. See
+[this](https://github.com/Gabriel439/haskell-nix/blob/9c72b6ecbc5e25df509dfd6ee3d5ee8b9eb21f14/project0/README.md#building-with-cabal)
+for more info.
+
 And now, inside the `nix-shell`:
 
 ```bash
 [nix-shell]$ cabal new-test
 [nix-shell]$ doctest src/
+```
+
+If there are problems with missing `zlib` dependencies, this is a [known GHC
+bug #11042](https://gitlab.haskell.org/ghc/ghc/issues/11042) (I think). The
+problem is that our environment inside `nix-shell` has `zlib` in the nix store
+instead of teh default location. We can try to resolve them by making sure we
+load the `nix-shell` with the `zlib` package:
+
+```
+nix-shell --attr env -p zlib
 ```
 
 ## Documentation
@@ -177,7 +193,7 @@ cabal install http://hackage.haskell.org/package/pencil-0.1.3/candidate/pencil-0
 # When I tried to do this for elben.github.io, I had to run nix-shell with these packages
 # included in the shell, for compiling the various Haskell dependencies through cabal.
 # See: https://groups.google.com/forum/#!msg/haskell-stack/_ZBh01VP_fo/0v4SxPw7GwAJ
-nix-shell -p zlib libiconv
+nix-shell -p zlib libiconv ghc
 ```
 
 Finally, to publish a new version:
