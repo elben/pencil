@@ -329,10 +329,11 @@ setPageEnv env p = p { pageEnv = env }
 -- The returned Page contains the Nodes of the fully rendered page, the
 -- fully-applied environment, and the URL of the last (inner-most) Page.
 --
--- The variable application works by applying the outer environments down into
--- the inner environments, until it hits the lowest environment, in which the
--- page is rendered. Once done, this rendered content is saved as the @${body}@
--- variable for the parent structure, which is then applied, and so on.
+-- Variable application. The outer environment's variables are applied down into
+-- the inner environments. Once it hits the lowest environment, that page is
+-- rendered (and has access to all variables defined in the parent). The page's
+-- rendered content is now set as the @${body}@ variable in the environment.
+-- The parent page now gets rendered with this new environment, and so on.
 --
 -- As an example, there is the common scenario where we have a default layout
 -- (e.g. @default.html@), with the full HTML structure, but no body. It has only
@@ -358,11 +359,11 @@ setPageEnv env p = p { pageEnv = env }
 -- > +--------------+
 --
 -- In this case, we want to accumulate the environment variables, starting from
--- default.html, to blog-post.html, and the markdown file's variables. Combine
--- all of that, then render the blog post content. This content is then injected
--- into the parent's environment as a @${body}@ variable, for use in blog-post.html.
--- Now /that/ content is injected into the parent environment's @${body}@ variable,
--- which is then used to render the full-blown HTML page.
+-- default.html, to blog-post.html, and blog-article-content.markdown variables.
+-- Combine all of that, then render the blog post content. This content is then
+-- injected into the parent's environment as a @${body}@ variable, for use in
+-- blog-post.html. Now /that/ content is injected into the parent environment's
+-- @${body}@ variable, which is then used to render the full-blown HTML page.
 --
 apply :: Structure -> PencilApp Page
 apply pages = apply_ (NE.reverse pages)
@@ -888,9 +889,9 @@ renderCss fp =
 -- function 'apply' to learn more about how @Structure@s are
 -- evaluated.
 --
--- Note that this differs than the @${partial(...)}@ directive, which has no
+-- Note that this differs from the @${partial(...)}@ directive, which has no
 -- such variable closures. The partial directive is much simpler—think of them
--- as copy-and-pasting snippets from one file to another. The partial has has
+-- as copy-and-pasting snippets from one file to another. A partial has
 -- the same environment as the parent context.
 type Structure = NonEmpty Page
 

@@ -22,7 +22,7 @@ data PNode =
   | PPartial T.Text
   | PPreamble T.Text
 
-  -- Signals a If/For expression in the stack waiting for expressions. So that we
+  -- Signals an If/For expression in the stack waiting for expressions. So that we
   -- can find the next unused open if/for-statement in nested if/for-statements.
   | PMetaIf T.Text
   | PMetaFor T.Text
