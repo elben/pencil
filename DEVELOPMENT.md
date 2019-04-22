@@ -20,7 +20,7 @@ nix-channel --update
 See that pencil builds:
 
 ```bash
-nix-build --attr env default.nix
+nix-build --attr env
 ```
 
 We'll need to install a couple of Haskell packages that we use for development.
