@@ -20,7 +20,8 @@ jobs:
       # https://hub.docker.com/r/circleci/buildpack-deps/tags/
 
       # https://github.com/NixOS/docker
-      - image: nixorg/nix:circleci
+      # https://hub.docker.com/r/nixos/nix
+      - image: nixos/nix:latest
     steps:
       - checkout
 
