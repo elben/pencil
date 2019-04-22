@@ -9,11 +9,10 @@ First, install and set up `nix`:
 curl https://nixos.org/nix/install | sh
 ```
 
-Pin nixpkgs to version 18.09. The nixpkgs-unstable version (19.03) had problems
-building pandoc-2.5:
+Pin nixpkgs to version 19.03:
 
 ```bash
-nix-channel --add https://nixos.org/channels/nixos-18.09 nixpkgs
+nix-channel --add https://nixos.org/channels/nixos-19.03 nixpkgs
 nix-channel --update
 ```
 
@@ -54,14 +53,14 @@ for more info.
 And now, inside the `nix-shell`:
 
 ```bash
-[nix-shell]$ cabal new-test
+[nix-shell]$ cabal test
 [nix-shell]$ doctest src/
 ```
 
 If there are problems with missing `zlib` dependencies, this is a [known GHC
 bug #11042](https://gitlab.haskell.org/ghc/ghc/issues/11042) (I think). The
 problem is that our environment inside `nix-shell` has `zlib` in the nix store
-instead of teh default location. We can try to resolve them by making sure we
+instead of the default location. We can try to resolve them by making sure we
 load the `nix-shell` with the `zlib` package:
 
 ```
@@ -73,7 +72,7 @@ nix-shell --attr env -p zlib
 Generate documentation.
 
 ```
-[nix-shell]$ cabal new-haddock
+[nix-shell]$ cabal haddock
 ```
 
 ## IDE
@@ -130,18 +129,18 @@ Check for newer dependency versions: http://packdeps.haskellers.com/feed?needle=
 Make sure it builds, passes tests, and works:
 
 ```
-[nix-shell]$ cabal new-configure
+[nix-shell]$ cabal configure
+
+[nix-shell]$ doctest src/
 
 # Run tests and generate the example websites (e.g. pencil-example-blog).
 # Check the ./examples/**/out/ directories for the generated websites.
-[nix-shell]$ cabal new-test && doctest src/
-[nix-shell]$ cabal new-run pencil-example-simple
-[nix-shell]$ cabal new-run pencil-example-blog
+[nix-shell]$ cabal test
 
-[nix-shell]$ cabal new-haddock
+[nix-shell]$ cabal haddock
 
 # Generate a source distribution file (.tar.gz).
-[nix-shell]$ cabal new-sdist
+[nix-shell]$ cabal sdist
 ```
 
 Check that tutorials are updated.
@@ -169,7 +168,7 @@ Push to Hackage:
 
 ```
 [nix-shell]$ cabal check
-[nix-shell]$ cabal new-sdist
+[nix-shell]$ cabal sdist
 [nix-shell]$ cabal upload path/to/pencil-blah.tar.gz.
 
 # Uploading dist-newstyle/sdist/pencil-0.1.3.tar.gz...
@@ -180,7 +179,7 @@ Push to Hackage:
 # If the documentation build failed in the candidate page, we may need to upload
 # our own docs. See https://hackage.haskell.org/upload for more info.
 
-[nix-shell]$ cabal new-haddock --haddock-for-hackage --haddock-hyperlink-source
+[nix-shell]$ cabal haddock --haddock-for-hackage --haddock-hyperlink-source
 [nix-shell]$ cabal upload -d ./dist-newstyle/pencil-x.x.x-docs.tar.gz
 ```
 
