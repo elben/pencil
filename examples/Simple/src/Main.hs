@@ -6,9 +6,10 @@ import Pencil
 
 config :: Config
 config =
-  (updateEnv (insertText "title" "My Simple Website") .
+  (updateEnv (insertText "title" "My Awesome Website") .
    setSourceDir "examples/Simple/site/" .
-   setOutputDir "examples/Simple/out/") defaultConfig
+   setOutputDir "examples/Simple/out/")
+   defaultConfig
 
 website :: PencilApp ()
 website = do
@@ -16,7 +17,7 @@ website = do
   index <- load toHtml "index.markdown"
   render (layout <|| index)
 
-  renderCss "style.scss"
+  renderCss "stylesheet.scss"
 
 main :: IO ()
 main = run website config

@@ -73,7 +73,7 @@ test-suite pencil-test
 test-suite pencil-example-simple
   type:                exitcode-stdio-1.0
   hs-source-dirs:      examples/Simple
-  main-is:             Main.hs
+  main-is:             src/Main.hs
   ghc-options:         -Wall -threaded -rtsopts -with-rtsopts=-N
   build-depends:       base >= 4.8 && < 5
                      , pencil
@@ -82,7 +82,7 @@ test-suite pencil-example-simple
 test-suite pencil-example-blog
   type:                exitcode-stdio-1.0
   hs-source-dirs:      examples/Blog
-  main-is:             Main.hs
+  main-is:             src/Main.hs
   ghc-options:         -Wall -threaded -rtsopts -with-rtsopts=-N
   build-depends:       base >= 4.8 && < 5
                      , pencil
