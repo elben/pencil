@@ -6,6 +6,14 @@ All notable changes to this project will be documented in this file.
 
 ## [0.1.4]
 
+### Added
+- Added GHC 8.4 and 8.6 support.
+- Added RSS support to Pencil.Blog. See `toRSS`.
+
+### Changed
+- Examples now match the tutorials. This is the start of merging the tutorials into the pencil
+  repo itself, instead of living somewhere else.
+
 ### Fixed
 - Specify example test files in the pencil.cabal file, so that pencil tests run properly.
 

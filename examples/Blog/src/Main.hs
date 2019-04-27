@@ -14,7 +14,9 @@ config :: Config
 config =
   (updateEnv (insertText "title" websiteTitle) .
    setSourceDir "examples/Blog/site/" .
-   setOutputDir "examples/Blog/out/") defaultConfig
+   setOutputDir "examples/Blog/out/" .
+   setRootUrl "https://example.com"
+  ) defaultConfig
 
 website :: PencilApp ()
 website = do
@@ -40,7 +42,7 @@ website = do
   --   post-layout.html to see how to use these tag variables.
   --
   -- - (layout <|| postLayout <|) - We push the generated post Page into this
-  --   structure, so that all blog posts share the same postLayout.
+  --   Structure, so that all blog posts share the same postLayout.
   --
   -- - render - Finally we render all of our blog posts into files.
   --

@@ -12,16 +12,24 @@ module Pencil.Blog
   , buildTagPagesWith
   , buildTagPages
   , injectTagsEnv
+  , toRSS
   ) where
 
 import Pencil
 import Pencil.Internal.Env
+import Pencil.Internal.Parser as Parser
 import Control.Monad (liftM, foldM)
 import Control.Monad.Reader (asks)
 import qualified Data.HashMap.Strict as H
 import qualified Data.List as L
+import qualified Data.Maybe as M
 import qualified Data.Text as T
+import qualified Data.Text.Lazy as LT
+import qualified Data.Time.Format as TF
 import qualified System.FilePath as FP
+
+import qualified Text.RSS.Syntax as Syntax
+import qualified Text.RSS.Export as Export
 
 -- $gettingstarted
 --
@@ -83,6 +91,57 @@ loadBlogPosts fp = do
 -- @\/blog\/2011-01-01-the-post-title.html@ => @\/blog\/the-post-title\/@
 blogPostUrl :: FilePath -> FilePath
 blogPostUrl fp = FP.replaceFileName fp (drop 11 (FP.takeBaseName fp)) ++ "/"
+
+
+-- | Convert @Page@s to the RSS XML text. Assumes that the given pages were loaded
+-- using 'loadBlogPosts', which is assumed to contain @postTitle@, @date@ and @this.url@
+-- variables in the env.
+--
+-- RSS specification: https://cyber.harvard.edu/rss/rss.html
+--
+-- Validate using https://validator.w3.org/feed/check.cgi
+toRSS :: T.Text -> T.Text -> [Page] -> PencilApp T.Text
+toRSS title link posts = do
+  let channel = Syntax.nullChannel title link
+  items <- mapM toRSSItem posts
+  let feed = (Syntax.nullRSS "" "") { Syntax.rssChannel = channel { Syntax.rssItems = items } }
+  return $ maybe "" LT.toStrict (Export.textRSS feed)
+
+toRSSItem :: Page -> PencilApp Syntax.RSSItem
+toRSSItem page = do
+  displayValue <- asks getDisplayValue
+  rootUrl <- asks getRootUrl
+
+  let item = Syntax.nullItem (maybe "" displayValue (H.lookup "postTitle" (getPageEnv (traceShowId page))))
+  let maybeUrl = fmap ((T.append (M.fromMaybe "" rootUrl)) . displayValue)
+                      (H.lookup "this.url" (getPageEnv page))
+  return $
+    item
+      { Syntax.rssItemDescription = Just (Parser.renderNodes (getPageNodes page))
+      , Syntax.rssItemLink = maybeUrl
+      , Syntax.rssItemGuid = fmap Syntax.nullGuid maybeUrl
+      , Syntax.rssItemPubDate =
+          case H.lookup "date" (getPageEnv page) of
+            -- Convert date to RFC 822 format, which is what RSS format expects.
+            Just (VDateTime dt) -> Just $ T.pack $ TF.formatTime TF.defaultTimeLocale rfc822DateFormat dt
+            _ -> Nothing
+      }
+
+
+-- RFC 822 date format.
+--
+-- Helps to pass https://validator.w3.org/feed/check.cgi.
+--
+-- Same as https://hackage.haskell.org/package/time/docs/Data-Time-Format.html#v:rfc822DateFormat
+-- but no padding for the day section, so that single-digit days only has one space preceeding it.
+--
+-- Also changed to spit out the offset timezone (+0000) because the default was spitting out "UTC"
+-- which is not valid RFC 822. Weird, since the defaultTimeLocal source and docs show that it won't
+-- use "UTC":
+-- https://hackage.haskell.org/package/time/docs/Data-Time-Format.html#v:defaultTimeLocale
+--
+rfc822DateFormat :: String
+rfc822DateFormat = "%a, %d %b %Y %H:%M:%S %z"
 
 -- | Given that the current @Page@ has a @postTitle@ in the environment, inject
 -- the post title into the @title@ environment variable, prefixed with the given

@@ -17,6 +17,7 @@ module Pencil
 
   , Page
   , getPageEnv, setPageEnv
+  , getPageNodes
   , load
   , withEnv
   , renderCss
@@ -55,6 +56,7 @@ module Pencil
   , defaultConfig
   , getSourceDir, setSourceDir
   , getOutputDir, setOutputDir
+  , getRootUrl, setRootUrl
   , getEnv, setEnv, updateEnv
   , getDisplayValue, setDisplayValue
   , getSassOptions, setSassOptions
