@@ -62,7 +62,7 @@ website = do
   -- the list of blog posts.
   index <- load toHtml "index.html"
   env <- asks getEnv
-  let indexEnv = insertPages "posts" posts env
+  indexEnv <- insertPages "posts" posts env
   withEnv indexEnv (render (layout <|| index))
 
   liftIO $ putStrLn "!!! RSS !!!"
@@ -73,7 +73,8 @@ website = do
   -- How would I even do a "snippet" HTML page? I can't today. I need to rethink this.
   -- What if we merge body into the env? The "contents" can be thought of a variable
   -- with an *implicit* variable name of "body"
-  let rssEnv = insertPages "posts" (take 10 (traceShowId posts)) env
+  -- Oh wait, we already do this. See apply function. So why isn't it here?
+  rssEnv <- insertPagesEscape "posts" (take 10 (traceShowId posts)) env
   -- TODO confusingly i could call "render rssLayout" without a structure and it compiles.
   -- Mauybe I shouldn't use the render typeclass? When would a user need to render just a Page?
   -- We should have a diff method that means "we're gonna write something to a file"

@@ -2,6 +2,8 @@
 
 module Pencil.Internal.Env where
 
+import qualified Pencil.Internal.Parser as P
+
 import qualified Data.HashMap.Strict as H
 import qualified Data.Text as T
 import qualified Data.Time.Clock as TC
@@ -21,6 +23,7 @@ data Value =
   | VDateTime TC.UTCTime
   | VArray [Value]
   | VEnvList [Env]
+  | VContent [P.PNode]
   deriving (Eq, Show)
 
 -- | Environment map of variables to 'Value's.
@@ -50,6 +53,7 @@ toText (VEnvList envs) = T.unwords $ map (T.unwords . map toText . H.elems) envs
 toText (VDateTime dt) =
   -- December 30, 2017
   T.pack $ TF.formatTime TF.defaultTimeLocale "%B %e, %Y" dt
+toText (VContent nodes) = P.renderNodes nodes
 
 -- | Accepted format is ISO 8601 (YYYY-MM-DD), optionally with an appended "THH:MM:SS".
 -- Example: 2010-01-30, 2010-01-30T09:08:00

@@ -14,14 +14,15 @@ import Control.Monad.Except
 import Control.Monad.Reader
 import Data.Char (toLower)
 import Data.Default (Default)
+import Data.Hashable (Hashable)
 import Data.List.NonEmpty (NonEmpty(..)) -- Import the NonEmpty data constructor, (:|)
 import Data.Text.Encoding (encodeUtf8, decodeUtf8)
 import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
 import GHC.IO.Exception (IOException(ioe_description, ioe_filename, ioe_type), IOErrorType(NoSuchThing))
 import Text.EditDistance (levenshteinDistance, defaultEditCosts)
+import Text.Pandoc.Extensions (enableExtension, Extension(..))
 import Text.Sass.Options (defaultSassOptions)
-import Data.Hashable (Hashable)
 import qualified Data.HashMap.Strict as H
 import qualified Data.List as L
 import qualified Data.List.NonEmpty as NE
@@ -33,7 +34,7 @@ import qualified System.Directory as D
 import qualified System.FilePath as FP
 import qualified Text.Pandoc as P
 import qualified Text.Pandoc.Highlighting
-import Text.Pandoc.Extensions (enableExtension, Extension(..))
+import qualified Text.Pandoc.XML as XML
 import qualified Text.Sass as Sass
 
 -- | The main monad transformer stack for a Pencil application.
@@ -407,9 +408,10 @@ apply_ (Page nodes penv _ :| (headp : rest)) = do
                                     (apply_ (headp :| rest))
 
   -- Render the inner nodes, and inject into this environment's "body" var.
+  -- TODO hmm we already render node into here. So where is it in the RSS?
   let env' = insertEnv "body" (VText (renderNodes nodesInner)) envInner
 
-  -- Evaluate this current Page's nodes with the accumualted environemnt of all
+  -- Evaluate this current Page's nodes with the accumulated environment of all
   -- the inner Pages.
   nodes' <- evalNodes env' nodes `catchError` setVarNotInEnv fpInner
 
@@ -683,6 +685,7 @@ insertText var val = H.insert var (VText val)
 
 -- | Insert @Page@s into the given @Env@.
 --
+-- TODO should we be inserting the body of the page (the nodes) into the env too?
 -- @
 -- posts <- 'Pencil.Blog.loadBlogPosts' "blog/"
 -- env <- asks 'getEnv'
@@ -694,8 +697,26 @@ insertPages :: T.Text
             -- ^ @Page@s to insert.
             -> Env
             -- ^ Environment to modify.
-            -> Env
-insertPages var posts = H.insert var (VEnvList (map getPageEnv posts))
+            -> PencilApp Env
+insertPages var pages env = do
+  let envs = map
+               (\p ->
+                 let text = renderNodes (getPageNodes p)
+                     penv = insertEnv "body" (VText text) (getPageEnv p)
+                 in penv)
+               pages
+  return $ H.insert var (VEnvList envs) env
+
+insertPagesEscape var pages env = do
+  -- TODO we need to keep these as nodes and not rendered text? Otherwise, we
+  -- will not escape properly. The escaping happens at the final render.
+  let envs = map
+               (\p ->
+                 let text = renderNodes (getPageNodes p)
+                     penv = insertEnv "body" (VText (T.pack (XML.escapeStringForXML (T.unpack text)))) (getPageEnv p)
+                 in penv)
+               pages
+  return $ H.insert var (VEnvList envs) env
 
 -- | Modify a variable in the given environment.
 updateEnvVal :: (Value -> Value)
