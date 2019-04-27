@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<channel>
+  <title>My RSS FEED!!</title>
+  <atom:link href="http://awesome.com/rss.xml" rel="self" type="application/rss+xml" />
+  <!-- <link>http://awesome.com/rss.xml</link> -->
+  <description>My RSS FEED description!!</description>
+
+  ${for(posts)}
+  <item>
+  <link>https://awesome.com/${this.url}</link>
+  <guid>https://awesome.com/${this.url}</guid>
+  <!-- <pubDate>Wed, 02 Oct 2002 00:00:00 +0000</pubDate> -->
+  <pubDate>${date}</pubDate>
+  <title>${postTitle}</title>
+  <description>${body}</description>
+  </item>
+  ${end}
+</channel>
+</rss>

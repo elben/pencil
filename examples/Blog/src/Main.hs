@@ -7,6 +7,10 @@ import Pencil.Blog
 import qualified Data.HashMap.Strict as H
 import qualified Data.Text as T
 
+import Control.Monad.IO.Class
+
+import Debug.Trace
+
 websiteTitle :: T.Text
 websiteTitle = "My Blog"
 
@@ -25,6 +29,9 @@ website = do
   -- Load all our blog posts into `posts`, which is of type [Page]
   postLayout <- load toHtml "post-layout.html"
   posts <- loadBlogPosts "blog/"
+  rssStuff <- toRSS "My RSS FEED!!" "http://awesome.com/rss.xml" posts
+  liftIO $ putStrLn "wohoo!"
+  -- liftIO $ putStrLn (T.unpack rssStuff)
 
   -- Build tag index pages. This is a map of a Tag (which is just text)
   -- to a Page which has the environment stuffed with blog posts that has that
@@ -57,6 +64,20 @@ website = do
   env <- asks getEnv
   let indexEnv = insertPages "posts" posts env
   withEnv indexEnv (render (layout <|| index))
+
+  liftIO $ putStrLn "!!! RSS !!!"
+
+  rssLayout <- load id "rss.xml"
+  -- TODO this only inserts the env, not the actual body. Where is the body? It's in the nodes, not
+  -- the env. So how do I get to it and insert it into the env?
+  -- How would I even do a "snippet" HTML page? I can't today. I need to rethink this.
+  -- What if we merge body into the env? The "contents" can be thought of a variable
+  -- with an *implicit* variable name of "body"
+  let rssEnv = insertPages "posts" (take 10 (traceShowId posts)) env
+  -- TODO confusingly i could call "render rssLayout" without a structure and it compiles.
+  -- Mauybe I shouldn't use the render typeclass? When would a user need to render just a Page?
+  -- We should have a diff method that means "we're gonna write something to a file"
+  withEnv (traceShowId rssEnv) (render (structure rssLayout))
 
   -- Render tag list pages. This is so that we can go to /blog/tags/awesome to
   -- see all the blog posts tagged with "awesome".

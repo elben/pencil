@@ -92,6 +92,7 @@ loadBlogPosts fp = do
 blogPostUrl :: FilePath -> FilePath
 blogPostUrl fp = FP.replaceFileName fp (drop 11 (FP.takeBaseName fp)) ++ "/"
 
+-- TODO why not use Structures to generate RSS feeds? An RSS file could just be a template. Hmmm...
 
 -- | Convert @Page@s to the RSS XML text. Assumes that the given pages were loaded
 -- using 'loadBlogPosts', which is assumed to contain @postTitle@, @date@ and @this.url@
@@ -112,7 +113,7 @@ toRSSItem page = do
   displayValue <- asks getDisplayValue
   rootUrl <- asks getRootUrl
 
-  let item = Syntax.nullItem (maybe "" displayValue (H.lookup "postTitle" (getPageEnv (traceShowId page))))
+  let item = Syntax.nullItem (maybe "" displayValue (H.lookup "postTitle" (getPageEnv page)))
   let maybeUrl = fmap ((T.append (M.fromMaybe "" rootUrl)) . displayValue)
                       (H.lookup "this.url" (getPageEnv page))
   return $

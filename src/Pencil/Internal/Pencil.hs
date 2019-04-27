@@ -263,6 +263,7 @@ data FileType = Html
               | Markdown
               | Css
               | Sass
+              | Xml -- For RSS, ATOM, etc
               | Other
   deriving (Eq, Generic)
 
@@ -284,7 +285,9 @@ fileTypeMap = H.fromList
   , ("md", Markdown)
   , ("css", Css)
   , ("sass", Sass)
-  , ("scss", Sass)]
+  , ("scss", Sass)
+  , ("xml", Xml)
+  ]
 
 -- | Mapping of 'FileType' to the final converted format. Only contains
 -- 'FileType's that Pencil will convert.
