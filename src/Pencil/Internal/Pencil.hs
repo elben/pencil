@@ -383,26 +383,26 @@ setPageEnv env p = p { pageEnv = env }
 -- @${body}@ variable, which is then used to render the full-blown HTML page.
 --
 apply :: Structure -> PencilApp Page
-apply pages = apply_ (NE.reverse pages)
+apply pages = apply_ (reverseStructure pages)
 
 -- | Apply @Structure@ and convert to @Page@.
 --
 -- It's simpler to implement if NonEmpty is ordered outer-structure first (e.g.
 -- HTML layout).
 apply_ :: Structure -> PencilApp Page
-apply_ (Page penv fp :| []) = do
+apply_ (TreeRoot name (Page penv fp)) = do
   env <- asks getEnv
   let env' = merge penv env
   let nodes = getContent penv
   nodes' <- evalNodes env' nodes `catchError` setVarNotInEnv fp
   let env'' = H.insert "this.content" (VContent nodes') env'
   return $ Page env'' fp
-apply_ (Page penv _ :| (headp : rest)) = do
+apply_ (TreeNode name (Page penv _) rest) = do
   -- Modify the current env (in the ReaderT) with the one in the page (penv)
   -- Then call apply_ on the inner Pages to accumulate the inner Page
   -- environments.
   Page envInner fpInner <- local (\c -> setEnv (merge penv (getEnv c)) c)
-                                    (apply_ (headp :| rest))
+                                    (apply_ rest)
 
   -- Render the inner nodes, and inject into this environment's "body" var.
   -- TODO hmm we already render node into here. So where is it in the RSS?
@@ -942,7 +942,13 @@ renderCss fp =
 -- such variable closures. The partial directive is much simpler—think of them
 -- as copy-and-pasting snippets from one file to another. A partial has
 -- the same environment as the parent context.
-type Structure = NonEmpty Page
+-- type Structure = NonEmpty Page
+data Structure =
+    TreeRoot String Page
+  | TreeNode String Page Structure
+  deriving (Eq, Show)
+  -- | TreeNodes (NonEmpty (Name, Page)) TreeStruct
+  -- | TreeCollection String (NonEmpty Page) TreeStruct
 
 -- | Creates a new @Structure@ from two @Page@s.
 --
@@ -952,7 +958,7 @@ type Structure = NonEmpty Page
 -- render (layout <|| index)
 -- @
 (<||) :: Page -> Page -> Structure
-(<||) x y = y :| [x]
+(<||) x y = TreeNode "body" y (TreeRoot "body" x)
 
 -- | Pushes @Page@ into @Structure@.
 --
@@ -963,11 +969,23 @@ type Structure = NonEmpty Page
 -- render (layout <|| blogLayout <| blogPost)
 -- @
 (<|) :: Structure -> Page -> Structure
-(<|) ne x = NE.cons x ne
+(<|) s p = TreeNode "body" p s
 
 -- | Converts a @Page@ into a @Structure@.
 structure :: Page -> Structure
-structure p = p :| []
+structure p = TreeRoot "body" p
+
+-- | Reverses a @Structure@.
+reverseStructure :: Structure -> Structure
+reverseStructure s@(TreeRoot _ _) = s
+reverseStructure (TreeNode n p s) =
+  let s' = reverseStructure s
+  in append (TreeRoot n p) s'
+
+-- | Append the first structure to the end of the second structure.
+append :: Structure -> Structure -> Structure
+append e (TreeRoot n p) = TreeNode n p e
+append e (TreeNode n p s) = TreeNode n p (append e s)
 
 -- | Runs the computation with the given environment. This is useful when you
 -- want to render a 'Page' or 'Structure' with a modified environment.
