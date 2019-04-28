@@ -323,8 +323,7 @@ fileType fp =
 -- environment loaded from the preamble section of the file. A Page also
 -- contains 'pageFilePath', which is the output file path.
 data Page = Page
-  { pageNodes     :: [PNode]
-  , pageEnv       :: Env
+  { pageEnv       :: Env
   , pageFilePath  :: FilePath
   -- ^ The rendered output path of this page. Defaults to the input file path.
   -- This file path is used to generate the self URL that is injected into the
@@ -338,10 +337,6 @@ getPageEnv = pageEnv
 -- | Sets the 'Env' in a 'Page'.
 setPageEnv :: Env -> Page -> Page
 setPageEnv env p = p { pageEnv = env }
-
--- | Returns the `PNode`s from a 'Page'.
-getPageNodes :: Page -> [PNode]
-getPageNodes = pageNodes
 
 -- | Applies the environment variables on the given pages.
 --
@@ -395,29 +390,33 @@ apply pages = apply_ (NE.reverse pages)
 -- It's simpler to implement if NonEmpty is ordered outer-structure first (e.g.
 -- HTML layout).
 apply_ :: Structure -> PencilApp Page
-apply_ (Page nodes penv fp :| []) = do
+apply_ (Page penv fp :| []) = do
   env <- asks getEnv
   let env' = merge penv env
+  let nodes = getContent penv
   nodes' <- evalNodes env' nodes `catchError` setVarNotInEnv fp
-  return $ Page nodes' env' fp
-apply_ (Page nodes penv _ :| (headp : rest)) = do
+  let env'' = H.insert "this.content" (VContent nodes') env'
+  return $ Page env'' fp
+apply_ (Page penv _ :| (headp : rest)) = do
   -- Modify the current env (in the ReaderT) with the one in the page (penv)
   -- Then call apply_ on the inner Pages to accumulate the inner Page
   -- environments.
-  Page nodesInner envInner fpInner <- local (\c -> setEnv (merge penv (getEnv c)) c)
+  Page envInner fpInner <- local (\c -> setEnv (merge penv (getEnv c)) c)
                                     (apply_ (headp :| rest))
 
   -- Render the inner nodes, and inject into this environment's "body" var.
   -- TODO hmm we already render node into here. So where is it in the RSS?
-  let env' = insertEnv "body" (VText (renderNodes nodesInner)) envInner
+  let env' = insertEnv "body" (VText (renderNodes (getContent envInner))) envInner
 
   -- Evaluate this current Page's nodes with the accumulated environment of all
   -- the inner Pages.
-  nodes' <- evalNodes env' nodes `catchError` setVarNotInEnv fpInner
+  nodes' <- evalNodes env' (getContent penv) `catchError` setVarNotInEnv fpInner
+
+  let env'' = H.insert "this.content" (VContent nodes') env'
 
   -- Use inner-most Page's file path, as this will be the destination of the
   -- accumluated, final, rendered page.
-  return $ Page nodes' env' fpInner
+  return $ Page env'' fpInner
 
 -- | Helper to inject a file path into a VarNotInEnv exception. Rethrow the
 -- exception afterwards.
@@ -559,7 +558,7 @@ sortByVar :: T.Text
           -> [Page]
 sortByVar var ordering =
   L.sortBy
-    (\(Page _ enva _) (Page _ envb _) ->
+    (\(Page enva _) (Page envb _) ->
       maybeOrdering ordering (H.lookup var enva) (H.lookup var envb))
 
 -- | Filter by a variable's value in the environment.
@@ -572,7 +571,7 @@ filterByVar :: Bool
             -> [Page]
 filterByVar includeMissing var f =
   L.filter
-   (\(Page _ env _) -> M.fromMaybe includeMissing (H.lookup var env >>= (Just . f)))
+   (\(Page env _) -> M.fromMaybe includeMissing (H.lookup var env >>= (Just . f)))
 
 -- | Given a variable (whose value is assumed to be an array of VText) and list
 -- of pages, group the pages by the VText found in the variable.
@@ -589,7 +588,7 @@ groupByElements :: T.Text
 groupByElements var pages =
   -- This outer fold takes the list of pages, and accumulates the giant HashMap.
   L.foldl'
-    (\acc page@(Page _ env _) ->
+    (\acc page@(Page env _) ->
       let x = H.lookup var env
       in case x of
            Just (VArray values) ->
@@ -701,8 +700,8 @@ insertPages :: T.Text
 insertPages var pages env = do
   let envs = map
                (\p ->
-                 let text = renderNodes (getPageNodes p)
-                     penv = insertEnv "body" (VText text) (getPageEnv p)
+                 let text = renderNodes (getContent (getPageEnv p))
+                     penv = insertEnv "this.renderedContent" (VText text) (getPageEnv p)
                  in penv)
                pages
   return $ H.insert var (VEnvList envs) env
@@ -712,8 +711,8 @@ insertPagesEscape var pages env = do
   -- will not escape properly. The escaping happens at the final render.
   let envs = map
                (\p ->
-                 let text = renderNodes (getPageNodes p)
-                     penv = insertEnv "body" (VText (T.pack (XML.escapeStringForXML (T.unpack text)))) (getPageEnv p)
+                 let text = renderNodes (getContent (getPageEnv p))
+                     penv = insertEnv "this.renderedContent" (VText (T.pack (XML.escapeStringForXML (T.unpack text)))) (getPageEnv p)
                  in penv)
                pages
   return $ H.insert var (VEnvList envs) env
@@ -877,8 +876,12 @@ load fpf fp = do
   (_, nodes) <- parseAndConvertTextFiles fp
   let env = findEnv nodes
   let fp' = "/" ++ fpf fp
-  let env' = H.insert "this.url" (VText (T.pack fp')) env
-  return $ Page nodes env' fp'
+  let env' = (H.insert "this.url" (VText (T.pack fp')) .
+             -- Filter out preamble nodes, since we've already injected preamble
+             -- into the env.
+             H.insert "this.content" (VContent (filter (not . isPreamble) nodes)))
+             env
+  return $ Page env' fp'
 
 -- | Find preamble node, and load as an Env. If no preamble is found, return a
 -- blank Env.
@@ -987,12 +990,12 @@ instance Render Structure where
   render s = apply s >>= render
 
 instance Render Page where
-  render (Page nodes _ fpOut) = do
+  render (Page env fpOut) = do
     outPrefix <- asks getOutputDir
     let noFileName = FP.takeBaseName fpOut == ""
     let fpOut' = outPrefix ++ if noFileName then fpOut ++ "index.html" else fpOut
     liftIO $ D.createDirectoryIfMissing True (FP.takeDirectory fpOut')
-    liftIO $ TIO.writeFile fpOut' (renderNodes nodes)
+    liftIO $ TIO.writeFile fpOut' (renderNodes (getContent env))
 
 -- This requires FlexibleInstances.
 instance Render r => Render [r] where

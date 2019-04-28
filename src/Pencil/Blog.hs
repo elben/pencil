@@ -13,6 +13,7 @@ module Pencil.Blog
   , buildTagPages
   , injectTagsEnv
   , toRSS
+  , toTextRss
   ) where
 
 import Pencil
@@ -118,7 +119,7 @@ toRSSItem page = do
                       (H.lookup "this.url" (getPageEnv page))
   return $
     item
-      { Syntax.rssItemDescription = Just (Parser.renderNodes (getPageNodes page))
+      { Syntax.rssItemDescription = Just (Parser.renderNodes (getContent (getPageEnv page)))
       , Syntax.rssItemLink = maybeUrl
       , Syntax.rssItemGuid = fmap Syntax.nullGuid maybeUrl
       , Syntax.rssItemPubDate =
@@ -128,6 +129,9 @@ toRSSItem page = do
             _ -> Nothing
       }
 
+toTextRss :: Value -> T.Text
+toTextRss (VDateTime dt) = T.pack $ TF.formatTime TF.defaultTimeLocale rfc822DateFormat dt
+toTextRss v = toText v
 
 -- RFC 822 date format.
 --

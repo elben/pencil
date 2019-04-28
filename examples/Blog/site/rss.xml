@@ -2,8 +2,7 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
 <channel>
   <title>My RSS FEED!!</title>
-  <atom:link href="http://awesome.com/rss.xml" rel="self" type="application/rss+xml" />
-  <!-- <link>http://awesome.com/rss.xml</link> -->
+  <link>http://awesome.com/rss.xml</link>
   <description>My RSS FEED description!!</description>
 
   ${for(posts)}
@@ -13,7 +12,7 @@
   <!-- <pubDate>Wed, 02 Oct 2002 00:00:00 +0000</pubDate> -->
   <pubDate>${date}</pubDate>
   <title>${postTitle}</title>
-  <description>${body}</description>
+  <description>${this.renderedContent}</description>
   </item>
   ${end}
 </channel>

@@ -5,6 +5,7 @@ module Pencil.Internal.Env where
 import qualified Pencil.Internal.Parser as P
 
 import qualified Data.HashMap.Strict as H
+import qualified Data.Maybe as M
 import qualified Data.Text as T
 import qualified Data.Time.Clock as TC
 import qualified Data.Time.Format as TF
@@ -24,6 +25,7 @@ data Value =
   | VArray [Value]
   | VEnvList [Env]
   | VContent [P.PNode]
+  -- | VPage Page
   deriving (Eq, Show)
 
 -- | Environment map of variables to 'Value's.
@@ -95,3 +97,13 @@ arrayContainsString t (VArray arr) =
       arr
 arrayContainsString _ _ = False
 
+-- | Look up a variable in the @Env@, returning the specified default @Value@ if not
+-- found.
+lookupOr :: T.Text -> Value -> Env -> Value
+lookupOr var def env = M.fromMaybe def (H.lookup var env)
+
+getContent :: Env -> [P.PNode]
+getContent env =
+  case H.lookup "this.content" env of
+    Just (VContent nodes) -> nodes
+    _ -> []

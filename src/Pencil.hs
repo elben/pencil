@@ -17,7 +17,6 @@ module Pencil
 
   , Page
   , getPageEnv, setPageEnv
-  , getPageNodes
   , load
   , withEnv
   , renderCss

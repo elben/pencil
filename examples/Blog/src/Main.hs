@@ -7,6 +7,7 @@ import Pencil.Blog
 import qualified Data.HashMap.Strict as H
 import qualified Data.Text as T
 
+import Control.Monad.Reader.Class
 import Control.Monad.IO.Class
 
 import Debug.Trace
@@ -77,8 +78,9 @@ website = do
   rssEnv <- insertPagesEscape "posts" (take 10 (traceShowId posts)) env
   -- TODO confusingly i could call "render rssLayout" without a structure and it compiles.
   -- Mauybe I shouldn't use the render typeclass? When would a user need to render just a Page?
-  -- We should have a diff method that means "we're gonna write something to a file"
-  withEnv (traceShowId rssEnv) (render (structure rssLayout))
+  -- We should have a diff method that means "we're gonna write something to a
+  -- file"
+  local (setDisplayValue toTextRss) (withEnv (traceShowId rssEnv) (render (structure rssLayout)))
 
   -- Render tag list pages. This is so that we can go to /blog/tags/awesome to
   -- see all the blog posts tagged with "awesome".
