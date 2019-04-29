@@ -419,15 +419,11 @@ apply_ (Node name (Page penv fp useFp escapeXml) :| []) = do
                            else text)))
               env'
   return $ Page env'' fp useFp escapeXml
-apply_ (Nodes name pages :| []) = do
-  -- TODO refactor
+
+apply_ (Nodes name pages :| rest) = do
   env <- asks getEnv
-  pages <- mapM (\p -> apply_ (Node "body" p :| [])) pages
-  return (Page (H.insert name (VEnvList (map getPageEnv pages)) env) "WHATISTHIS" False False)
-apply_ (Nodes name pages :| (h : rest)) = do
-  env <- asks getEnv
-  pages <- mapM (\p -> apply_ (Node "body" p :| (h : rest))) pages
-  return (Page (H.insert name (VEnvList (map getPageEnv pages)) env) "WHATDOIDO" False False)
+  pages' <- mapM (\p -> apply_ (Node "body" p :| rest)) pages
+  return (Page (H.insert name (VEnvList (map getPageEnv pages')) env) "Should not use FilePath from collection." False False)
 
 apply_ (Node name (Page penv fp useFp escapeXml) :| (h : rest)) = do
   -- TODO refactor
@@ -601,7 +597,7 @@ sortByVar :: T.Text
 sortByVar var ordering =
   L.sortBy
     (\a b ->
-      maybeOrdering ordering (H.lookup var (pageEnv a)) (H.lookup var (pageEnv b)))
+      maybeOrdering ordering (H.lookup var (getPageEnv a)) (H.lookup var (getPageEnv b)))
 
 -- | Filter by a variable's value in the environment.
 filterByVar :: Bool
@@ -613,7 +609,7 @@ filterByVar :: Bool
             -> [Page]
 filterByVar includeMissing var f =
   L.filter
-   (\p -> M.fromMaybe includeMissing (H.lookup var (pageEnv p) >>= (Just . f)))
+   (\p -> M.fromMaybe includeMissing (H.lookup var (getPageEnv p) >>= (Just . f)))
 
 -- | Given a variable (whose value is assumed to be an array of VText) and list
 -- of pages, group the pages by the VText found in the variable.
@@ -631,7 +627,7 @@ groupByElements var pages =
   -- This outer fold takes the list of pages, and accumulates the giant HashMap.
   L.foldl'
     (\acc page ->
-      let x = H.lookup var (pageEnv page)
+      let x = H.lookup var (getPageEnv page)
       in case x of
            Just (VArray values) ->
              -- This fold takes each of the found values (each is a key in the
@@ -1057,7 +1053,7 @@ instance Render Page where
     let noFileName = FP.takeBaseName fpOut == ""
     let fpOut' = outPrefix ++ if noFileName then fpOut ++ "index.html" else fpOut
     liftIO $ D.createDirectoryIfMissing True (FP.takeDirectory fpOut')
-    liftIO $ TIO.writeFile fpOut' (renderNodes (getContent (traceShowId (pageEnv page))))
+    liftIO $ TIO.writeFile fpOut' (renderNodes (getContent (traceShowId (getPageEnv page))))
 
 -- This requires FlexibleInstances.
 instance Render r => Render [r] where
