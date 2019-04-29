@@ -20,11 +20,15 @@ module Pencil
   , load
   , withEnv
   , renderCss
+  , useFilePath
+  , escapeXml
 
   , Structure
   , (<||)
   , (<|)
+  , (<<|)
   , structure
+  , coll
 
   , Resource
   , loadResource

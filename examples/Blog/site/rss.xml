@@ -7,9 +7,8 @@
 
   ${for(posts)}
   <item>
-  <link>https://awesome.com/${this.url}</link>
-  <guid>https://awesome.com/${this.url}</guid>
-  <!-- <pubDate>Wed, 02 Oct 2002 00:00:00 +0000</pubDate> -->
+  <link>https://awesome.com${this.url}</link>
+  <guid>https://awesome.com${this.url}</guid>
   <pubDate>${date}</pubDate>
   <title>${postTitle}</title>
   <description>${this.renderedContent}</description>

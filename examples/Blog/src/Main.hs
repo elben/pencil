@@ -30,7 +30,7 @@ website = do
   -- Load all our blog posts into `posts`, which is of type [Page]
   postLayout <- load toHtml "post-layout.html"
   posts <- loadBlogPosts "blog/"
-  rssStuff <- toRSS "My RSS FEED!!" "http://awesome.com/rss.xml" posts
+  -- rssStuff <- toRSS "My RSS FEED!!" "http://awesome.com/rss.xml" posts
   liftIO $ putStrLn "wohoo!"
   -- liftIO $ putStrLn (T.unpack rssStuff)
 
@@ -75,12 +75,14 @@ website = do
   -- What if we merge body into the env? The "contents" can be thought of a variable
   -- with an *implicit* variable name of "body"
   -- Oh wait, we already do this. See apply function. So why isn't it here?
-  rssEnv <- insertPagesEscape "posts" (take 10 (traceShowId posts)) env
+  -- rssEnv <- insertPagesEscape "posts" (take 10 (traceShowId posts)) env
   -- TODO confusingly i could call "render rssLayout" without a structure and it compiles.
   -- Mauybe I shouldn't use the render typeclass? When would a user need to render just a Page?
   -- We should have a diff method that means "we're gonna write something to a
   -- file"
-  local (setDisplayValue toTextRss) (withEnv (traceShowId rssEnv) (render (structure rssLayout)))
+
+  -- local (setDisplayValue toTextRss) (withEnv (traceShowId rssEnv) (render (structure rssLayout)))
+  local (setDisplayValue toTextRss) (render (structure (useFilePath rssLayout) <<| coll "posts" (fmap escapeXml posts)))
 
   -- Render tag list pages. This is so that we can go to /blog/tags/awesome to
   -- see all the blog posts tagged with "awesome".
