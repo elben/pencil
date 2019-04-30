@@ -259,6 +259,9 @@ data PencilException
   | VarNotInEnv T.Text FilePath
   -- ^ Variable is not in the environment. Variable name, and file where the
   -- variable was reference.
+  | MissingRenderedContent FilePath
+  -- ^ The page was missing its rendered content (this.content). Either a bug
+  -- with Pencil, or a weird/bad Structure was built.
   deriving (Typeable, Show)
 
 -- | Enum for file types that can be parsed and converted by Pencil.
@@ -358,8 +361,10 @@ escapeXml p = p { pageEscapeXml = True }
 -- The 'Structure' is expected to be ordered by inner-most content first (such
 -- that the final, HTML structure layout is last in the list).
 --
--- The returned Page contains the Nodes of the fully rendered page, the
--- fully-applied environment, and the URL of the last (inner-most) Page.
+-- The returned Page contains the fully-applied environment and the nodes of the
+-- fully rendered page in this.nodes. The `this.url` variable is set to the Page
+-- in the Structure that specified 'useFilePath'; if no Page specified this,
+-- then it defaults to the URL of the first (inner-most) Page.
 --
 -- Variable application. The outer environment's variables are applied down into
 -- the inner environments. Once it hits the lowest environment, that page is
@@ -404,63 +409,79 @@ apply pages = apply_ (NE.reverse pages)
 --
 -- It's simpler to implement if NonEmpty is ordered outer-structure first (e.g.
 -- HTML layout).
+--
+-- TODO there's a bug somewhere here. The RSS and tags page isn't rendering
 apply_ :: Structure -> PencilApp Page
-apply_ (Node name (Page penv fp useFp escapeXml) :| []) = do
-  -- TODO refactor
+apply_ (Node _ page :| []) = do
   env <- asks getEnv
-  let env' = merge penv env
-  let nodes = getNodes penv
-  nodes' <- evalNodes env' nodes `catchError` setVarNotInEnv fp
-  let text = renderNodes nodes'
-  let env'' = (insertEnv "this.nodes" (VNodes nodes') .
-               insertEnv "this.content"
-                 (VText (if escapeXml
-                           then T.pack (XML.escapeStringForXML (T.unpack text))
-                           else text)))
-              env'
-  return $ Page env'' fp useFp escapeXml
 
+  -- Evaluate this page's nodes using the combined env. The default FilePath is
+  -- this one, since it's the last Page.
+  applyPage env (pageFilePath page) page
+apply_ (Node name page :| (h : rest)) = do
+  -- Apply the inner Pages to accumulate the inner environments and pages. Do it
+  -- in a local env where this Page's env is merged with the current env.
+  -- TODO can we simplify here? We have two env locations; the implicit location
+  -- in the ReaderT, and the explicit one in the Page. Do we need to use both?
+  -- if we make the ReaderT one only reflect the global envs. Well, a user can
+  -- add to that env at any time in their main method, even between renders. So
+  -- we need to take it into account always, merging the "local" env with the
+  -- page's env. So maybe we should "accumulate" in the local env only?
+  pageInner <- local (\c -> (setEnv (merge (getPageEnv page) (getEnv c)) c)) (apply_ (h :| rest))
+
+  -- Get the inner page's rendered content, and insert into the env using the
+  -- specified `name`. This assumes that the inner Page's content was rendered,
+  -- above.
+  --
+  -- If the content is missing, throw an error. Caused by either a bug in Pencil
+  -- or a weird Structure.
+  env <- case getContent (getPageEnv pageInner) of
+           Just content -> return $
+                -- Merge the two envs, since we want the accumulation of all
+                -- inner envs to build the env that build be applied for this page.
+                insertEnv name (VText content) (merge (getPageEnv pageInner) (getPageEnv page))
+           Nothing -> throwError (MissingRenderedContent (pageFilePath pageInner))
+
+  -- Apply this current Page's nodes with the accumulated environment of all the
+  -- inner Pages.
+  --
+  -- Use inner-most Page's file path, as this will be the default destination of
+  -- the accumluated, final, rendered page (unless `page` has useFilePath = True)..
+  applyPage (traceShowId env) (pageFilePath pageInner) page
 apply_ (Nodes name pages :| rest) = do
   env <- asks getEnv
   pages' <- mapM (\p -> apply_ (Node "body" p :| rest)) pages
-  return (Page (H.insert name (VEnvList (map getPageEnv pages')) env) "Should not use FilePath from collection." False False)
+  return (Page (H.insert name (VEnvList (map getPageEnv pages')) env) "UNSPECIFIED_FILE_PATH" False False)
 
-apply_ (Node name (Page penv fp useFp escapeXml) :| (h : rest)) = do
-  -- TODO refactor
-  -- Modify the current env (in the ReaderT) with the one in the page (penv)
-  -- Then call apply_ on the inner Pages to accumulate the inner Page
-  -- environments.
-  Page envInner fpInner useFpInner escapeXmlInner <-
-    local (\c -> setEnv (merge penv (getEnv c)) c) (apply_ (h :| rest))
+applyPage :: Env -> FilePath -> Page -> PencilApp Page
+applyPage env defaultFp (Page penv fp useFp escapeXml) = do
+  let env' = merge env penv
 
-  -- Render the inner nodes, and inject into the inner environment using the
-  -- specified `name`.
-  let innerText = renderNodes (getNodes envInner)
-  let env' = insertEnv name (VText (if escapeXmlInner then T.pack (XML.escapeStringForXML (T.unpack innerText)) else innerText)) envInner
+  -- Evaluate the Page's nodes with the specified environment.
+  nodes <- evalNodes env' (getNodes penv) `catchError` setFilePathInException fp
 
-  -- Evaluate this current Page's nodes with the accumulated environment of all
-  -- the inner Pages.
-  nodes' <- evalNodes env' (getNodes penv) `catchError` setVarNotInEnv fpInner
-  let text = renderNodes nodes'
-  let env'' = (insertEnv "this.nodes" (VNodes nodes') .
-  -- TODO do we need this.content here, since we still have inner child pages
-  -- left? We _do_ have all the env vars we would need, in env', since that is
-  -- calculated first.
-               insertEnv "this.content"
-                (VText (if escapeXml
-                          then T.pack (XML.escapeStringForXML (T.unpack text))
-                          else text)))
+  -- Insert the nodes and rendered content into the env.
+  let env'' = (insertEnv "this.nodes" (VNodes nodes) .
+               insertEnv "this.content" (VText (nodesToText escapeXml nodes)))
               env'
 
   -- Use inner-most Page's file path, as this will be the destination of the
   -- accumluated, final, rendered page.
-  return $ Page env'' (if useFp then fp else fpInner) useFp escapeXml
+  return $ Page env'' (if useFp then fp else defaultFp) useFp escapeXml
+
+nodesToText :: Bool -> [PNode] -> T.Text
+nodesToText escapeXml nodes =
+  (if escapeXml then escapeForXml else id) (renderNodes nodes)
+
+-- | Escape XML tags in the given Text.
+escapeForXml :: T.Text -> T.Text
+escapeForXml text = T.pack (XML.escapeStringForXML (T.unpack text))
 
 -- | Helper to inject a file path into a VarNotInEnv exception. Rethrow the
 -- exception afterwards.
-setVarNotInEnv :: FilePath -> PencilException -> PencilApp a
-setVarNotInEnv fp (VarNotInEnv var _) = throwError $ VarNotInEnv var fp
-setVarNotInEnv _ e = throwError e
+setFilePathInException :: FilePath -> PencilException -> PencilApp a
+setFilePathInException fp (VarNotInEnv var _) = throwError $ VarNotInEnv var fp
+setFilePathInException _ e = throwError e
 
 -- | Loads the given file as a text file. Throws an exception into the ExceptT
 -- monad transformer if the file is not a text file.
@@ -1039,7 +1060,7 @@ instance Render Page where
     let noFileName = FP.takeBaseName fpOut == ""
     let fpOut' = outPrefix ++ if noFileName then fpOut ++ "index.html" else fpOut
     liftIO $ D.createDirectoryIfMissing True (FP.takeDirectory fpOut')
-    liftIO $ TIO.writeFile fpOut' (renderNodes (getNodes (traceShowId (getPageEnv page))))
+    liftIO $ TIO.writeFile fpOut' (renderNodes (getNodes (getPageEnv page)))
 
 -- This requires FlexibleInstances.
 instance Render r => Render [r] where

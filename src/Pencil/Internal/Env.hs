@@ -102,8 +102,18 @@ arrayContainsString _ _ = False
 lookupOr :: T.Text -> Value -> Env -> Value
 lookupOr var def env = M.fromMaybe def (H.lookup var env)
 
+-- | Get the nodes from the env, from the @this.nodes@ variable. Returns empty
+-- list if this variable is missing.
 getNodes :: Env -> [P.PNode]
 getNodes env =
   case H.lookup "this.nodes" env of
     Just (VNodes nodes) -> nodes
     _ -> []
+
+-- | Get the render's content from the env, from the @this.content@ variable.
+-- Returns Nothing is the variable is missing (e.g. has not been rendered)
+getContent :: Env -> Maybe T.Text
+getContent env =
+  case H.lookup "this.content" env of
+    Just (VText content) -> return content
+    _ -> Nothing
