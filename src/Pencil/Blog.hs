@@ -93,8 +93,6 @@ loadBlogPosts fp = do
 blogPostUrl :: FilePath -> FilePath
 blogPostUrl fp = FP.replaceFileName fp (drop 11 (FP.takeBaseName fp)) ++ "/"
 
--- TODO why not use Structures to generate RSS feeds? An RSS file could just be a template. Hmmm...
-
 -- | Convert @Page@s to the RSS XML text. Assumes that the given pages were loaded
 -- using 'loadBlogPosts', which is assumed to contain @postTitle@, @date@ and @this.url@
 -- variables in the env.
@@ -129,6 +127,7 @@ toRSSItem page = do
             _ -> Nothing
       }
 
+-- | Render dates in the RFC 822 format, per the RSS specification.
 toTextRss :: Value -> T.Text
 toTextRss (VDateTime dt) = T.pack $ TF.formatTime TF.defaultTimeLocale rfc822DateFormat dt
 toTextRss v = toText v

@@ -48,7 +48,6 @@ module Pencil
   , insertEnv
   , insertText
   , insertPages
-  , insertPagesEscape
   , updateEnvVal
   , sortByVar
   , filterByVar

@@ -30,9 +30,6 @@ website = do
   -- Load all our blog posts into `posts`, which is of type [Page]
   postLayout <- load toHtml "post-layout.html"
   posts <- loadBlogPosts "blog/"
-  -- rssStuff <- toRSS "My RSS FEED!!" "http://awesome.com/rss.xml" posts
-  liftIO $ putStrLn "wohoo!"
-  -- liftIO $ putStrLn (T.unpack rssStuff)
 
   -- Build tag index pages. This is a map of a Tag (which is just text)
   -- to a Page which has the environment stuffed with blog posts that has that
@@ -57,36 +54,26 @@ website = do
   render $ fmap ((layout <|| postLayout <|) . injectTagsEnv tagPages . injectTitle websiteTitle)
                 posts
 
-  -- Build our index page. Insert the blog posts into the env, so that we can
-  -- render the list of blog posts. `withEnv` tells Pencil to use the modified
-  -- environment when rendering the index page, since that's the env that has
-  -- the list of blog posts.
+  -- Build our index page.
   index <- load toHtml "index.html"
-  env <- asks getEnv
-  indexEnv <- insertPages "posts" posts env
-  withEnv indexEnv (render (layout <|| index))
-
-  liftIO $ putStrLn "!!! RSS !!!"
-
-  rssLayout <- load id "rss.xml"
-  -- TODO this only inserts the env, not the actual body. Where is the body? It's in the nodes, not
-  -- the env. So how do I get to it and insert it into the env?
-  -- How would I even do a "snippet" HTML page? I can't today. I need to rethink this.
-  -- What if we merge body into the env? The "contents" can be thought of a variable
-  -- with an *implicit* variable name of "body"
-  -- Oh wait, we already do this. See apply function. So why isn't it here?
-  -- rssEnv <- insertPagesEscape "posts" (take 10 (traceShowId posts)) env
-  -- TODO confusingly i could call "render rssLayout" without a structure and it compiles.
-  -- Mauybe I shouldn't use the render typeclass? When would a user need to render just a Page?
-  -- We should have a diff method that means "we're gonna write something to a
-  -- file"
-
-  -- local (setDisplayValue toTextRss) (withEnv (traceShowId rssEnv) (render (structure rssLayout)))
-  local (setDisplayValue toTextRss) (render (structure (useFilePath rssLayout) <<| coll "posts" (fmap escapeXml posts)))
+  render (layout <|| (useFilePath index) <<| coll "posts" posts)
 
   -- Render tag list pages. This is so that we can go to /blog/tags/awesome to
   -- see all the blog posts tagged with "awesome".
   render $ fmap (layout <||) (H.elems tagPages)
+
+  -- Load RSS layout.
+  rssLayout <- load id "rss.xml"
+
+  -- Build RSS feed of the last 10 posts.
+  -- TODO elaborate.
+  let rssFeedStructure = structure (useFilePath rssLayout) <<| coll "posts" (fmap escapeXml (take 10 posts))
+
+  -- Render the RSS feed. We need to render inside a modified environment, where
+  -- @toTextRss@ is used as the render function, so that dates are rendered in
+  -- the RFC 822 format, per the RSS specification.
+  local (setDisplayValue toTextRss)
+        (render rssFeedStructure)
 
 main :: IO ()
 main = run website config

@@ -744,20 +744,6 @@ insertPages var pages env = do
                pages
   return $ H.insert var (VEnvList envs) env
 
-insertPagesEscape var pages env = do
-  -- TODO we need to keep these as nodes and not rendered text? Otherwise, we
-  -- will not escape properly. The escaping happens at the final render.
-  envs <- mapM
-               (\p -> do
-                 p' <- apply (structure p)
-                 let text = renderNodes (getContent (getPageEnv p'))
-                 let penv = insertEnv
-                              "this.renderedContent"
-                              (VText (T.pack (XML.escapeStringForXML (T.unpack text)))) (getPageEnv p')
-                 return penv)
-               pages
-  return $ H.insert var (VEnvList envs) env
-
 -- | Modify a variable in the given environment.
 updateEnvVal :: (Value -> Value)
           -> T.Text
