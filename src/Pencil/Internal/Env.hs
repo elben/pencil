@@ -24,7 +24,7 @@ data Value =
   | VDateTime TC.UTCTime
   | VArray [Value]
   | VEnvList [Env]
-  | VContent [P.PNode]
+  | VNodes [P.PNode]
   -- | VPage Page
   deriving (Eq, Show)
 
@@ -55,7 +55,7 @@ toText (VEnvList envs) = T.unwords $ map (T.unwords . map toText . H.elems) envs
 toText (VDateTime dt) =
   -- December 30, 2017
   T.pack $ TF.formatTime TF.defaultTimeLocale "%B %e, %Y" dt
-toText (VContent nodes) = P.renderNodes nodes
+toText (VNodes nodes) = P.renderNodes nodes
 
 -- | Accepted format is ISO 8601 (YYYY-MM-DD), optionally with an appended "THH:MM:SS".
 -- Example: 2010-01-30, 2010-01-30T09:08:00
@@ -102,8 +102,8 @@ arrayContainsString _ _ = False
 lookupOr :: T.Text -> Value -> Env -> Value
 lookupOr var def env = M.fromMaybe def (H.lookup var env)
 
-getContent :: Env -> [P.PNode]
-getContent env =
-  case H.lookup "this.content" env of
-    Just (VContent nodes) -> nodes
+getNodes :: Env -> [P.PNode]
+getNodes env =
+  case H.lookup "this.nodes" env of
+    Just (VNodes nodes) -> nodes
     _ -> []

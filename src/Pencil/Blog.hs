@@ -117,7 +117,7 @@ toRSSItem page = do
                       (H.lookup "this.url" (getPageEnv page))
   return $
     item
-      { Syntax.rssItemDescription = Just (Parser.renderNodes (getContent (getPageEnv page)))
+      { Syntax.rssItemDescription = Just (Parser.renderNodes (getNodes (getPageEnv page)))
       , Syntax.rssItemLink = maybeUrl
       , Syntax.rssItemGuid = fmap Syntax.nullGuid maybeUrl
       , Syntax.rssItemPubDate =

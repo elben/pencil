@@ -409,11 +409,11 @@ apply_ (Node name (Page penv fp useFp escapeXml) :| []) = do
   -- TODO refactor
   env <- asks getEnv
   let env' = merge penv env
-  let nodes = getContent penv
+  let nodes = getNodes penv
   nodes' <- evalNodes env' nodes `catchError` setVarNotInEnv fp
   let text = renderNodes nodes'
-  let env'' = (insertEnv "this.content" (VContent nodes') .
-               insertEnv "this.renderedContent"
+  let env'' = (insertEnv "this.nodes" (VNodes nodes') .
+               insertEnv "this.content"
                  (VText (if escapeXml
                            then T.pack (XML.escapeStringForXML (T.unpack text))
                            else text)))
@@ -435,18 +435,18 @@ apply_ (Node name (Page penv fp useFp escapeXml) :| (h : rest)) = do
 
   -- Render the inner nodes, and inject into the inner environment using the
   -- specified `name`.
-  let innerText = renderNodes (getContent envInner)
+  let innerText = renderNodes (getNodes envInner)
   let env' = insertEnv name (VText (if escapeXmlInner then T.pack (XML.escapeStringForXML (T.unpack innerText)) else innerText)) envInner
 
   -- Evaluate this current Page's nodes with the accumulated environment of all
   -- the inner Pages.
-  nodes' <- evalNodes env' (getContent penv) `catchError` setVarNotInEnv fpInner
+  nodes' <- evalNodes env' (getNodes penv) `catchError` setVarNotInEnv fpInner
   let text = renderNodes nodes'
-  let env'' = (insertEnv "this.content" (VContent nodes') .
-  -- TODO do we need renderedContent here, since we still have inner child pages
+  let env'' = (insertEnv "this.nodes" (VNodes nodes') .
+  -- TODO do we need this.content here, since we still have inner child pages
   -- left? We _do_ have all the env vars we would need, in env', since that is
   -- calculated first.
-               insertEnv "this.renderedContent"
+               insertEnv "this.content"
                 (VText (if escapeXml
                           then T.pack (XML.escapeStringForXML (T.unpack text))
                           else text)))
@@ -738,8 +738,8 @@ insertPages var pages env = do
   envs <- mapM
                (\p -> do
                  p' <- apply (structure p)
-                 let text = renderNodes (getContent (getPageEnv p'))
-                 let penv = insertEnv "this.renderedContent" (VText text) (getPageEnv p')
+                 let text = renderNodes (getNodes (getPageEnv p'))
+                 let penv = insertEnv "this.content" (VText text) (getPageEnv p')
                  return penv)
                pages
   return $ H.insert var (VEnvList envs) env
@@ -910,7 +910,7 @@ load fpf fp = do
   let env' = (H.insert "this.url" (VText (T.pack fp')) .
              -- Filter out preamble nodes, since we've already injected preamble
              -- into the env.
-             H.insert "this.content" (VContent (filter (not . isPreamble) nodes)))
+             H.insert "this.nodes" (VNodes (filter (not . isPreamble) nodes)))
              env
   return $ Page env' fp' False False
 
@@ -1039,7 +1039,7 @@ instance Render Page where
     let noFileName = FP.takeBaseName fpOut == ""
     let fpOut' = outPrefix ++ if noFileName then fpOut ++ "index.html" else fpOut
     liftIO $ D.createDirectoryIfMissing True (FP.takeDirectory fpOut')
-    liftIO $ TIO.writeFile fpOut' (renderNodes (getContent (traceShowId (getPageEnv page))))
+    liftIO $ TIO.writeFile fpOut' (renderNodes (getNodes (traceShowId (getPageEnv page))))
 
 -- This requires FlexibleInstances.
 instance Render r => Render [r] where

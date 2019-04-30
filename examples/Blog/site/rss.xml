@@ -11,7 +11,7 @@
   <guid>https://awesome.com${this.url}</guid>
   <pubDate>${date}</pubDate>
   <title>${postTitle}</title>
-  <description>${this.renderedContent}</description>
+  <description>${this.content}</description>
   </item>
   ${end}
 </channel>
