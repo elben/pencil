@@ -426,24 +426,18 @@ apply_ (Nodes name pages :| rest) = do
 apply_ (Node name page@(Page penv fp useFp escapeXml) :| (h : rest)) = do
   -- Apply the inner Pages to accumulate the inner environments and pages. Do it
   -- in a local env where this Page's env is merged with the current env.
-  --
-  -- TODO can we simplify here? We have two env locations; the implicit location
-  -- in the ReaderT, and the explicit one in the Page. Do we need to use both?
-  -- if we make the ReaderT one only reflect the global envs. Well, a user can
-  -- add to that env at any time in their main method, even between renders. So
-  -- we need to take it into account always, merging the "local" env with the
-  -- page's env. So maybe we should "accumulate" in the local env only?
   pageInner <- local (\c -> setEnv (merge penv (getEnv c)) c) (apply_ (h :| rest))
 
-  -- Get the inner page's rendered content, and insert into the env using the
-  -- specified `name`. This assumes that the inner Page's content was rendered,
-  -- above.
+  -- At this point, pageInner's env is the accumulate of this page's env and all
+  -- the inner pages' envs.
   --
-  -- Some pages don't have this.content (e.g. 'Nodes' pages).
+  -- Get the inner page's rendered content, and insert into a new env using the
+  -- specified `name`. This assumes that the inner Page's content was rendered,
+  -- above. Some pages don't have this.content (e.g. 'Nodes' pages).
   let env' = maybe (getPageEnv pageInner)
               (\content -> insertEnv name (VText content) (getPageEnv pageInner))
               (getContent (getPageEnv pageInner))
-  
+
   -- Apply this current Page's nodes with the accumulated environment of all the
   -- inner Pages.
   --
