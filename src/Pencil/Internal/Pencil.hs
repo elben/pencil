@@ -883,7 +883,7 @@ loadResource fpf fp =
   -- wasn't a text file, then return a Passthroguh resource. This is where we
   -- finally handle the "checked" exception; that is, converting the Left error
   -- case (NotTextFile) into a Right case (Passthrough).
-  fmap Single (rename fpf <$> load fp)
+  fmap Single (rename fpf <$> load' fp)
     `catchError` handle
   -- 'handle' requires FlexibleContexts
   where handle e = case e of
@@ -903,29 +903,34 @@ passthrough fp = return $ Passthrough fp fp
 -- | Loads a file into a Page, rendering the file (as determined by the file
 -- extension) into the proper output format (e.g. Markdown rendered to
 -- HTML, SCSS to CSS). Parses the template directives and preamble variables
--- into its environment. The 'Page''s 'pageFilePath' is determined by the given
--- function, which expects the original file path, and returns the designated file
--- path.
+-- into its environment.
 --
--- The Page's designated file path is calculated and stored in the Page's
--- environment in the variable @this.url@. This allows the template to use
--- @${this.url}@ to refer to the designated file path.
---
--- Example:
+-- Examples:
 --
 -- @
--- -- Loads index.markdown with the designated file path of index.html
--- 'rename' 'toHtml' <$> load "index.markdown"
+-- -- Loads index.markdown with the designated file path automatically
+-- -- calculated to be index.html.
+-- load "index.markdown"
 --
--- Or:
--- fmap ('rename' 'toHtml') (load "index.markdown")
---
--- -- Keep the file path as-is
 -- load "about.html"
 -- @
 --
 load :: FilePath -> PencilApp Page
-load fp = do
+load fp = rename toExpected <$> load' fp
+
+-- | Like 'load', loads a file into a Page. Unlike 'load', the original FilePath
+-- is kept for the output format. This allows you supply your own file path
+-- transformer.
+--
+-- Examples:
+--
+-- @
+-- -- Will be rendered as about/index.html.
+-- 'rename' 'toDir' <$> load' "about/index.markdown"
+-- @
+--
+load' :: FilePath -> PencilApp Page
+load' fp = do
   (_, nodes) <- parseAndConvertTextFiles fp
   -- Filter out preamble nodes, since we've already injected preamble into the
   -- env.
@@ -947,7 +952,7 @@ findEnv nodes =
 renderCss :: FilePath -> PencilApp ()
 renderCss fp =
   -- Drop .scss/sass extension and replace with .css.
-  rename toCss <$> load fp >>= render
+  load fp >>= render
 
 -- | A @Structure@ is a list of 'Page's, defining a nesting order. Think of them
 -- like <https://en.wikipedia.org/wiki/Matryoshka_doll Russian nesting dolls>.
@@ -961,8 +966,8 @@ renderCss fp =
 --
 -- @
 -- layout <- load "layout.html"
--- index <- rename toHtml <$> load "index.markdown"
--- about <- rename toHtml <$> load "about.markdown"
+-- index <- load "index.markdown"
+-- about <- load "about.markdown"
 -- render (layout <|| index)
 -- render (layout <|| about)
 -- @
@@ -997,7 +1002,7 @@ data Node =
 --
 -- @
 -- layout <- load "layout.html"
--- index <- rename toHtml <$> load "index.markdown"
+-- index <- load "index.markdown"
 -- render (layout <|| index)
 -- @
 (<||) :: Page -> Page -> Structure
@@ -1008,7 +1013,7 @@ data Node =
 -- @
 -- layout <- load "layout.html"
 -- blogLayout <- load "blog-layout.html"
--- blogPost <- rename toHtml <$> load "myblogpost.markdown"
+-- blogPost <- load "myblogpost.markdown"
 -- render (layout <|| blogLayout <| blogPost)
 -- @
 (<|) :: Structure -> Page -> Structure
