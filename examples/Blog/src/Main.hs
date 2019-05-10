@@ -26,7 +26,7 @@ website = do
   layout <- load "layout.html"
 
   -- Load all our blog posts into `posts`, which is of type [Page]
-  postLayout <- rename toHtml <$> load "post-layout.html"
+  postLayout <- load "post-layout.html"
   posts <- loadBlogPosts "blog/"
 
   -- Build tag index pages. This is a map of a Tag (which is just text)

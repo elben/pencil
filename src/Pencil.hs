@@ -120,7 +120,7 @@ import Control.Monad.Reader as Reader
 -- > website :: PencilApp ()
 -- > website = do
 -- >   layout <- load "layout.html"
--- >   index <- rename toHtml <$> load "index.markdown"
+-- >   index <- load "index.markdown"
 -- >   render (layout <|| index)
 -- >
 -- >   renderCss "style.scss"

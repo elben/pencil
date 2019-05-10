@@ -12,7 +12,6 @@ module Pencil.Blog
   , buildTagPagesWith
   , buildTagPages
   , injectTagsEnv
-  , toRSS
   , toTextRss
   ) where
 
@@ -87,46 +86,12 @@ loadBlogPosts fp = do
 
   -- Sort by date (newest first) and filter out drafts
   liftM (filterByVar True "draft" (VBool True /=) . sortByVar "date" dateOrdering)
-        (mapM (\p -> rename blogPostUrl <$> load p) postFps)
+        (mapM (\p -> rename blogPostUrl <$> load' p) postFps)
 
 -- | Rewrites file path for blog posts.
 -- @\/blog\/2011-01-01-the-post-title.html@ => @\/blog\/the-post-title\/@
 blogPostUrl :: FilePath -> FilePath
 blogPostUrl fp = FP.replaceFileName fp (drop 11 (FP.takeBaseName fp)) ++ "/"
-
--- | Convert @Page@s to the RSS XML text. Assumes that the given pages were loaded
--- using 'loadBlogPosts', which is assumed to contain @postTitle@, @date@ and @this.url@
--- variables in the env.
---
--- RSS specification: https://cyber.harvard.edu/rss/rss.html
---
--- Validate using https://validator.w3.org/feed/check.cgi
-toRSS :: T.Text -> T.Text -> [Page] -> PencilApp T.Text
-toRSS title link posts = do
-  let channel = Syntax.nullChannel title link
-  items <- mapM toRSSItem posts
-  let feed = (Syntax.nullRSS "" "") { Syntax.rssChannel = channel { Syntax.rssItems = items } }
-  return $ maybe "" LT.toStrict (Export.textRSS feed)
-
-toRSSItem :: Page -> PencilApp Syntax.RSSItem
-toRSSItem page = do
-  displayValue <- asks getDisplayValue
-  rootUrl <- asks getRootUrl
-
-  let item = Syntax.nullItem (maybe "" displayValue (H.lookup "postTitle" (getPageEnv page)))
-  let maybeUrl = fmap ((T.append (M.fromMaybe "" rootUrl)) . displayValue)
-                      (H.lookup "this.url" (getPageEnv page))
-  return $
-    item
-      { Syntax.rssItemDescription = Just (Parser.renderNodes (getNodes (getPageEnv page)))
-      , Syntax.rssItemLink = maybeUrl
-      , Syntax.rssItemGuid = fmap Syntax.nullGuid maybeUrl
-      , Syntax.rssItemPubDate =
-          case H.lookup "date" (getPageEnv page) of
-            -- Convert date to RFC 822 format, which is what RSS format expects.
-            Just (VDateTime dt) -> Just $ T.pack $ TF.formatTime TF.defaultTimeLocale rfc822DateFormat dt
-            _ -> Nothing
-      }
 
 -- | Render dates in the RFC 822 format, per the RSS specification.
 toTextRss :: Value -> T.Text
@@ -222,7 +187,7 @@ buildTagPagesWith tagPageFp pagesVar fpf pages = do
 
   foldM
     (\acc (tag, taggedPosts) -> do
-      tagPage <- rename (fpf tag) <$> load tagPageFp
+      tagPage <- rename (fpf tag) <$> load' tagPageFp
       -- Generate the URL that this tag page will use.
       let url = T.pack $ "/" ++ pageFilePath tagPage
       tagEnv <- (insertPages pagesVar taggedPosts . insertText "tag" tag . insertText "this.url" url . merge (getPageEnv tagPage)) env
