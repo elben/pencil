@@ -57,12 +57,9 @@ type PencilApp = ReaderT Config (ExceptT PencilException IO)
 -- Use 'defaultConfig' as a starting point, along with the config-modification
 -- helpers such as 'setSourceDir'.
 --
--- * @configRootUrl@ - URL prefix for the link attribute in RSS feeds.
---
 data Config = Config
   { configSourceDir :: FilePath
   , configOutputDir :: FilePath
-  , configRootUrl :: Maybe T.Text
   , configEnv :: Env
   , configDisplayValue :: Value -> T.Text
   , configSassOptions :: Sass.SassOptions
@@ -82,7 +79,6 @@ instance Default Config where
 -- Config
 --  { 'configSourceDir' = "site/"
 --  , 'configOutputDir' = "out/"
---  , 'configRootUrl' = Nothing
 --  , 'configEnv' = HashMap.empty
 --  , 'configDisplayValue' = 'toText'
 --  , 'configSassOptions' = Text.Sass.Options.defaultSassOptions
@@ -98,7 +94,6 @@ defaultConfig :: Config
 defaultConfig = Config
   { configSourceDir = "site/"
   , configOutputDir = "out/"
-  , configRootUrl = Nothing
   , configEnv = H.empty
   , configSassOptions = Text.Sass.Options.defaultSassOptions
 
@@ -128,14 +123,6 @@ getOutputDir = configOutputDir
 -- | Sets the output directory of your rendered web pages.
 setOutputDir :: FilePath -> Config -> Config
 setOutputDir fp c = c { configOutputDir = fp }
-
--- | The URL domain prefix.
-getRootUrl :: Config -> Maybe T.Text
-getRootUrl = configRootUrl
-
--- | Sets URL domain prefix.
-setRootUrl :: T.Text -> Config -> Config
-setRootUrl url c = c { configRootUrl = Just url }
 
 -- | The environment of the @Config@, which is what the @PencilApp@ monad
 -- transformer uses. This is where variables are set for rendering template

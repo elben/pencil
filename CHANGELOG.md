@@ -8,9 +8,9 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - Added GHC 8.4 and 8.6 support.
-- Added `(<<|)` to add collection values into structrues.
+- Added `(<<|)` and `coll` to add collection values into structrues.
 - Added `load'` for manual file path transformation.
-- Added `rename` to set the FilePath.
+- Added `useFilePath`, `escapeXml`, ``rename` to manipulate loaded `Page`s.
 
 ### Changed
 - Changed how structures work internally to allow collection values into structures.
