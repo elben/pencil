@@ -350,6 +350,26 @@ escapeXml p = p { pageEscapeXml = True }
 rename :: (FilePath -> FilePath) -> Page -> Page
 rename f p = p { pageFilePath = f (pageFilePath p) }
 
+-- | Moves the page's target file path to the specified FilePath directory.
+--
+--
+-- @
+-- -- Move assets/style.css to stylesheets/style.css on render.
+-- move "stylesheets/" <$> load "assets/style.css"
+--
+-- -- Move assets/style.css to stylesheets/base.css on render.
+-- move "stylesheets/base.css" <$> load "assets/style.css"
+-- @
+move :: FilePath -> Page -> Page
+move fp p =
+  let fileName = FP.takeFileName (pageFilePath p)
+      dir = FP.takeDirectory fp
+      toFileName = FP.takeFileName fp
+      fp' = if null toFileName
+              then dir ++ "/" ++ fileName
+              else dir ++ "/" ++ toFileName
+  in p { pageFilePath = fp' }
+
 -- | Applies the environment variables on the given pages.
 --
 -- The 'Structure' is expected to be ordered by inner-most content first (such
