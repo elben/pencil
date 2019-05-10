@@ -18,7 +18,6 @@ config =
    updateEnv (insertText "secret" "My global secret") .
    setSourceDir "examples/Blog/site/" .
    setOutputDir "examples/Blog/out/" .
-   setRootUrl "https://example.com"
   ) defaultConfig
 
 website :: PencilApp ()
