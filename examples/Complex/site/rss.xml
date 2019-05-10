@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<channel>
+  <title>Example RSS Feed</title>
+  <link>http://example.com/rss.xml</link>
+  <description>An example RSS feed.</description>
+
+  ${for(posts)}
+  <item>
+  <link>https://example.com${this.url}</link>
+  <guid>https://example.com${this.url}</guid>
+  <pubDate>${date}</pubDate>
+  <title>${postTitle}</title>
+  <description>${this.content}</description>
+  </item>
+  ${end}
+</channel>
+</rss>

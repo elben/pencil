@@ -10,13 +10,14 @@ import qualified Data.Text as T
 import Control.Monad.Reader.Class
 
 websiteTitle :: T.Text
-websiteTitle = "My Blog"
+websiteTitle = "Complex Test"
 
 config :: Config
 config =
   (updateEnv (insertText "title" websiteTitle) .
-   setSourceDir "examples/Blog/site/" .
-   setOutputDir "examples/Blog/out/"
+   updateEnv (insertText "secret" "My global secret") .
+   setSourceDir "examples/Complex/site/" .
+   setOutputDir "examples/Complex/out/"
   ) defaultConfig
 
 website :: PencilApp ()
@@ -29,7 +30,7 @@ website = do
   postLayout <- load "post-layout.html"
   posts <- loadBlogPosts "blog/"
 
-  -- Build tag index pages. This is a map of a Tag (which is just Text)
+  -- Build tag index pages. This is a map of a Tag (which is just text)
   -- to a Page which has the environment stuffed with blog posts that has that
   -- tag.
   tagPages <- buildTagPages "tag-list.html" posts
@@ -52,21 +53,8 @@ website = do
   render $ fmap ((layout <|| postLayout <|) . injectTagsEnv tagPages . injectTitle websiteTitle)
                 posts
 
-  -- Load our index page.
-  index <- load "index.html"
-
   -- Build our index page.
-  --
-  -- - useFilePath - Sets rssLayout's file path as the final file path of the
-  --   rendered structure. So that the file is rendered as /index.html, and not
-  --   whatever is in the rest of the structure. If no page is specified through
-  --   `useFilePath`, the last page in the structure is used as the final file path.
-  --
-  -- - coll "posts" posts - Creates a collection of pages inside the Structure.
-  --   The entire structure has access to these pages, via the "posts" variable.
-  --
-  -- - a <<| c - pushes the collection node c into Structure a.
-  --
+  index <- load "index.html"
   render (layout <|| (useFilePath index) <<| coll "posts" posts)
 
   -- Render tag list pages. This is so that we can go to /blog/tags/awesome to
@@ -74,21 +62,9 @@ website = do
   render $ fmap (layout <||) (H.elems tagPages)
 
   -- Load RSS layout.
-  rssLayout <- load "rss.xml"
+  rssLayout <- move "blog/" <$> load "rss.xml"
 
   -- Build RSS feed of the last 10 posts.
-  --
-  -- - `useFilePath` so that the file is rendered as /rss.xml.
-  --
-  -- - `struct` converts the Page into a Struct
-  --
-  -- - `escapeXml` sets the Page to escape the XML/HTML tags in our blog
-  --   content, since we're going to render this inside the RSS <description>
-  --   tag.
-  --
-  -- - `coll "posts" ...` creates a collection of pages inside the Structure.
-  --   See rss.xml file to see how that's used.
-  --
   let rssFeedStruct = struct (useFilePath rssLayout) <<| coll "posts" (fmap escapeXml (take 10 posts))
 
   -- Render the RSS feed. We need to render inside a modified environment, where
