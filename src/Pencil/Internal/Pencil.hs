@@ -915,10 +915,13 @@ passthrough fp = return $ Passthrough fp fp
 --
 -- @
 -- -- Loads index.markdown with the designated file path of index.html
--- load 'toHtml' "index.markdown"
+-- ('rename' 'toHtml') <$> load "index.markdown"
+--
+-- Or:
+-- fmap ('rename' 'toHtml') (load "index.markdown")
 --
 -- -- Keep the file path as-is
--- load id "about.html"
+-- load "about.html"
 -- @
 --
 load :: FilePath -> PencilApp Page
@@ -957,9 +960,9 @@ renderCss fp =
 -- Build structures using 'structure', '<||' and '<|'.
 --
 -- @
--- layout <- load toHtml "layout.html"
--- index <- load toHtml "index.markdown"
--- about <- load toHtml "about.markdown"
+-- layout <- load "layout.html"
+-- index <- rename toHtml <$> load toHtml "index.markdown"
+-- about <- rename toHtml <$> load "about.markdown"
 -- render (layout <|| index)
 -- render (layout <|| about)
 -- @
@@ -993,8 +996,8 @@ data Node =
 -- | Creates a new @Structure@ from two @Page@s.
 --
 -- @
--- layout <- load toHtml "layout.html"
--- index <- load toHtml "index.markdown"
+-- layout <- load "layout.html"
+-- index <- rename toHtml <$> load "index.markdown"
 -- render (layout <|| index)
 -- @
 (<||) :: Page -> Page -> Structure
@@ -1003,9 +1006,9 @@ data Node =
 -- | Pushes @Page@ into @Structure@.
 --
 -- @
--- layout <- load toHtml "layout.html"
--- blogLayout <- load toHtml "blog-layout.html"
--- blogPost <- load toHtml "myblogpost.markdown"
+-- layout <- load "layout.html"
+-- blogLayout <- load "blog-layout.html"
+-- blogPost <- rename toHtml <$> load "myblogpost.markdown"
 -- render (layout <|| blogLayout <| blogPost)
 -- @
 (<|) :: Structure -> Page -> Structure
