@@ -68,13 +68,13 @@ website = do
 
   -- Build RSS feed of the last 10 posts.
   -- TODO elaborate.
-  let rssFeedStructure = structure (useFilePath rssLayout) <<| coll "posts" (fmap escapeXml (take 10 posts))
+  let rssFeedStruct = struct (useFilePath rssLayout) <<| coll "posts" (fmap escapeXml (take 10 posts))
 
   -- Render the RSS feed. We need to render inside a modified environment, where
   -- @toTextRss@ is used as the render function, so that dates are rendered in
   -- the RFC 822 format, per the RSS specification.
   local (setDisplayValue toTextRss)
-        (render rssFeedStructure)
+        (render rssFeedStruct)
 
 main :: IO ()
 main = run website config

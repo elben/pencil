@@ -760,7 +760,7 @@ insertPages :: T.Text
 insertPages var pages env = do
   envs <- mapM
                (\p -> do
-                 p' <- apply (structure p)
+                 p' <- apply (struct p)
                  let text = renderNodes (getNodes (getPageEnv p'))
                  let penv = insertEnv "this.content" (VText text) (getPageEnv p')
                  return penv)
@@ -1020,8 +1020,8 @@ coll :: T.Text -> [Page] -> Node
 coll = Nodes
 
 -- | Converts a @Page@ into a @Structure@.
-structure :: Page -> Structure
-structure p = Node "body" p :| []
+struct :: Page -> Structure
+struct p = Node "body" p :| []
 
 -- | Runs the computation with the given environment. This is useful when you
 -- want to render a 'Page' or 'Structure' with a modified environment.

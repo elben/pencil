@@ -28,7 +28,7 @@ module Pencil
   , (<||)
   , (<|)
   , (<<|)
-  , structure
+  , struct
   , coll
 
   , Resource
