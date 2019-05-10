@@ -8,9 +8,6 @@ import qualified Data.HashMap.Strict as H
 import qualified Data.Text as T
 
 import Control.Monad.Reader.Class
-import Control.Monad.IO.Class
-
-import Debug.Trace
 
 websiteTitle :: T.Text
 websiteTitle = "My Blog"

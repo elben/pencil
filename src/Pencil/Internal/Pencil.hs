@@ -915,7 +915,7 @@ passthrough fp = return $ Passthrough fp fp
 --
 -- @
 -- -- Loads index.markdown with the designated file path of index.html
--- ('rename' 'toHtml') <$> load "index.markdown"
+-- 'rename' 'toHtml' <$> load "index.markdown"
 --
 -- Or:
 -- fmap ('rename' 'toHtml') (load "index.markdown")
@@ -961,7 +961,7 @@ renderCss fp =
 --
 -- @
 -- layout <- load "layout.html"
--- index <- rename toHtml <$> load toHtml "index.markdown"
+-- index <- rename toHtml <$> load "index.markdown"
 -- about <- rename toHtml <$> load "about.markdown"
 -- render (layout <|| index)
 -- render (layout <|| about)
