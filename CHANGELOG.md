@@ -4,15 +4,21 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-## [0.1.4]
+## [1.0.0]
 
 ### Added
 - Added GHC 8.4 and 8.6 support.
-- Added RSS support to Pencil.Blog. See `toRSS`.
+- Added `(<<|)` to add collection values into structrues.
+- Added `load'` for manual file path transformation.
+- Added `rename` to set the FilePath.
 
 ### Changed
+- Changed how structures work internally to allow collection values into structures.
 - Examples now match the tutorials. This is the start of merging the tutorials into the pencil
   repo itself, instead of living somewhere else.
+- Changed `load` to "magically" figure out the desired final FilePath. Use
+  `load'` to manually specify the FilePath transform.
+- Renamed `structure` to `struct`. It's shorter.
 
 ### Fixed
 - Specify example test files in the pencil.cabal file, so that pencil tests run properly.
