@@ -328,14 +328,17 @@ fileType fp =
 -- environment loaded from the preamble section of the file. A Page also
 -- contains 'pageFilePath', which is the output file path.
 data Page = Page
-  { pageEnv       :: Env
-  , pageFilePath  :: FilePath
+  { pageEnv        :: Env
+
+  , pageFilePath :: FilePath
   -- ^ The rendered output path of this page. Defaults to the input file path.
   -- This file path is used to generate the self URL that is injected into the
   -- environment.
+
   , pageUseFilePath :: Bool
   -- ^ Whether or not this Page's URL should be used as the final URL in the
   -- render.
+
   , pageEscapeXml :: Bool
   -- ^ Whether or not XML/HTML tags should be escaped when rendered.
   } deriving (Eq, Show)
@@ -355,6 +358,10 @@ useFilePath p = p { pageUseFilePath = True }
 -- | Sets this 'Page' to render with escaped XML/HTML tags.
 escapeXml :: Page -> Page
 escapeXml p = p { pageEscapeXml = True }
+
+-- | Sets the file path transform function for this 'Page'.
+rename :: (FilePath -> FilePath) -> Page -> Page
+rename f p = p { pageFilePath = f (pageFilePath p) }
 
 -- | Applies the environment variables on the given pages.
 --
@@ -411,7 +418,7 @@ apply_ :: Structure -> PencilApp Page
 --
 -- It's simpler to implement if NonEmpty is ordered outer-structure first (e.g.
 -- HTML layout).
-apply_ (Node name page@(Page penv fp useFp escapeXml) :| []) = do
+apply_ (Node name page :| []) = do
   env <- asks getEnv
 
   -- Evaluate this page's nodes using the combined env. The default FilePath is
@@ -423,10 +430,10 @@ apply_ (Nodes name pages :| rest) = do
   pages' <- mapM (\p -> apply_ (Node "body" p :| rest)) pages
   return (Page (H.insert name (VEnvList (map getPageEnv pages')) env) "UNSPECIFIED_FILE_PATH" False False)
 
-apply_ (Node name page@(Page penv fp useFp escapeXml) :| (h : rest)) = do
+apply_ (Node name page :| (h : rest)) = do
   -- Apply the inner Pages to accumulate the inner environments and pages. Do it
   -- in a local env where this Page's env is merged with the current env.
-  pageInner <- local (\c -> setEnv (merge penv (getEnv c)) c) (apply_ (h :| rest))
+  pageInner <- local (\c -> setEnv (merge (getPageEnv page) (getEnv c)) c) (apply_ (h :| rest))
 
   -- At this point, pageInner's env is the accumulate of this page's env and all
   -- the inner pages' envs.
@@ -442,24 +449,27 @@ apply_ (Node name page@(Page penv fp useFp escapeXml) :| (h : rest)) = do
   -- inner Pages.
   --
   -- Use inner-most Page's file path, as this will be the default destination of
-  -- the accumulated, final, rendered page (unless `page` has useFilePath = True)..
+  -- the accumulated, final, rendered page (unless `page` has useFilePath = True).
   applyPage env' (pageFilePath pageInner) page
 
 applyPage :: Env -> FilePath -> Page -> PencilApp Page
-applyPage env defaultFp (Page penv fp useFp escXml) = do
-  let env' = merge penv env
+applyPage env defaultFp page = do
+  let env' = merge (getPageEnv page) env
 
   -- Evaluate the Page's nodes with the specified environment.
-  nodes <- evalNodes env' (getNodes penv) `catchError` setFilePathInException fp
+  nodes <- evalNodes env' (getNodes (getPageEnv page)) `catchError` setFilePathInException (pageFilePath page)
 
+  -- Generate this Page's final file path.
   -- Insert the nodes and rendered content into the env.
-  let env'' = (insertEnv "this.nodes" (VNodes nodes) .
-               insertEnv "this.content" (VText (nodesToText escXml nodes)))
+  let env'' = (insertText "this.url" (T.pack ("/" ++ pageFilePath page)) .
+               insertEnv "this.nodes" (VNodes nodes) .
+               insertText "this.content" (nodesToText (pageEscapeXml page) nodes))
               env'
 
   -- Use inner-most Page's file path, as this will be the destination of the
   -- accumluated, final, rendered page.
-  return $ Page env'' (if useFp then fp else defaultFp) useFp escXml
+  let fp' = if pageUseFilePath page then pageFilePath page else defaultFp
+  return $ Page env'' fp' (pageUseFilePath page) (pageEscapeXml page)
 
 nodesToText :: Bool -> [PNode] -> T.Text
 nodesToText escXml nodes =
@@ -873,7 +883,7 @@ loadResource fpf fp =
   -- wasn't a text file, then return a Passthroguh resource. This is where we
   -- finally handle the "checked" exception; that is, converting the Left error
   -- case (NotTextFile) into a Right case (Passthrough).
-  fmap Single (load fpf fp)
+  fmap Single (rename fpf <$> load fp)
     `catchError` handle
   -- 'handle' requires FlexibleContexts
   where handle e = case e of
@@ -911,21 +921,13 @@ passthrough fp = return $ Passthrough fp fp
 -- load id "about.html"
 -- @
 --
--- TODO should fpf be a "setting" much like escapeXml and useFilePath? We could
--- change the API to look like:
---
--- (toHtml . useFilePath . escapeXml) load "blah.markdown"
-load :: (FilePath -> FilePath) -> FilePath -> PencilApp Page
-load fpf fp = do
+load :: FilePath -> PencilApp Page
+load fp = do
   (_, nodes) <- parseAndConvertTextFiles fp
-  let env = findEnv nodes
-  let fp' = "/" ++ fpf fp
-  let env' = (H.insert "this.url" (VText (T.pack fp')) .
-             -- Filter out preamble nodes, since we've already injected preamble
-             -- into the env.
-             H.insert "this.nodes" (VNodes (filter (not . isPreamble) nodes)))
-             env
-  return $ Page env' fp' False False
+  -- Filter out preamble nodes, since we've already injected preamble into the
+  -- env.
+  let env' = H.insert "this.nodes" (VNodes (filter (not . isPreamble) nodes)) (findEnv nodes)
+  return $ Page env' fp False False
 
 -- | Find preamble node, and load as an Env. If no preamble is found, return a
 -- blank Env.
@@ -942,7 +944,7 @@ findEnv nodes =
 renderCss :: FilePath -> PencilApp ()
 renderCss fp =
   -- Drop .scss/sass extension and replace with .css.
-  load toCss fp >>= render
+  rename toCss <$> load fp >>= render
 
 -- | A @Structure@ is a list of 'Page's, defining a nesting order. Think of them
 -- like <https://en.wikipedia.org/wiki/Matryoshka_doll Russian nesting dolls>.

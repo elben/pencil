@@ -22,6 +22,7 @@ module Pencil
   , renderCss
   , useFilePath
   , escapeXml
+  , rename
 
   , Structure
   , (<||)

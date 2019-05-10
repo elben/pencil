@@ -26,10 +26,10 @@ config =
 
 website :: PencilApp ()
 website = do
-  layout <- load toHtml "layout.html"
+  layout <- load "layout.html"
 
   -- Load all our blog posts into `posts`, which is of type [Page]
-  postLayout <- load toHtml "post-layout.html"
+  postLayout <- rename toHtml <$> load "post-layout.html"
   posts <- loadBlogPosts "blog/"
 
   -- Build tag index pages. This is a map of a Tag (which is just text)
@@ -56,7 +56,7 @@ website = do
                 posts
 
   -- Build our index page.
-  index <- load toHtml "index.html"
+  index <- load "index.html"
   render (layout <|| (useFilePath index) <<| coll "posts" posts)
 
   -- Render tag list pages. This is so that we can go to /blog/tags/awesome to
@@ -64,7 +64,7 @@ website = do
   render $ fmap (layout <||) (H.elems tagPages)
 
   -- Load RSS layout.
-  rssLayout <- load id "rss.xml"
+  rssLayout <- load "rss.xml"
 
   -- Build RSS feed of the last 10 posts.
   -- TODO elaborate.

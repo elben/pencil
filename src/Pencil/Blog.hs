@@ -18,6 +18,7 @@ module Pencil.Blog
 
 import Pencil
 import Pencil.Internal.Env
+import Pencil.Internal.Pencil
 import Pencil.Internal.Parser as Parser
 import Control.Monad (liftM, foldM)
 import Control.Monad.Reader (asks)
@@ -86,7 +87,7 @@ loadBlogPosts fp = do
 
   -- Sort by date (newest first) and filter out drafts
   liftM (filterByVar True "draft" (VBool True /=) . sortByVar "date" dateOrdering)
-        (mapM (load blogPostUrl) postFps)
+        (mapM (\p -> rename blogPostUrl <$> load p) postFps)
 
 -- | Rewrites file path for blog posts.
 -- @\/blog\/2011-01-01-the-post-title.html@ => @\/blog\/the-post-title\/@
@@ -221,8 +222,10 @@ buildTagPagesWith tagPageFp pagesVar fpf pages = do
 
   foldM
     (\acc (tag, taggedPosts) -> do
-      tagPage <- load (fpf tag) tagPageFp
-      tagEnv <- (insertPages pagesVar taggedPosts . insertText "tag" tag . merge (getPageEnv tagPage)) env
+      tagPage <- rename (fpf tag) <$> load tagPageFp
+      -- Generate the URL that this tag page will use.
+      let url = T.pack $ "/" ++ pageFilePath tagPage
+      tagEnv <- (insertPages pagesVar taggedPosts . insertText "tag" tag . insertText "this.url" url . merge (getPageEnv tagPage)) env
       return $ H.insert tag (setPageEnv tagEnv tagPage) acc
     )
     H.empty
