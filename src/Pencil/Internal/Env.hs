@@ -25,7 +25,6 @@ data Value =
   | VArray [Value]
   | VEnvList [Env]
   | VNodes [P.PNode]
-  -- | VPage Page
   deriving (Eq, Show)
 
 -- | Environment map of variables to 'Value's.
