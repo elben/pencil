@@ -79,6 +79,22 @@ Generate documentation.
 
 Getting various IDEs set up to develop Pencil.
 
+### Using GHCid
+
+https://github.com/ndmitchell/ghcid
+
+```
+nix-env -iA nixpkgs.haskellPackages.ghcid
+```
+
+https://github.com/ndmitchell/ghcid/tree/master/plugins/vscode
+
+```
+nix-shell --attr env default.nix --run "ghcid \"--command=cabal repl pencil-example-complex\""
+```
+
+### Using HIE
+
 First, install [hie-nix](https://github.com/domenkozar/hie-nix). Follow the instructions in the repo, but beware that installing all versions of hie for all versions of GHC takes a LONG time on macOS (because it needs to compile them all). I just install the specific version of hie-nix/ghc I need.
 
 There is a script in Pencil's directory, `hie-start.sh`, that properly runs `hie-wrapper` in the context of our `nix-shell`. We're going to use this script to run the Haskell Language Server.
