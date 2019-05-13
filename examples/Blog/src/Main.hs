@@ -21,7 +21,7 @@ config =
 
 website :: PencilApp ()
 website = do
-  renderCss "assets/style.scss"
+  loadAndRender "assets/style.scss"
 
   layout <- load "layout.html"
 

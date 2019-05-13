@@ -219,4 +219,3 @@ injectTagsEnv tagMap page =
                then getPageEnv page
                else insertEnv "tags" (VEnvList envs) (getPageEnv page)
   in setPageEnv env' page
-

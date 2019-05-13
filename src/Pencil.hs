@@ -19,7 +19,7 @@ module Pencil
   , getPageEnv, setPageEnv
   , load
   , withEnv
-  , renderCss
+  , loadAndRender
   , useFilePath
   , escapeXml
   , rename
@@ -123,7 +123,7 @@ import Control.Monad.Reader as Reader
 -- >   index <- load "index.markdown"
 -- >   render (layout <|| index)
 -- >
--- >   renderCss "style.scss"
+-- >   loadAndRender "style.scss"
 -- >
 -- > main :: IO ()
 -- >   main = run website config
@@ -176,8 +176,8 @@ import Control.Monad.Reader as Reader
 -- @(layout <|| index)@ describes what /will/ happen; it forms a 'Structure'.
 -- Passing it into 'render' is what actually generates the web page.
 --
--- Finally, we have @'renderCss' "style.scss"@, which is a helper method to load
--- and render CSS files in one step.
+-- Finally, we have @'loadAndRender' "style.scss"@, which is a helper method to load
+-- and render files in one step, automatically converting and renaming files.
 --
 -- And that's it! If you run this code, it will spit out an @index.html@ file
 -- and a @style.css@ file in the @examples\/Simple\/out\/@ folder.

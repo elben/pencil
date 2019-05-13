@@ -19,6 +19,8 @@ All notable changes to this project will be documented in this file.
 - Changed `load` to "magically" figure out the desired final FilePath. Use
   `load'` to manually specify the FilePath transform.
 - Renamed `structure` to `struct`. It's shorter.
+- Renamed `renderCss` to `loadAndRender`. It's now generalized to ANY
+  convertible file, not just CSS.
 
 ### Fixed
 - Specify example test files in the pencil.cabal file, so that pencil tests run properly.

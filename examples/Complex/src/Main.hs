@@ -22,7 +22,10 @@ config =
 
 website :: PencilApp ()
 website = do
-  renderCss "assets/style.scss"
+  loadAndRender "assets/style.scss"
+  loadAndRender "assets/giraffe.jpg"
+  move "assets/examples/" <$> passthrough "assets/example.markdown" >>= render
+  loadResources True True "assets/fun/" >>= render
 
   layout <- load "layout.html"
 

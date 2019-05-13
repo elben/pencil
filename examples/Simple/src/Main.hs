@@ -17,7 +17,7 @@ website = do
   index <- load "index.markdown"
   render (layout <|| index)
 
-  renderCss "stylesheet.scss"
+  loadAndRender "stylesheet.scss"
 
 main :: IO ()
 main = run website config

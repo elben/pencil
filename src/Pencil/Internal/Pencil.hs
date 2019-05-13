@@ -9,7 +9,7 @@ import Pencil.Internal.Env
 import Pencil.Internal.Parser
 
 import Control.Exception (tryJust)
-import Control.Monad (forM_, foldM, filterM, liftM)
+import Control.Monad (forM_, foldM, filterM)
 import Control.Monad.Except
 import Control.Monad.Reader
 import Data.Char (toLower)
@@ -346,12 +346,13 @@ useFilePath p = p { pageUseFilePath = True }
 escapeXml :: Page -> Page
 escapeXml p = p { pageEscapeXml = True }
 
--- | Sets the file path transform function for this 'Page'.
-rename :: (FilePath -> FilePath) -> Page -> Page
-rename f p = p { pageFilePath = f (pageFilePath p) }
+-- | Transforms the file path.
+rename :: HasFilePath a => (FilePath -> FilePath) -> a -> a
+rename f a = setFilePath (f (getFilePath a)) a
 
--- | Moves the page's target file path to the specified FilePath directory.
---
+-- | Moves the target file path to the specified FilePath. If the given FilePath
+-- is a directory, the file name is kept the same. If the FilePath is a file
+-- name, then the file is renamed.
 --
 -- @
 -- -- Move assets/style.css to stylesheets/style.css on render.
@@ -360,15 +361,15 @@ rename f p = p { pageFilePath = f (pageFilePath p) }
 -- -- Move assets/style.css to stylesheets/base.css on render.
 -- move "stylesheets/base.css" <$> load "assets/style.css"
 -- @
-move :: FilePath -> Page -> Page
-move fp p =
-  let fileName = FP.takeFileName (pageFilePath p)
-      dir = FP.takeDirectory fp
+move :: HasFilePath a => FilePath -> a -> a
+move fp a =
+  let fromFileName = FP.takeFileName (getFilePath a)
+      toDir = FP.takeDirectory fp
       toFileName = FP.takeFileName fp
       fp' = if null toFileName
-              then dir ++ "/" ++ fileName
-              else dir ++ "/" ++ toFileName
-  in p { pageFilePath = fp' }
+              then toDir ++ "/" ++ fromFileName
+              else toDir ++ "/" ++ toFileName
+  in setFilePath fp' a
 
 -- | Applies the environment variables on the given pages.
 --
@@ -688,18 +689,24 @@ groupByElements var pages =
     (reverse pages)
 
 -- | Loads file in given directory as 'Resource's.
-loadResources :: (FilePath -> FilePath)
-              -> Bool
+--
+-- @
+-- -- Load everything inside the "assets/" folder, renaming converted files as
+-- -- expected (e.g. SCSS to CSS), and leaving everything else alone.
+-- 'loadResources' True True "assets/"
+-- @
+--
+loadResources :: Bool
               -- ^ Recursive if @True@.
               -> Bool
               -- ^ Handle as pass-throughs (file copy) if @True@.
               -> FilePath
               -> PencilApp [Resource]
-loadResources fpf recursive pass dir = do
+loadResources recursive pass dir = do
   fps <- listDir recursive dir
   if pass
     then return $ map (\fp -> Passthrough fp fp) fps
-    else mapM (loadResource fpf) fps
+    else mapM loadResource fps
 
 -- | Lists files in given directory. The file paths returned is prefixed with the
 -- given directory.
@@ -810,7 +817,6 @@ maybeInsertIntoEnv env k v =
 aesonToEnv :: A.Object -> Env
 aesonToEnv = H.foldlWithKey' maybeInsertIntoEnv H.empty
 
-
 -- | Use @Resource@ to load and render files that don't need any manipulation
 -- other than conversion (e.g. Sass to CSS), or for static files that you want
 -- to copy as-is (e.g. binary files like images, or text files that require no
@@ -823,8 +829,8 @@ aesonToEnv = H.foldlWithKey' maybeInsertIntoEnv H.empty
 -- will be rendered as-is.
 --
 -- @
--- passthrough "robots.txt" >> render
--- loadResources id True True "images/" >> render
+-- passthrough "robots.txt" >>= render
+-- loadResources True True "images/" >>= render
 -- @
 --
 data Resource
@@ -870,45 +876,42 @@ toCss fp = FP.dropExtension fp ++ ".css"
 -- | Converts file path into the expected extensions. This means @.markdown@
 -- become @.html@, @.sass@ becomes @.css@, and so forth. See 'extensionMap' for
 -- conversion table.
---
--- @
--- -- Load everything inside the "assets/" folder, renaming converted files as
--- -- expected, and leaving everything else alone.
--- 'loadResources' toExpected True True "assets/"
--- @
 toExpected :: FilePath -> FilePath
 toExpected fp = maybe fp ((FP.dropExtension fp ++ ".") ++) (toExtension (fileType fp))
 
 -- | Loads a file as a 'Resource'. Use this for binary files (e.g. images) and
--- for files without template directives. Regular files are still converted to
--- their web page formats (e.g. Markdown to HTML, SASS to CSS).
+-- for files without template directives that may still need conversion (e.g.
+-- Markdown to HTML, SASS to CSS).
 --
 -- @
 -- -- Loads and renders the image as-is. Underneath the hood
 -- -- this is just a file copy.
--- loadResource id "images/profile.jpg" >> render
+-- loadResource "images/profile.jpg" >>= render
 --
--- -- Loads and renders to about.index
--- loadResource toHtml "about.markdown" >> render
+-- -- Loads and renders to about.html.
+-- loadResource "about.markdown" >>= render
 -- @
-loadResource :: (FilePath -> FilePath) -> FilePath -> PencilApp Resource
-loadResource fpf fp =
+--
+loadResource :: FilePath -> PencilApp Resource
+loadResource fp =
   -- If we can load the Page as text file, convert to a Single. Otherwise if it
   -- wasn't a text file, then return a Passthroguh resource. This is where we
   -- finally handle the "checked" exception; that is, converting the Left error
   -- case (NotTextFile) into a Right case (Passthrough).
-  fmap Single (rename fpf <$> load' fp)
+  fmap Single (load fp)
     `catchError` handle
   -- 'handle' requires FlexibleContexts
   where handle e = case e of
-                     NotTextFile _ -> return (Passthrough fp (fpf fp))
+                     NotTextFile _ -> return (Passthrough fp fp)
                      _ -> throwError e
 
 -- | Loads file as a pass-through. There is no content conversion, and template
 -- directives are ignored. In essence this is a file copy.
 --
 -- @
--- passthrough "robots.txt" >> render
+-- passthrough "robots.txt" >>= render
+--
+-- render (move "images/profile.jpg" <$> passthrough "images/myProfile.jpg")
 -- @
 --
 passthrough :: FilePath -> PencilApp Resource
@@ -957,16 +960,18 @@ findEnv :: [PNode] -> Env
 findEnv nodes =
   aesonToEnv $ M.fromMaybe H.empty (findPreambleText nodes >>= (A.decodeThrow . encodeUtf8 . T.strip))
 
--- | Loads and renders file as CSS.
+-- | Loads and renders file, converting content if it's convertible (e.g.
+-- Markdown to HTML). The final file path is the "default conversion", if Pencil
+-- knows how to convert the file (e.g. .markdown to .html). Otherwise, the same
+-- file name is kept (e.g. .txt).
 --
 -- @
 -- -- Load, convert and render as style.css.
--- renderCss "style.sass"
+-- loadAndRender "style.sass"
 -- @
-renderCss :: FilePath -> PencilApp ()
-renderCss fp =
-  -- Drop .scss/sass extension and replace with .css.
-  load fp >>= render
+loadAndRender :: FilePath -> PencilApp ()
+loadAndRender fp =
+  loadResource fp >>= render
 
 -- | A @Structure@ is a list of 'Page's, defining a nesting order. Think of them
 -- like <https://en.wikipedia.org/wiki/Matryoshka_doll Russian nesting dolls>.
@@ -1054,6 +1059,21 @@ struct p = Node "body" p :| []
 --
 withEnv :: Env -> PencilApp a -> PencilApp a
 withEnv env = local (setEnv env)
+
+class HasFilePath a where
+  getFilePath :: a -> FilePath
+  setFilePath :: FilePath -> a -> a
+
+instance HasFilePath Page where
+  getFilePath = pageFilePath
+  setFilePath fp p = p { pageFilePath = fp }
+
+instance HasFilePath Resource where
+  getFilePath (Single p) = getFilePath p
+  getFilePath (Passthrough _ fp) = fp
+
+  setFilePath fp (Single p) = Single $ setFilePath fp p
+  setFilePath fp (Passthrough ofp _) = Passthrough ofp fp
 
 -- | To render something is to create the output web pages, rendering template
 -- directives into their final form using the current environment.
