@@ -25,12 +25,8 @@ import qualified Data.HashMap.Strict as H
 import qualified Data.List as L
 import qualified Data.Maybe as M
 import qualified Data.Text as T
-import qualified Data.Text.Lazy as LT
 import qualified Data.Time.Format as TF
 import qualified System.FilePath as FP
-
-import qualified Text.RSS.Syntax as Syntax
-import qualified Text.RSS.Export as Export
 
 -- $gettingstarted
 --
