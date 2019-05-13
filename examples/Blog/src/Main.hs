@@ -67,7 +67,7 @@ website = do
   --
   -- - a <<| c - pushes the collection node c into Structure a.
   --
-  render (layout <|| (useFilePath index) <<| coll "posts" posts)
+  render (layout <|| useFilePath index <<| coll "posts" posts)
 
   -- Render tag list pages. This is so that we can go to /blog/tags/awesome to
   -- see all the blog posts tagged with "awesome".

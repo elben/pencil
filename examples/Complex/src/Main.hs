@@ -55,7 +55,7 @@ website = do
 
   -- Build our index page.
   index <- load "index.html"
-  render (layout <|| (useFilePath index) <<| coll "posts" posts)
+  render $ layout <|| useFilePath index <<| coll "posts" posts
 
   -- Render tag list pages. This is so that we can go to /blog/tags/awesome to
   -- see all the blog posts tagged with "awesome".
@@ -72,6 +72,14 @@ website = do
   -- the RFC 822 format, per the RSS specification.
   local (setDisplayValue toTextRss)
         (render rssFeedStruct)
+
+  deep1 <- load "deep/deep1.md"
+  deep2 <- load "deep/deep2.html"
+  deep3 <- load "deep/deep3.markdown"
+  deep4a <- load "deep/deep4a.markdown"
+  deep4b <- load "deep/deep4b.md"
+  deep5 <- load "deep/deep5.html"
+  render $ layout <|| deep1 <| deep2 <| deep3 <<| coll "deep4s" [deep4a, deep4b] <| move "deep/index.html" deep5
 
 main :: IO ()
 main = run website config

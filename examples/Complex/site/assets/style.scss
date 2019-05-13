@@ -14,3 +14,8 @@ body {
 h1 {
     color: $green;
 }
+
+.deep {
+  border-left: 2px solid black;
+  padding: 1em;
+}

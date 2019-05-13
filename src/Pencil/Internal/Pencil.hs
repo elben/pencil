@@ -419,12 +419,11 @@ move fp p =
 apply :: Structure -> PencilApp Page
 apply pages = apply_ (NE.reverse pages)
 
-apply_ :: Structure -> PencilApp Page
-
 -- | Apply @Structure@ and convert to @Page@.
 --
 -- It's simpler to implement if NonEmpty is ordered outer-structure first (e.g.
 -- HTML layout).
+apply_ :: Structure -> PencilApp Page
 apply_ (Node name page :| []) = do
   env <- asks getEnv
 
@@ -434,8 +433,16 @@ apply_ (Node name page :| []) = do
 
 apply_ (Nodes name pages :| rest) = do
   env <- asks getEnv
+
+  -- Apply the inner pages against the rest of the Structure.
   pages' <- mapM (\p -> apply_ (Node "body" p :| rest)) pages
-  return (Page (H.insert name (VEnvList (map getPageEnv pages')) env) "UNSPECIFIED_FILE_PATH" False False)
+
+  -- If there is something in `rest` after a Nodes element, we don't really know
+  -- which file path to use. So just use the first one, if it exists. If not,
+  -- then we use an error-state UNSPECIFIED_FILE_PATH.
+  let fp = maybe "UNSPECIFIED_FILE_PATH" pageFilePath (M.listToMaybe pages')
+  return $
+    Page ((H.insert name (VEnvList (map getPageEnv pages')) env)) fp False False
 
 apply_ (Node name page :| (h : rest)) = do
   -- Apply the inner Pages to accumulate the inner environments and pages. Do it
@@ -769,7 +776,7 @@ insertPages var pages env = do
                (\p -> do
                  p' <- apply (struct p)
                  let text = renderNodes (getNodes (getPageEnv p'))
-                 let penv = insertEnv "this.content" (VText text) (getPageEnv p')
+                 let penv = insertText "this.content" text (getPageEnv p')
                  return penv)
                pages
   return $ H.insert var (VEnvList envs) env
