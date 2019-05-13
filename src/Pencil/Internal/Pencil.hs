@@ -836,15 +836,23 @@ aesonToEnv = H.foldlWithKey' maybeInsertIntoEnv H.empty
 data Resource
   = Single Page
   | Passthrough FilePath FilePath
-  -- ^ in and out file paths
+  -- ^ in and out file paths (can be dir or files)
 
--- | Copy file from source to output dir.
+-- | Copy file from source to output dir. If both the input and output file
+-- paths are directories, recursively copy the contents from one to the other.
 copyFile :: FilePath -> FilePath -> PencilApp ()
 copyFile fpIn fpOut = do
   sitePrefix <- asks getSourceDir
   outPrefix <- asks getOutputDir
   liftIO $ D.createDirectoryIfMissing True (FP.takeDirectory (outPrefix ++ fpOut))
-  liftIO $ D.copyFile (sitePrefix ++ fpIn) (outPrefix ++ fpOut)
+
+  if null (FP.takeFileName fpIn) && null (FP.takeFileName fpOut)
+    -- Copying directories
+    then do
+      fps <- listDir True fpIn
+      forM_ fps (\fp -> copyFile fp (fpOut ++ (FP.takeFileName fp)))
+    else
+      liftIO $ D.copyFile (sitePrefix ++ fpIn) (outPrefix ++ fpOut)
 
 -- | Replaces the file path's extension with @.html@.
 --

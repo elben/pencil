@@ -24,8 +24,19 @@ website :: PencilApp ()
 website = do
   loadAndRender "assets/style.scss"
   loadAndRender "assets/giraffe.jpg"
+
+  -- Should not convert this file. Rendered as assets/examples/example.markdown.
   move "assets/examples/" <$> passthrough "assets/example.markdown" >>= render
-  loadResources True True "assets/fun/" >>= render
+
+  -- Static files are passed-through. Convertible files are converted.
+  loadResources True False "assets/fun/" >>= render
+
+  -- Copy the assets/passthroughs folder to its destination without converting
+  -- any of the files in there.
+  move "assets/passthroughs-to/" <$> passthrough "assets/passthroughs/" >>= render
+
+  -- We want to be able to do these directories:
+  -- loadAndRender "assets/conversions/"
 
   layout <- load "layout.html"
 
