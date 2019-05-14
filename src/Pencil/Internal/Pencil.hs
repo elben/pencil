@@ -218,6 +218,9 @@ run app config = do
     Left (CollectionNotLastInStructure name) ->
       putStrLn ("Collections must be last in a Structure. But the collection named " ++
                T.unpack name ++ " was not the last in the Structure.")
+    Left (CollectionFirstInStructure name) ->
+      putStrLn ("Collections cannot be first in a Structure. But the collection named " ++
+               T.unpack name ++ " first in the Structure.")
     _ -> return ()
 
 -- Print the list of Strings, one line at a time, prefixed with "-".
@@ -252,6 +255,9 @@ data PencilException
   | CollectionNotLastInStructure T.Text
   -- ^ The collection in the structure was not the last element in the
   -- structure.
+  | CollectionFirstInStructure T.Text
+  -- ^ A collection cannot be the first element in the structure (it's useless
+  -- there, as nothing can reference the pages in the collection).
   deriving (Typeable, Show)
 
 -- | Enum for file types that can be parsed and converted by Pencil.
@@ -1051,6 +1057,10 @@ data Node =
 isNodes :: Node -> Bool
 isNodes (Nodes _ _) = True
 isNodes _ = False
+
+nodeName :: Node -> T.Text
+nodeName (Node n _) = n
+nodeName (Nodes n _) = n
 
 -- | Creates a new @Structure@ from two @Page@s.
 --
