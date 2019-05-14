@@ -79,7 +79,7 @@ Generate documentation.
 
 Getting various IDEs set up to develop Pencil.
 
-### Using GHCid
+### Using GHCid and Visual Studio Code
 
 https://github.com/ndmitchell/ghcid
 
@@ -87,13 +87,21 @@ https://github.com/ndmitchell/ghcid
 nix-env -iA nixpkgs.haskellPackages.ghcid
 ```
 
+Install the VS Code plugin
 https://github.com/ndmitchell/ghcid/tree/master/plugins/vscode
 
+In the Workspace Settings, under **Ghcid: Command**, set the command to:
+
 ```
-nix-shell --attr env default.nix --run "ghcid \"--command=cabal repl pencil-example-complex\""
+./ghcid-start.sh
 ```
 
-### Using HIE
+This is a local script that starts `ghcid` in a Nix shell with the correct
+configs.
+
+Now run the **Start Ghcid** VS Code command.
+
+### Using HIE and Visual Studio Code
 
 First, install [hie-nix](https://github.com/domenkozar/hie-nix). Follow the instructions in the repo, but beware that installing all versions of hie for all versions of GHC takes a LONG time on macOS (because it needs to compile them all). I just install the specific version of hie-nix/ghc I need.
 
