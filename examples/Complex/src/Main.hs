@@ -69,7 +69,7 @@ website = do
 
   -- Build our index page.
   index <- load "index.html"
-  render $ layout <|| useFilePath index <<| coll "posts" posts
+  render $ layout <|| index <<| coll "posts" posts
 
   -- Render tag list pages. This is so that we can go to /blog/tags/awesome to
   -- see all the blog posts tagged with "awesome".
@@ -79,7 +79,7 @@ website = do
   rssLayout <- move "blog/" <$> load "rss.xml"
 
   -- Build RSS feed of the last 10 posts.
-  let rssFeedStruct = struct (useFilePath rssLayout) <<| coll "posts" (fmap escapeXml (take 10 posts))
+  let rssFeedStruct = struct rssLayout <<| coll "posts" (fmap escapeXml (take 10 posts))
 
   -- Render the RSS feed. We need to render inside a modified environment, where
   -- @toTextRss@ is used as the render function, so that dates are rendered in
@@ -92,8 +92,7 @@ website = do
   deep3 <- load "deep/deep3.markdown"
   deep4a <- load "deep/deep4a.markdown"
   deep4b <- load "deep/deep4b.md"
-  deep5 <- load "deep/deep5.html"
-  render $ layout <|| deep1 <| deep2 <| deep3 <<| coll "deep4s" [deep4a, deep4b] <| move "deep/index.html" deep5
+  render $ layout <|| deep1 <| deep2 <| move "deep/index.html" deep3 <<| coll "deep4s" [deep4a, deep4b]
 
 main :: IO ()
 main = run website config

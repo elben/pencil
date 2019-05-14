@@ -5,8 +5,4 @@
 > Is here.
 
 A [link](http://google.com) here.
-
-Deep 5:
-
-${body}
 </div>

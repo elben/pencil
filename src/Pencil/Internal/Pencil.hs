@@ -215,6 +215,9 @@ run app config = do
             printAsList (take 3 closestFiles)
           else putStrLn ("File " ++ fp ++ " not found.")
         _ -> return ()
+    Left (CollectionNotLastInStructure name) ->
+      putStrLn ("Collections must be last in a Structure. But the collection named " ++
+               T.unpack name ++ " was not the last in the Structure.")
     _ -> return ()
 
 -- Print the list of Strings, one line at a time, prefixed with "-".
@@ -246,9 +249,9 @@ data PencilException
   | VarNotInEnv T.Text FilePath
   -- ^ Variable is not in the environment. Variable name, and file where the
   -- variable was reference.
-  | MissingRenderedContent FilePath
-  -- ^ The page was missing its rendered content (this.content). Either a bug
-  -- with Pencil, or a weird/bad Structure was built.
+  | CollectionNotLastInStructure T.Text
+  -- ^ The collection in the structure was not the last element in the
+  -- structure.
   deriving (Typeable, Show)
 
 -- | Enum for file types that can be parsed and converted by Pencil.
@@ -433,6 +436,22 @@ apply_ (Node name page :| []) = do
   applyPage env (pageFilePath page) page
 
 apply_ (Nodes name pages :| rest) = do
+  -- Collection nodes must be the last element in the Structure. Before, you
+  -- could attach more Pages after a collection (such that each page in the
+  -- collection received the rest of the structure's env.)
+  --
+  -- But we now disallow this for a couple of reasons:
+  --
+  -- - Most use-cases of collections involve it being the last item anyways
+  --   (e.g. list of blog posts)
+  -- - Simplifes logic of choosing with Page becomes the default file path to be
+  --   used in the Structure render. The rule is now: the last non-collection
+  --   Page becomes the default file name. It was complicated with collections,
+  --   since a collection had N pages to choose from. And most use-cases (e.g.
+  --   list of blog posts) would then require you to call `useFilePath` for the
+  --   last Page to specify.
+  when (not (null rest)) $ throwError (CollectionNotLastInStructure name)
+
   env <- asks getEnv
 
   -- Apply the inner pages against the rest of the Structure.
@@ -460,12 +479,16 @@ apply_ (Node name page :| (h : rest)) = do
               (\content -> insertEnv name (VText content) (getPageEnv pageInner))
               (getContent (getPageEnv pageInner))
 
+  -- As a rule, the default file path of a structure is either the last page in
+  -- the structure, or if there is a collection in the structure, the last
+  -- non-collection page before the first collection.
+  --
+  -- Unless, of course, another deeper page has `useFilePath = True`.
+  let fp = pageFilePath (if isNodes h then page else pageInner)
+
   -- Apply this current Page's nodes with the accumulated environment of all the
   -- inner Pages.
-  --
-  -- Use inner-most Page's file path, as this will be the default destination of
-  -- the accumulated, final, rendered page (unless `page` has useFilePath = True).
-  applyPage env' (pageFilePath pageInner) page
+  applyPage env' fp page
 
 applyPage :: Env -> FilePath -> Page -> PencilApp Page
 applyPage env defaultFp page = do
@@ -484,7 +507,7 @@ applyPage env defaultFp page = do
   -- Use inner-most Page's file path, as this will be the destination of the
   -- accumluated, final, rendered page.
   let fp' = if pageUseFilePath page then pageFilePath page else defaultFp
-  return $ Page env'' fp' (pageUseFilePath page) (pageEscapeXml page)
+  return $ page { pageEnv = env'', pageFilePath = fp' }
 
 nodesToText :: Bool -> [PNode] -> T.Text
 nodesToText escXml nodes =
@@ -1024,6 +1047,10 @@ type Structure = NonEmpty Node
 data Node =
     Node T.Text Page
   | Nodes T.Text [Page]
+
+isNodes :: Node -> Bool
+isNodes (Nodes _ _) = True
+isNodes _ = False
 
 -- | Creates a new @Structure@ from two @Page@s.
 --
