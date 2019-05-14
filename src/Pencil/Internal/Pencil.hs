@@ -427,19 +427,27 @@ move fp a =
 -- @${body}@ variable, which is then used to render the full-blown HTML page.
 --
 apply :: Structure -> PencilApp Page
-apply pages = apply_ (NE.reverse pages)
+apply structure = do
+  let reversed = NE.reverse (structureNodes structure)
 
--- | Apply @Structure@ and convert to @Page@.
+  -- Collections cannot be the first element in the structure. It would be
+  -- useless there, since nothing can reference it.
+  let h = NE.head reversed
+  when (isNodes h) $ throwError (CollectionFirstInStructure (nodeName h))
+
+  setFilePath (getFilePath structure) <$> apply_ reversed
+
+-- | Apply list of @Page@s and convert to @Page@.
 --
 -- It's simpler to implement if NonEmpty is ordered outer-structure first (e.g.
 -- HTML layout).
-apply_ :: Structure -> PencilApp Page
+--
+apply_ :: NE.NonEmpty Node -> PencilApp Page
 apply_ (Node name page :| []) = do
   env <- asks getEnv
 
-  -- Evaluate this page's nodes using the combined env. The default FilePath is
-  -- this one, since it's the last Page.
-  applyPage env (pageFilePath page) page
+  -- Evaluate this page's nodes using the combined env
+  applyPage env page
 
 apply_ (Nodes name pages :| rest) = do
   -- Collection nodes must be the last element in the Structure. Before, you
@@ -463,12 +471,8 @@ apply_ (Nodes name pages :| rest) = do
   -- Apply the inner pages against the rest of the Structure.
   pages' <- mapM (\p -> apply_ (Node "body" p :| rest)) pages
 
-  -- If there is something in `rest` after a Nodes element, we don't really know
-  -- which file path to use. So just use the first one, if it exists. If not,
-  -- then we use an error-state UNSPECIFIED_FILE_PATH.
-  let fp = maybe "UNSPECIFIED_FILE_PATH" pageFilePath (M.listToMaybe pages')
   return $
-    Page ((H.insert name (VEnvList (map getPageEnv pages')) env)) fp False False
+    Page ((H.insert name (VEnvList (map getPageEnv pages')) env)) "UNSPECIFIED_FILE_PATH" False False
 
 apply_ (Node name page :| (h : rest)) = do
   -- Apply the inner Pages to accumulate the inner environments and pages. Do it
@@ -485,19 +489,12 @@ apply_ (Node name page :| (h : rest)) = do
               (\content -> insertEnv name (VText content) (getPageEnv pageInner))
               (getContent (getPageEnv pageInner))
 
-  -- As a rule, the default file path of a structure is either the last page in
-  -- the structure, or if there is a collection in the structure, the last
-  -- non-collection page before the first collection.
-  --
-  -- Unless, of course, another deeper page has `useFilePath = True`.
-  let fp = pageFilePath (if isNodes h then page else pageInner)
-
   -- Apply this current Page's nodes with the accumulated environment of all the
   -- inner Pages.
-  applyPage env' fp page
+  applyPage env' page
 
-applyPage :: Env -> FilePath -> Page -> PencilApp Page
-applyPage env defaultFp page = do
+applyPage :: Env -> Page -> PencilApp Page
+applyPage env page = do
   let env' = merge (getPageEnv page) env
 
   -- Evaluate the Page's nodes with the specified environment.
@@ -512,8 +509,7 @@ applyPage env defaultFp page = do
 
   -- Use inner-most Page's file path, as this will be the destination of the
   -- accumluated, final, rendered page.
-  let fp' = if pageUseFilePath page then pageFilePath page else defaultFp
-  return $ page { pageEnv = env'', pageFilePath = fp' }
+  return $ page { pageEnv = env'' }
 
 nodesToText :: Bool -> [PNode] -> T.Text
 nodesToText escXml nodes =
@@ -1048,7 +1044,13 @@ loadAndRender fp =
 -- such variable closures. The partial directive is much simpler—think of them
 -- as copy-and-pasting snippets from one file to another. A partial has
 -- the same environment as the parent context.
-type Structure = NonEmpty Node
+data Structure = Structure
+  { structureNodes :: NonEmpty Node
+  , structureFilePath :: FilePath
+  , structureFilePathFrozen :: Bool
+  -- ^ True if the file path should no longer be changed. This happens when a
+  -- page with `useFilePath = True` was pushed into the structure.
+  }
 
 data Node =
     Node T.Text Page
@@ -1070,7 +1072,11 @@ nodeName (Nodes n _) = n
 -- render (layout <|| index)
 -- @
 (<||) :: Page -> Page -> Structure
-(<||) x y = Node "body" y :| [Node "body" x]
+(<||) x y = Structure
+  { structureNodes = Node "body" y :| [Node "body" x]
+  , structureFilePath = getFilePath y
+  , structureFilePathFrozen = False
+  }
 
 -- | Pushes @Page@ into @Structure@.
 --
@@ -1081,11 +1087,28 @@ nodeName (Nodes n _) = n
 -- render (layout <|| blogLayout <| blogPost)
 -- @
 (<|) :: Structure -> Page -> Structure
-(<|) s p = NE.cons (Node "body" p) s
+(<|) s p = s { structureNodes = NE.cons (Node "body" p) (structureNodes s)
+             , structureFilePath = if structureFilePathFrozen s then structureFilePath s else getFilePath p
+             , structureFilePathFrozen = structureFilePathFrozen s || pageUseFilePath p
+             }
 
 -- | Pushes @Node@ into the @Structure@.
 (<<|) :: Structure -> Node -> Structure
-(<<|) s node = NE.cons node s
+(<<|) s node =
+  let (fp, frozen) = if structureFilePathFrozen s
+      then
+        (structureFilePath s, True)
+      else
+        case node of
+          -- If collection, use the existing file path (ignore file paths in
+          -- collection). This keeps with the rule that the default file path
+          -- is the last non-collection page.
+          Nodes _ _ -> (structureFilePath s, False)
+          Node _ p -> (getFilePath p, pageUseFilePath p)
+  in s { structureNodes = NE.cons node (structureNodes s)
+       , structureFilePath = fp
+       , structureFilePathFrozen = frozen
+       }
 
 -- | Creates a collection 'Node'.
 coll :: T.Text -> [Page] -> Node
@@ -1093,7 +1116,11 @@ coll = Nodes
 
 -- | Converts a @Page@ into a @Structure@.
 struct :: Page -> Structure
-struct p = Node "body" p :| []
+struct p = Structure
+  { structureNodes = Node "body" p :| []
+  , structureFilePath = getFilePath p
+  , structureFilePathFrozen = pageUseFilePath p
+  }
 
 -- | Runs the computation with the given environment. This is useful when you
 -- want to render a 'Page' or 'Structure' with a modified environment.
@@ -1119,6 +1146,10 @@ instance HasFilePath Resource where
 
   setFilePath fp (Single p) = Single $ setFilePath fp p
   setFilePath fp (Passthrough ofp _) = Passthrough ofp fp
+
+instance HasFilePath Structure where
+  getFilePath = structureFilePath
+  setFilePath fp s = s { structureFilePath = fp }
 
 -- | To render something is to create the output web pages, rendering template
 -- directives into their final form using the current environment.
