@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Pencil Documentation</title>
+    <link rel="stylesheet" href="/default.css" />
+    <link href="https://fonts.googleapis.com/css?family=Fira+Sans:300,400,400i,700" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Fira+Mono:400,700" rel="stylesheet">
+  </head>
+  <body>
+    <div id="structure">
+      <div id="header">
+        <h1><a href="/">Pencil</a></h1>
+        <ul class="nav">
+          <li>
+            <a href="/tutorials/01-getting-started/">
+              Tutorial 1: Getting Started
+            </a>
+          </li>
+          <li>
+            <a
+              href="/tutorials/02-deploying-to-github-pages-using-circle/">
+              Tutorial 2: Deploying to GitHub Pages using Circle
+            </a>
+          </li>
+          <li>
+            <a
+              href="/tutorials/03-blogging/">
+              Tutorial 3: Blogging
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <div id="content">
+        <h1 id="tutorial-1-getting-started">Tutorial 1: Getting Started</h1>
+<p>This tutorial walks you through our first Pencil website. At the end of this tutorial, you’ll understand some of the core Pencil concepts and have the beginnings of a website built out.</p>
+<p>You may find it useful to also have <a href="https://hackage.haskell.org/package/pencil/docs/Pencil.html">Pencil’s Haddock page</a> open as a reference.</p>
+<p>We’ll be using <a href="http://haskellstack.org">stack</a> in this tutorial, so make sure you have it installed. Let’s create our project:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode sh"><code class="sourceCode bash"><a class="sourceLine" id="cb1-1" title="1"><span class="co"># </span><span class="al">TODO</span><span class="co"> bump lts version and re-try entire tutorial. (change in the tut repo)</span></a>
+<a class="sourceLine" id="cb1-2" title="2"><span class="ex">stack</span> new my-website simple --resolver=lts-9.21</a>
+<a class="sourceLine" id="cb1-3" title="3"><span class="bu">cd</span> my-website</a></code></pre></div>
+<p>Open <code>my-website.cabal</code> and look for the <code>executable my-website-exe</code> section. Add <code>pencil</code> into the <code>build-depends</code> section. It should look something like this:</p>
+<pre><code>executable my-website
+  hs-source-dirs:      src
+  main-is:             Main.hs
+  default-language:    Haskell2010
+  build-depends:       base &gt;= 4.7 &amp;&amp; &lt; 5
+                     , pencil</code></pre>
+<p>We’ll also need to add <code>pencil</code> as as an <code>extra-deps</code> in <code>stack.yml</code>, since <code>pencil</code> is not in Stackage yet:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb3-1" title="1"><span class="fu">extra-deps:</span></a>
+<a class="sourceLine" id="cb3-2" title="2">  <span class="kw">-</span> pencil-0.1.3</a></code></pre></div>
+<p>Now we’re going to add some source files. First, let’s make a new directory called <code>site/</code>, that will contain all of our website’s HTML, Markdown and CSS files.</p>
+<pre><code>mkdir site</code></pre>
+<p>Our <code>my-website</code> folder should have a directory structure that looks something like this (ignoring some files):</p>
+<pre><code>my-website.cabal
+src/
+  Main.hs
+site/</code></pre>
+<p>Create a new file, <code>site/layout.html</code>. This will be our website’s structural template. Copy-and-paste this into <code>layout.html</code>:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode html"><code class="sourceCode html"><a class="sourceLine" id="cb6-1" title="1"><span class="dt">&lt;!DOCTYPE </span>html<span class="dt">&gt;</span></a>
+<a class="sourceLine" id="cb6-2" title="2"><span class="kw">&lt;html&gt;</span></a>
+<a class="sourceLine" id="cb6-3" title="3">  <span class="kw">&lt;head&gt;</span></a>
+<a class="sourceLine" id="cb6-4" title="4">    <span class="kw">&lt;meta</span><span class="ot"> charset=</span><span class="st">&quot;utf-8&quot;</span> <span class="kw">/&gt;</span></a>
+<a class="sourceLine" id="cb6-5" title="5">    <span class="kw">&lt;title&gt;</span>${title}<span class="kw">&lt;/title&gt;</span></a>
+<a class="sourceLine" id="cb6-6" title="6">    <span class="kw">&lt;link</span><span class="ot"> rel=</span><span class="st">&quot;stylesheet&quot;</span><span class="ot"> type=</span><span class="st">&quot;text/css&quot;</span><span class="ot"> href=</span><span class="st">&quot;stylesheet.css&quot;</span><span class="kw">/&gt;</span></a>
+<a class="sourceLine" id="cb6-7" title="7">  <span class="kw">&lt;/head&gt;</span></a>
+<a class="sourceLine" id="cb6-8" title="8"><span class="kw">&lt;body&gt;</span></a>
+<a class="sourceLine" id="cb6-9" title="9">  <span class="kw">&lt;div</span><span class="ot"> class=</span><span class="st">&quot;structure&quot;</span><span class="kw">&gt;</span></a>
+<a class="sourceLine" id="cb6-10" title="10">    ${body}</a>
+<a class="sourceLine" id="cb6-11" title="11">  <span class="kw">&lt;/div&gt;</span></a>
+<a class="sourceLine" id="cb6-12" title="12"><span class="kw">&lt;/body&gt;</span></a>
+<a class="sourceLine" id="cb6-13" title="13"><span class="kw">&lt;/html&gt;</span></a></code></pre></div>
+<p>Notice that <code>layout.html</code> contains the strings <code>${title}</code> and <code>${body}</code>. These are variables, and they allow us to dynamically inject content into this shared layout.</p>
+<p>Let’s also create a stylesheet. Create a new file in <code>site/</code> called <code>stylesheet.scss</code>, with this content:</p>
+<pre><code>$bgColor: #ffffff;
+
+body {
+  background-color: $bgColor;
+  font-family: sans-serif;
+  font-size: 18px;
+}
+
+.structure {
+  margin-left: auto;
+  margin-right: auto;
+  width: 600px;
+}</code></pre>
+<p>Notice that we’re using the <code>.scss</code> extension, and we have that weird <code>$fontcolor</code> thing. This is because we’re using <a href="http://sass-lang.com">Sass/Scss</a> for our styling. I like Scss because it’s a super set of CSS, so you can write plain-old CSS but “add on” the Scss parts (like variables) when you need it.</p>
+<p>The final source file we’ll add is <code>index.markdown</code>. This will contain our index page’s content in Markdown. You’ll see how easy it is convert Markdown to HTML, and inject it into our HTML-based layout.</p>
+<p><code>index.markdown</code> contains:</p>
+<pre><code># My Awesome Website
+
+Welcome to my *awesome* [website](http://example.com)!</code></pre>
+<h2 id="writing-some-haskell">Writing some Haskell</h2>
+<p>OK, let’s write some Haskell! Fill <code>src/Main.hs</code> with this:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb9-1" title="1"><span class="ot">{-# LANGUAGE OverloadedStrings #-}</span></a>
+<a class="sourceLine" id="cb9-2" title="2"></a>
+<a class="sourceLine" id="cb9-3" title="3"><span class="kw">module</span> <span class="dt">Main</span> <span class="kw">where</span></a>
+<a class="sourceLine" id="cb9-4" title="4"></a>
+<a class="sourceLine" id="cb9-5" title="5"><span class="kw">import</span> <span class="dt">Pencil</span></a>
+<a class="sourceLine" id="cb9-6" title="6"></a>
+<a class="sourceLine" id="cb9-7" title="7"><span class="ot">website ::</span> <span class="dt">PencilApp</span> ()</a>
+<a class="sourceLine" id="cb9-8" title="8">website <span class="ot">=</span> <span class="kw">do</span></a>
+<a class="sourceLine" id="cb9-9" title="9">  <span class="fu">index</span> <span class="ot">&lt;-</span> load toHtml <span class="st">&quot;index.markdown&quot;</span></a>
+<a class="sourceLine" id="cb9-10" title="10">  render <span class="fu">index</span></a>
+<a class="sourceLine" id="cb9-11" title="11"></a>
+<a class="sourceLine" id="cb9-12" title="12"><span class="ot">main ::</span> <span class="dt">IO</span> ()</a>
+<a class="sourceLine" id="cb9-13" title="13">main <span class="ot">=</span> run website defaultConfig</a></code></pre></div>
+<p>Let’s build our project and try it out.</p>
+<pre><code>stack build
+stack exec my-website</code></pre>
+<p>This should create an <code>out/</code> directory with an <code>index.html</code> file, which contains our Markdown content rendered as HTML. It’s basic stuff, but we’re getting somewhere.</p>
+<div class="note">
+<p><code>PencilApp</code> is Pencil’s monad transformer. Don’t worry if you aren’t familiar with monad transformers. In simple terms, <code>PencilApp</code> is a function that takes a <code>Config</code> and does a bunch of stuff under the <code>IO</code> monad (e.g. reading source files, converting Markdown to HTML, and writing HTML files).</p>
+<p>This is why we have to “run” our <code>website</code> function inside <code>main</code>; we have to give the <code>PencilApp</code> function a <code>Config</code>. For now, we just pass in the default provided by Pencil, <code>defaultConfig</code>.</p>
+</div>
+<h2 id="rendering-pages">Rendering Pages</h2>
+<p>Let’s look at what’s happening inside the <code>website</code> function:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb11-1" title="1"><span class="ot">website ::</span> <span class="dt">PencilApp</span> ()</a>
+<a class="sourceLine" id="cb11-2" title="2">website <span class="ot">=</span> <span class="kw">do</span></a>
+<a class="sourceLine" id="cb11-3" title="3">  <span class="fu">index</span> <span class="ot">&lt;-</span> load toHtml <span class="st">&quot;index.markdown&quot;</span></a>
+<a class="sourceLine" id="cb11-4" title="4">  render <span class="fu">index</span></a></code></pre></div>
+<p>The first thing you see is <code>index &lt;- load toHtml "index.markdown"</code>. The <code>load</code> function is the primary way we load source files in Pencil. <code>load</code> will open the given file and convert it (if necessary) to HTML. This is done under the <code>IO</code> monad because it’s not a pure function (it’s reading a file). This is why we save the result to <code>index</code> using <code>&lt;-</code> inside a <code>do</code> block.</p>
+<p><code>toHtml</code> just tells <code>load</code> to rename the file from <code>.markdown</code> to <code>.html. It's type is</code>FilePath -&gt; FilePath<code>, where</code>FilePath<code>is just an alias for</code>String`. This transformed file name is used later, when we actually render an HTML file.</p>
+<p><code>index</code> is a <code>Page</code>. A <code>Page</code> holds a page’s content, like HTML tags, and variables, like the <code>${title}</code> and <code>${body}</code> variables we saw in <code>layout.html</code>. It’s is an important data type in Pencil.</p>
+<p>And finally we <em>render</em> the Page into an actual HTML file by calling <code>render index</code>. Underneath the hood, <code>render</code> replaces variables in the HTML with their values.</p>
+<h2 id="structuring-our-pages">Structuring our Pages</h2>
+<p>Change the <code>website</code> function to this:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb12-1" title="1"><span class="ot">website ::</span> <span class="dt">PencilApp</span> ()</a>
+<a class="sourceLine" id="cb12-2" title="2">website <span class="ot">=</span> <span class="kw">do</span></a>
+<a class="sourceLine" id="cb12-3" title="3">  layout <span class="ot">&lt;-</span> load toHtml <span class="st">&quot;layout.html&quot;</span></a>
+<a class="sourceLine" id="cb12-4" title="4">  <span class="fu">index</span> <span class="ot">&lt;-</span> load toHtml <span class="st">&quot;index.markdown&quot;</span></a>
+<a class="sourceLine" id="cb12-5" title="5">  render (layout <span class="op">&lt;||</span> <span class="fu">index</span>)</a>
+<a class="sourceLine" id="cb12-6" title="6"></a>
+<a class="sourceLine" id="cb12-7" title="7">  renderCss <span class="st">&quot;stylesheet.scss&quot;</span></a></code></pre></div>
+<p>The call to <code>renderCss</code> loads and compiles our Scss file into <code>stylesheet.css</code> in our output directory. Look at the source code of <a href="https://hackage.haskell.org/package/pencil/docs/Pencil.html#v:renderCss"><code>renderCss</code></a>. It’s just a call to <code>load toCss</code> with a <code>render</code> at the end.</p>
+<p><code>layout &lt;- load toHtml "layout.html"</code> is familiar—we load a layout file into a <code>Page</code>. But is <code>(layout &lt;|| index)</code> about?</p>
+<p>It’s common to share some common template across many pages. Specifically, we want the contents of a page to be injected into another page. In this case, we want the contents of <code>index.markdown</code> inside the <code>${body}</code> position of <code>layout.html</code>.</p>
+<p>To do this, Pencil provides the concept of a <code>Structure</code>. A <code>Structure</code> is a list of <code>Page</code>s, defining a nesting order. Think of them like <a href="https://en.wikipedia.org/wiki/Matryoshka_doll">Russian nesting dolls</a>. The first (left-most) element defines the outer-most container, and subsequent elements are <em>inside</em> the previous element.</p>
+<p>When you have two Pages, you can combine them into a Structure using <code>(&lt;||)</code>. So <code>(layout &lt;|| index)</code> tells Pencil to insert the contents of <code>index</code> into the <code>${body}</code> variable of <code>layout</code>.</p>
+<p>There is also another method, <code>(&lt;|)</code>, that inserts a <code>Page</code> into an exiting <code>Structure</code>. For example:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb13-1" title="1">globalLayout <span class="ot">&lt;-</span> load toHtml <span class="st">&quot;layout.html&quot;</span></a>
+<a class="sourceLine" id="cb13-2" title="2">innerLayout <span class="ot">&lt;-</span> load toHtml <span class="st">&quot;inner.html&quot;</span></a>
+<a class="sourceLine" id="cb13-3" title="3"></a>
+<a class="sourceLine" id="cb13-4" title="4">me <span class="ot">&lt;-</span> load toHtml <span class="st">&quot;about/me.markdown&quot;</span></a>
+<a class="sourceLine" id="cb13-5" title="5">pets <span class="ot">&lt;-</span> load toHtml <span class="st">&quot;about/my-pets.markdown&quot;</span></a>
+<a class="sourceLine" id="cb13-6" title="6"></a>
+<a class="sourceLine" id="cb13-7" title="7">aboutLayout <span class="ot">&lt;-</span> globalLayout <span class="op">&lt;||</span> innerLayout</a>
+<a class="sourceLine" id="cb13-8" title="8">render (aboutLayout <span class="op">&lt;|</span> me)</a>
+<a class="sourceLine" id="cb13-9" title="9">render (aboutLayout <span class="op">&lt;|</span> pets)</a></code></pre></div>
+<div class="note">
+<p>Underneath the hood, a <code>Structure</code> is a <code>NonEmpty Page</code>, which is a list that cannot be empty. You can read more about <code>Structure</code>s <a href="https://hackage.haskell.org/package/pencil/docs/Pencil.html#g:3">here</a>.</p>
+</div>
+<p>And finally, we need to add the <code>title</code> variable into our <code>Config</code> so that our layout’s <code>${title}</code> variable is properly rendered. So let’s create our own called <code>config</code>, which is a modified version of <code>defaultConfig</code>. And let’s modify <code>main</code> to use our new <code>config</code>:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb14-1" title="1"><span class="ot">config ::</span> <span class="dt">Config</span></a>
+<a class="sourceLine" id="cb14-2" title="2">config <span class="ot">=</span></a>
+<a class="sourceLine" id="cb14-3" title="3">  updateEnv (insertText <span class="st">&quot;title&quot;</span> <span class="st">&quot;My Awesome Website&quot;</span>)</a>
+<a class="sourceLine" id="cb14-4" title="4">            defaultConfig</a>
+<a class="sourceLine" id="cb14-5" title="5"></a>
+<a class="sourceLine" id="cb14-6" title="6"><span class="ot">main ::</span> <span class="dt">IO</span> ()</a>
+<a class="sourceLine" id="cb14-7" title="7">main <span class="ot">=</span> run website config</a></code></pre></div>
+<p>Check out the <a href="https://hackage.haskell.org/package/pencil/docs/Pencil.html">documentation</a> for more information on <code>updateEnv</code> and <code>insertText</code>.</p>
+<h1 id="generating-our-website">Generating our website</h1>
+<p>To generate and serve our website, run the following commands:</p>
+<pre><code>stack build
+stack exec my-website
+cd out &amp;&amp; python -m SimpleHTTPServer 8000</code></pre>
+<p>Go to <a href="http://localhost:8000">http://localhost:8000</a>. Note that we’re using Python’s HTTP server to serve our HTML files so that our relative URLs work correctly.</p>
+<p>And that’s it! In this tutorial, you learned several important concepts:</p>
+<ul>
+<li><code>load toHtml</code> is the primary way we load source files into <code>Page</code>s.</li>
+<li>A <code>Page</code> knows about our text content and template variables.</li>
+<li>You can smash <code>Page</code>s together into a <code>Structure</code> using <code>(&lt;||)</code>, and reference them using the <code>${body}</code> template variable.</li>
+<li>You can set global variables in the <code>Config</code>.</li>
+</ul>
+<p>Next, we’ll setup continuous integration with CircleCI and GitHub Pages for automatic deployments. Continue onward to <a href="/pencil/tutorials/02-deploying-to-github-pages-using-circle/">Tutorial 2: Deploying to GitHub Pages using Circle</a></p>
+      </div>
+    </div>
+  </body>
+</html>
+

@@ -73,6 +73,10 @@ Generate documentation.
 
 ```
 [nix-shell]$ cabal haddock
+
+...
+Documentation created: dist/doc/html/pencil/index.html
+...
 ```
 
 ## IDE
@@ -174,6 +178,15 @@ Documentation created: dist/doc/html/pencil/index.html
 ```
 # Generate a source distribution file (.tar.gz).
 [nix-shell]$ cabal sdist
+```
+
+
+Generate and check the Pencil docs site:
+
+```
+cabal test pencil-docs
+cd docs/ && python -m SimpleHTTPServer 8000
+open localhost:8000
 ```
 
 Check that tutorials are updated.

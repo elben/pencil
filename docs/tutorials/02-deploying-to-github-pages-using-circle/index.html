@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Pencil Documentation</title>
+    <link rel="stylesheet" href="/default.css" />
+    <link href="https://fonts.googleapis.com/css?family=Fira+Sans:300,400,400i,700" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Fira+Mono:400,700" rel="stylesheet">
+  </head>
+  <body>
+    <div id="structure">
+      <div id="header">
+        <h1><a href="/">Pencil</a></h1>
+        <ul class="nav">
+          <li>
+            <a href="/tutorials/01-getting-started/">
+              Tutorial 1: Getting Started
+            </a>
+          </li>
+          <li>
+            <a
+              href="/tutorials/02-deploying-to-github-pages-using-circle/">
+              Tutorial 2: Deploying to GitHub Pages using Circle
+            </a>
+          </li>
+          <li>
+            <a
+              href="/tutorials/03-blogging/">
+              Tutorial 3: Blogging
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <div id="content">
+        <h1 id="tutorial-2-deploying-to-github-pages-using-circle">Tutorial 2: Deploying to GitHub Pages using Circle</h1>
+<p>In this tutorial, we’ll deploy our website that we started in Tutorial 1 to <a href="https://pages.github.com">GitHub Pages</a> using <a href="https://circleci.com">CircleCI</a>. By the end of this tutorial, you’ll have:</p>
+<ul>
+<li>Your source code in the <code>source</code> branch.</li>
+<li>CircleCI building your website’s generated files from <code>source</code> branch.</li>
+<li>CircleCI automatically commiting your generated files into <code>master</code>.</li>
+<li>GitHub hosting the files in <code>master</code>.</li>
+</ul>
+<h2 id="configuring-github">Configuring GitHub</h2>
+<p>In your GitHub repository’s settings page (Settings -&gt; Options -&gt; GitHub Pages), set the “Source” branch to <code>master</code> for GitHub Pages. This tells GitHub that we’ll want to deploy whatever is in <code>master</code> as a static website to http://myusername.github.io/my-website.</p>
+<figure>
+<img src="../images/tutorial-1-github-settings.png" alt="GitHub Settings: Set pages source to master branch" /><figcaption>GitHub Settings: Set pages source to <code>master</code> branch</figcaption>
+</figure>
+<p>Now that we’re using the <code>master</code> branch for our generated files, we need to move our code into a different branch (e.g. <code>source</code>):</p>
+<pre><code>git checkout -b source
+git push origin</code></pre>
+<p>Our build and deploy scripts will automatically generate commits to <code>master</code>, so you should no longer use that. You’ll want to set <code>source</code> as the default branch in the GitHub repository settings (Settings -&gt; Branches -&gt; Default branch).</p>
+<figure>
+<img src="../images/tutorial-1-github-base-branch.png" alt="GitHub Settings: Set base branch to source" /><figcaption>GitHub Settings: Set base branch to <code>source</code></figcaption>
+</figure>
+<h2 id="makefile">Makefile</h2>
+<p>Let’s generate a <code>Makefile</code> using the script provided by Pencil:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode sh"><code class="sourceCode bash"><a class="sourceLine" id="cb2-1" title="1"><span class="fu">bash</span> <span class="op">&lt;(</span><span class="ex">curl</span> -fsSL https://raw.githubusercontent.com/elben/pencil/master/bin/gen-stack-makefile<span class="op">)</span></a></code></pre></div>
+<p>Check out the generated <code>Makefile</code> to make sure that your GitHub username, repo, and project name looks correct.</p>
+<p>With this <code>Makefile</code>, you can now just type <code>make</code> to build all your dependencies and generate your website. We’ll also use this in the CircleCI build.</p>
+<h2 id="circleci-configuration">CircleCI Configuration</h2>
+<p>We’ll also setup a <a href="https://circleci.com">CircleCI</a> to automatically build and deploy our website whenever we push our source.</p>
+<p>In your project’s directory, generate the required CircleCI configuration files using this script:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode sh"><code class="sourceCode bash"><a class="sourceLine" id="cb3-1" title="1"><span class="fu">bash</span> <span class="op">&lt;(</span><span class="ex">curl</span> -fsSL https://raw.githubusercontent.com/elben/pencil/master/bin/gen-stack-circle-config<span class="op">)</span></a></code></pre></div>
+<p>The CircleCI build plan generated in <code>.circleci/config.yml</code> folder will:</p>
+<ul>
+<li>Build the <code>source</code> branch and other branches that is <em>not</em> <code>master</code>. This generates your website’s static content.</li>
+<li>Deploy the <code>master</code> branch. It “deploys” your website by taking the static content generated and commiting those files as a git commit in the <code>master</code> branch. So your <code>source</code> branch contains Haskell code, and your <code>master</code> branch contains the generated static content.</li>
+<li>Once a commit is generated in <code>master</code>, this triggers GitHub Pages to deploy the static content on their webservers.</li>
+<li>There is also a <code>.circleci/noop.yml</code> config that we inject into the <code>master</code> branch so that CircleCI ignores that branch.</li>
+</ul>
+<p>You can read more about the CircleCI configuration <a href="https://circleci.com/docs/2.0/configuration-reference/">here</a>.</p>
+<h2 id="putting-it-all-together">Putting it all together</h2>
+<p>With that, lets commit and push the files to the remote <code>source</code> branch:</p>
+<pre><code>git add .circleci Makefile
+git commit -m &quot;Add Makefile and .circleci files&quot;
+git push</code></pre>
+<p>Now we need to set up our project in CircleCI:</p>
+<ol type="1">
+<li>Go to the <a href="https://circleci.com/dashboard">CircleCI dashboard</a>.</li>
+<li>Click on “Add Projects”.</li>
+<li>Add your website repo by clicking “Set Up Project”.</li>
+<li>In the project setup page, just click on “Start building”, since we’ve already created our <code>.circleci/config.yml</code> file.</li>
+</ol>
+<p>At this point, Circle should start building your website. Wait for the build to finish, and Circle should automatically push your generated website to the <code>master</code> branch.</p>
+<p>If CircleCI fails to push to GitHub, you may need to set up your SSH keys to have write access to the GitHub repo. Follow the instructions in your project’s “Checkout SSH keys” settings page to set up either a user key or a deploy key with write access (circleci.com/gh/your-username/your-project/edit#checkout).</p>
+<p>Once the build is done (it may take a while at first as it’s downloading and caching all the Haskell dependencies), GitHub will deploy your website to GitHub will then deploy your website to <a href="http://myusername.github.io/my-website">myusername.github.io/my-website</a></p>
+<p>And that’s it! You’ve successfully set up continuous integration. Any new pushes to <code>source</code> will now kick-off a build and deploy.</p>
+      </div>
+    </div>
+  </body>
+</html>
+

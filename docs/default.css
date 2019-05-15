@@ -1,0 +1,113 @@
+/* Dark grey with a little of red saturation */
+/* red persimmon */
+html {
+  font-family: 'Fira Sans', sans-serif; }
+
+body {
+  color: #151311;
+  font-size: 18px;
+  line-height: 1.4em;
+  padding: 0;
+  margin: 0; }
+
+a {
+  color: #ff3366;
+  text-decoration: underline; }
+
+a:hover {
+  text-decoration: underline; }
+
+a.sourceLine {
+  color: #151311;
+  text-decoration: none; }
+
+img {
+  max-width: 100%; }
+
+#structure {
+  position: relative;
+  height: auto;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 5em;
+  padding: 0 1em;
+  max-width: 720px; }
+
+#header {
+  font-weight: 300;
+  float: left;
+  width: 7em;
+  text-align: right;
+  margin-top: -1em;
+  padding-right: 1em;
+  border-right: 4px solid #333;
+  min-height: 400px; }
+
+h1 {
+  font-size: 2em;
+  line-height: 1em; }
+
+h2 {
+  font-size: 1.5em; }
+
+h3 {
+  font-size: 1.17em; }
+
+#header h1 a {
+  color: #151311;
+  text-decoration: none; }
+
+#header h1 {
+  font-weight: 300; }
+
+#header hr {
+  border: 2px solid #333;
+  margin-top: 23px 0; }
+
+#content {
+  margin-left: 8em;
+  padding-left: 1.5em; }
+
+pre, code {
+  font-family: 'Fira Mono', monospace; }
+
+pre {
+  font-size: 14px;
+  line-height: 1.22em; }
+
+pre {
+  background-color: #eee;
+  padding: 1em;
+  overflow: scroll; }
+
+ul.nav {
+  list-style: none;
+  margin: 0;
+  padding: 0; }
+
+ul.nav li {
+  margin-bottom: 1em; }
+
+.figure .caption {
+  font-size: 14px;
+  color: #666; }
+
+.note {
+  border: 3px solid #ccc;
+  padding: 0 1em;
+  background: #eee;
+  font-size: 0.8em; }
+
+@media (max-width: 700px) {
+  #structure {
+    padding: 0 0.5em;
+    margin-top: 2em; }
+  #header {
+    float: none;
+    min-height: 0;
+    border: none;
+    width: auto;
+    text-align: left; }
+  #content {
+    margin-left: 0;
+    padding-left: 0; } }
