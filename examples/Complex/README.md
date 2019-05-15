@@ -2,9 +2,11 @@
 
 This example captures complex use-cases for regression testing.
 
-```
+```sh
 nix-shell --attr env
-cabal test pencil-example-complex
+[nix-shell] cabal test pencil-example-complex
+
+# In another terminal
 cd examples/Complex/out
 python -m SimpleHTTPServer 8000
 ```

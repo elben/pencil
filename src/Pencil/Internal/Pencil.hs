@@ -485,7 +485,7 @@ apply_ (Node name page :| (h : rest)) = do
   -- specified `name`. This assumes that the inner Page's content was rendered,
   -- above. Some pages don't have this.content (e.g. 'Nodes' pages).
   let env' = maybe (getPageEnv pageInner)
-              (\content -> insertEnv name (VText content) (getPageEnv pageInner))
+              (\content -> insertText name content (getPageEnv pageInner))
               (getContent (getPageEnv pageInner))
 
   -- Apply this current Page's nodes with the accumulated environment of all the
@@ -897,7 +897,7 @@ copyFile fpIn fpOut = do
 -- | Replaces the file path's extension with @.html@.
 --
 -- @
--- 'load' toHtml "about.markdown"
+-- rename toHtml <$> 'load' "about.htm"
 -- @
 --
 toHtml :: FilePath -> FilePath
@@ -915,7 +915,7 @@ toDir fp = FP.replaceFileName fp (FP.takeBaseName fp) ++ "/"
 -- | Replaces the file path's extension with @.css@.
 --
 -- @
--- 'load' toCss "style.sass"
+-- rename toCss <$> 'load' "style.sass"
 -- @
 --
 toCss :: FilePath -> FilePath

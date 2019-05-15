@@ -126,7 +126,7 @@ import Pencil
 
 website :: PencilApp ()
 website = do
-  index <- load toHtml "index.markdown"
+  index <- load "index.markdown"
   render index
 
 main :: IO ()
@@ -161,20 +161,19 @@ Let's look at what's happening inside the `website` function:
 ```haskell
 website :: PencilApp ()
 website = do
-  index <- load toHtml "index.markdown"
+  index <- load "index.markdown"
   render index
 ```
 
-The first thing you see is `index <- load toHtml "index.markdown"`.
+The first thing you see is `index <- load "index.markdown"`.
 The `load` function is the primary way we load source files in Pencil.
 `load` will open the given file and convert it (if necessary) to HTML. This is
 done under the `IO` monad because it's not a pure function (it's reading a
 file). This is why we save the result to `index` using `<-` inside a `do`
 block.
 
-`toHtml` just tells `load` to rename the file from `.markdown` to `.html.
-It's type is `FilePath -> FilePath`, where `FilePath` is just an alias for `String`.
-This transformed file name is used later, when we actually render an HTML file.
+`load` is smart enough to know that `.markdown` files should be converted to
+HTML, and that the final output should be an `.html`. file.
 
 `index` is a `Page`. A `Page` holds a page's content, like HTML tags, and variables, like
 the `$${title}` and `$${body}` variables we saw in `layout.html`. It's is an important
@@ -190,19 +189,19 @@ Change the `website` function to this:
 ```haskell
 website :: PencilApp ()
 website = do
-  layout <- load toHtml "layout.html"
-  index <- load toHtml "index.markdown"
+  layout <- load "layout.html"
+  index <- load "index.markdown"
   render (layout <|| index)
 
-  renderCss "stylesheet.scss"
+  loadAndRender "stylesheet.scss"
 ```
 
-The call to `renderCss` loads and compiles our Scss file into `stylesheet.css` in
+The call to `loadAndRender` loads and compiles our Scss file into `stylesheet.css` in
 our output directory. Look at the source code of
-[`renderCss`](https://hackage.haskell.org/package/pencil/docs/Pencil.html#v:renderCss).
-It's just a call to `load toCss` with a `render` at the end.
+[`loadAndRender`](https://hackage.haskell.org/package/pencil/docs/Pencil.html#v:loadAndRender).
+It's just a call to `load` with a `render` at the end.
 
-`layout <- load toHtml "layout.html"` is familiar—we load a layout file into a `Page`.
+`layout <- load "layout.html"` is familiar—we load a layout file into a `Page`.
 But is `(layout <|| index)` about?
 
 It's common to share some common template across many pages. Specifically, we want the
@@ -223,11 +222,11 @@ There is also another method, `(<|)`, that inserts a `Page` into an exiting `Str
 For example:
 
 ```haskell
-globalLayout <- load toHtml "layout.html"
-innerLayout <- load toHtml "inner.html"
+globalLayout <- load "layout.html"
+innerLayout <- load "inner.html"
 
-me <- load toHtml "about/me.markdown"
-pets <- load toHtml "about/my-pets.markdown"
+me <- load "about/me.markdown"
+pets <- load "about/my-pets.markdown"
 
 aboutLayout <- globalLayout <|| innerLayout
 render (aboutLayout <| me)
@@ -273,7 +272,7 @@ correctly.
 
 And that's it! In this tutorial, you learned several important concepts:
 
-- `load toHtml` is the primary way we load source files into `Page`s.
+- `load` is the primary way we load source files into `Page`s.
 - A `Page` knows about our text content and template variables.
 - You can smash `Page`s together into a `Structure` using `(<||)`, and reference
   them using the `${body}` template variable.

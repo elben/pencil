@@ -65,8 +65,8 @@ import qualified System.FilePath as FP
 -- @${body}@ for the post body.
 --
 -- @
--- layout <- 'load' toHtml "layout.html"
--- postLayout <- 'load' toHtml "blog-post.html"
+-- layout <- 'load' "layout.html"
+-- postLayout <- 'load' "blog-post.html"
 -- posts <- 'loadBlogPosts' "blog/"
 -- render (fmap (layout <|| postLayout <|) posts)
 -- @

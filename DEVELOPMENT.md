@@ -189,6 +189,9 @@ cd docs/ && python -m SimpleHTTPServer 8000
 open localhost:8000
 ```
 
+Note that the URLs will be broken when viewing locally. This is because GitHub
+Pages deploys it to elbenshira.com/pencil, so we need links to reference /pencil.
+
 Check that tutorials are updated.
 
 Update the CHANGELOG.md.
