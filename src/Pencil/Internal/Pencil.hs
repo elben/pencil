@@ -37,8 +37,6 @@ import qualified Text.Pandoc.Highlighting
 import qualified Text.Pandoc.XML as XML
 import qualified Text.Sass as Sass
 
-import Debug.Trace
-
 -- | The main monad transformer stack for a Pencil application.
 --
 -- This unrolls to:
@@ -265,7 +263,6 @@ data FileType = Html
               | Markdown
               | Css
               | Sass
-              | Xml -- For RSS, ATOM, etc
               | Other
   deriving (Eq, Generic)
 
@@ -288,7 +285,6 @@ fileTypeMap = H.fromList
   , ("css", Css)
   , ("sass", Sass)
   , ("scss", Sass)
-  , ("xml", Xml)
   ]
 
 -- | Mapping of 'FileType' to the final converted format. Only contains
@@ -1140,6 +1136,10 @@ struct p = Structure
 withEnv :: Env -> PencilApp a -> PencilApp a
 withEnv env = local (setEnv env)
 
+-- | Class for types that has a final file path for rendering.
+--
+-- This allows file-path-changing methods to be re-used across 'Page',
+-- 'Structure' and 'Resource' types.
 class HasFilePath a where
   getFilePath :: a -> FilePath
   setFilePath :: FilePath -> a -> a

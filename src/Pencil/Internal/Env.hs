@@ -96,11 +96,6 @@ arrayContainsString t (VArray arr) =
       arr
 arrayContainsString _ _ = False
 
--- | Look up a variable in the @Env@, returning the specified default @Value@ if not
--- found.
-lookupOr :: T.Text -> Value -> Env -> Value
-lookupOr var def env = M.fromMaybe def (H.lookup var env)
-
 -- | Get the nodes from the env, from the @this.nodes@ variable. Returns empty
 -- list if this variable is missing.
 getNodes :: Env -> [P.PNode]

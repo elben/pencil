@@ -9,21 +9,27 @@ All notable changes to this project will be documented in this file.
 ### Added
 - Added GHC 8.4 and 8.6 support.
 - Added `(<<|)` and `coll` to add collection values into structrues.
-- Added `load'` for manual file path transformation.
-- Added `useFilePath`, `escapeXml`, ``rename` to manipulate loaded `Page`s.
+- Added `useFilePath`, `escapeXml`, `rename`, `move` to manipulate loaded `Page`s.
+- Added `loadAndRender` convenience method. Supports individual files and directories.
+- Added `toTextRss` and `rfc822DateFormat` to render content ready for an RSS
+  template. See the Blog example for details.
 
 ### Changed
-- Changed how structures work internally to allow collection values into structures.
-- Examples now match the tutorials. This is the start of merging the tutorials into the pencil
-  repo itself, instead of living somewhere else.
 - Changed `load` to "magically" figure out the desired final FilePath. Use
   `load'` to manually specify the FilePath transform.
 - Renamed `structure` to `struct`. It's shorter.
-- Renamed `renderCss` to `loadAndRender`. It's now generalized to ANY
-  convertible file, not just CSS.
+- `passthrough` now works with directories too.
+- Changed how structures work internally to allow collection values into structures.
+- Examples now match the tutorials. This is the start of merging the tutorials into the pencil
+  repo itself, instead of living somewhere else.
+- Two new errors: `CollectionNotLastInStructure` and
+  `CollectionFirstInStructure` to handle collection positions in structures.
 
 ### Fixed
 - Specify example test files in the pencil.cabal file, so that pencil tests run properly.
+
+### Removed
+- `renderCss`. Use `loadAndRender` instead. As in: `loadAndRender "style.scss"`
 
 ## [0.1.3]
 
