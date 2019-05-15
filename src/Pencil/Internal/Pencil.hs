@@ -766,6 +766,12 @@ listDir_ recursive dir = do
 
   return $ files ++ concat innerFiles
 
+-- | Returns True if the file path is a directory.
+-- Examples: foo/bar/
+-- Examples of not directories: /foo, foo/bar, foo/bar.baz
+isDir :: FilePath -> Bool
+isDir fp = null (FP.takeBaseName fp)
+
 ----------------------------------------------------------------------
 -- Environment modifications
 ----------------------------------------------------------------------
@@ -1004,7 +1010,9 @@ findEnv nodes =
 -- @
 loadAndRender :: FilePath -> PencilApp ()
 loadAndRender fp =
-  loadResource fp >>= render
+  if isDir fp
+    then loadResources True False fp >>= render
+    else loadResource fp >>= render
 
 -- | A @Structure@ is a list of 'Page's, defining a nesting order. Think of them
 -- like <https://en.wikipedia.org/wiki/Matryoshka_doll Russian nesting dolls>.
@@ -1169,8 +1177,7 @@ instance Render Page where
   render page = do
     let fpOut = pageFilePath page
     outPrefix <- asks getOutputDir
-    let noFileName = FP.takeBaseName fpOut == ""
-    let fpOut' = outPrefix ++ if noFileName then fpOut ++ "index.html" else fpOut
+    let fpOut' = outPrefix ++ if isDir fpOut then fpOut ++ "index.html" else fpOut
     liftIO $ D.createDirectoryIfMissing True (FP.takeDirectory fpOut')
     liftIO $ TIO.writeFile fpOut' (renderNodes (getNodes (getPageEnv page)))
 

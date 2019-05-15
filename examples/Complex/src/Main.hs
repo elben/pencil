@@ -35,8 +35,8 @@ website = do
   -- any of the files in there.
   move "assets/passthroughs-to/" <$> passthrough "assets/passthroughs/" >>= render
 
-  -- We want to be able to do these directories:
-  -- loadAndRender "assets/conversions/"
+  -- Convertible files are converted, and static assets are passed through.
+  loadAndRender "assets/conversions/"
 
   layout <- load "layout.html"
 
