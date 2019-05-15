@@ -685,10 +685,10 @@ filterByVar includeMissing var f =
 -- of pages, group the pages by the VText found in the variable.
 --
 -- For example, say each Page has a variable "tags" that is a list of tags. The
--- first Page has a "tags" variable that is an VArray [VText "a"], and the
--- second Page has a "tags" variable that is an VArray [VText "a", VText "b"].
--- The final output would be a map fromList [("a", [page1, page2]), ("b",
--- [page2])].
+-- first Page has a "tags" variable that is an @VArray [VText "a"]@, and the
+-- second Page has a "tags" variable that is an @VArray [VText "a", VText "b"]@.
+-- The final output would be a map @fromList [("a", [page1, page2]), ("b",
+-- [page2])]@.
 groupByElements :: T.Text
                 -- ^ Environment variable name.
                 -> [Page]
@@ -721,6 +721,8 @@ groupByElements var pages =
     (reverse pages)
 
 -- | Loads file in given directory as 'Resource's.
+--
+-- Generally, you can just use `loadAndRender` instead of this method.
 --
 -- @
 -- -- Load everything inside the "assets/" folder, renaming converted files as
@@ -868,7 +870,7 @@ aesonToEnv = H.foldlWithKey' maybeInsertIntoEnv H.empty
 --
 -- @
 -- passthrough "robots.txt" >>= render
--- loadResources True True "images/" >>= render
+-- passthrough "images/" >>= render
 -- @
 --
 data Resource
@@ -928,6 +930,8 @@ toExpected fp = maybe fp ((FP.dropExtension fp ++ ".") ++) (toExtension (fileTyp
 -- | Loads a file as a 'Resource'. Use this for binary files (e.g. images) and
 -- for files without template directives that may still need conversion (e.g.
 -- Markdown to HTML, SASS to CSS).
+--
+-- Generally, you can just use `loadAndRender` instead of this method.
 --
 -- @
 -- -- Loads and renders the image as-is. Underneath the hood
@@ -1112,7 +1116,13 @@ nodeName (Nodes n _) = n
              , structureFilePathFrozen = structureFilePathFrozen s || pageUseFilePath p
              }
 
--- | Pushes @Node@ into the @Structure@.
+-- | Pushes @Node@ into the @Structure@. Usually used in conjunction with 'coll'.
+--
+-- @
+-- blogLayout <- load "blog-layout.html"
+-- blogPosts <- Pencil.Blog.loadBlogPosts "posts/"
+-- render (struct blogLayout <<| coll "posts" blogPosts)
+-- @
 (<<|) :: Structure -> Node -> Structure
 (<<|) s node =
   let (fp, frozen) = if structureFilePathFrozen s
@@ -1130,7 +1140,7 @@ nodeName (Nodes n _) = n
        , structureFilePathFrozen = frozen
        }
 
--- | Creates a collection 'Node'.
+-- | Creates a collection 'Node'. Usually used in conjunction with '(<<|)`.
 coll :: T.Text -> [Page] -> Node
 coll = Nodes
 

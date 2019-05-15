@@ -26,16 +26,16 @@ module Pencil
   , move
 
   , Structure
+  , struct
   , (<||)
   , (<|)
   , (<<|)
-  , struct
   , coll
 
   , Resource
+  , passthrough
   , loadResource
   , loadResources
-  , passthrough
   , listDir
 
   , Render(..)
