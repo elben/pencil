@@ -1,5 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 
+{-|
+Useful functionality to make blogging easy.
+-}
 module Pencil.Blog
   (
     -- * Getting started
@@ -134,6 +137,7 @@ injectTitle titlePrefix page =
       env' = insertText "title" title (getPageEnv page)
   in setPageEnv env' page
 
+-- | Like, you know, a hashtag. Wraps a text.
 type Tag = T.Text
 
 -- | Helper of 'buildTagPagesWith' defaulting to the variable name @posts@, and

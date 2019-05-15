@@ -160,9 +160,18 @@ Make sure it builds, passes tests, and works:
 # Run tests and generate the example websites (e.g. pencil-example-blog).
 # Check the ./examples/**/out/ directories for the generated websites.
 [nix-shell]$ cabal test
+```
 
+```
+# Build documentation
 [nix-shell]$ cabal haddock
 
+...
+Documentation created: dist/doc/html/pencil/index.html
+...
+```
+
+```
 # Generate a source distribution file (.tar.gz).
 [nix-shell]$ cabal sdist
 ```

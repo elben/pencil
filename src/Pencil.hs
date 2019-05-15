@@ -133,7 +133,7 @@ import Control.Monad.Reader as Reader
 -- the output files to go. We also add a @title@ variable with the value @"My
 -- Simple Website"@ into the environment.
 --
--- An 'Env', or environment, is just a mapping of variables to its values. A
+-- An 'Pencil.Internal.Env.Env', or environment, is just a mapping of variables to its values. A
 -- variable can hold a string, number, boolean, date, and so forth. Once a
 -- variable is defined, we can use that variable in our web pages via a
 -- variable directive like @${title}@.
@@ -212,7 +212,7 @@ import Control.Monad.Reader as Reader
 -- > -->
 --
 -- In the above example, Pencil will intelligently parse the @date@ value as a
--- `VDateTime`.
+-- `Pencil.Internal.Env.VDateTime`.
 --
 -- == Directives
 --

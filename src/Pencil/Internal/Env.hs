@@ -1,5 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 
+{-|
+Internal implementation of Pencil's environment.
+-}
 module Pencil.Internal.Env where
 
 import qualified Pencil.Internal.Parser as P

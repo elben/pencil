@@ -3,6 +3,9 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 
+{-|
+Internal implementation of Pencil's functionality.
+-}
 module Pencil.Internal.Pencil where
 
 import Pencil.Internal.Env
@@ -133,7 +136,7 @@ getEnv = configEnv
 setEnv :: Env -> Config -> Config
 setEnv env c = c { configEnv = env }
 
--- | Update the 'Env' inside the 'Config'.
+-- | Update the Env inside the 'Config'.
 updateEnv :: (Env -> Env) -> Config -> Config
 updateEnv f c = c { configEnv = f (getEnv c) }
 
@@ -176,11 +179,11 @@ getDisplayValue = configDisplayValue
 
 -- | Sets the function that renders 'Value' to text. Overwrite this with your
 -- own function if you would like to change how certain 'Value's are rendered
--- (e.g. 'VDateTime').
+-- (e.g. 'Pencil.Internal.Env.VDateTime').
 --
 -- @
 -- myRender :: Value -> T.Text
--- myRender ('VDateTime' dt) = 'T.pack' $ 'TF.formatTime' 'TF.defaultTimeLocale' "%e %B %Y" dt
+-- myRender (VDateTime dt) = 'T.pack' $ 'TF.formatTime' 'TF.defaultTimeLocale' "%e %B %Y" dt
 -- myRender t = 'toText' t
 --
 -- ...
@@ -221,7 +224,7 @@ run app config = do
                T.unpack name ++ " first in the Structure.")
     _ -> return ()
 
--- Print the list of Strings, one line at a time, prefixed with "-".
+-- | Print the list of Strings, one line at a time, prefixed with "-".
 printAsList :: [String] -> IO ()
 printAsList [] = return ()
 printAsList (a:as) = do
@@ -335,11 +338,11 @@ data Page = Page
   -- ^ Whether or not XML/HTML tags should be escaped when rendered.
   } deriving (Eq, Show)
 
--- | Returns the 'Env' from a 'Page'.
+-- | Returns the Env from a 'Page'.
 getPageEnv :: Page -> Env
 getPageEnv = pageEnv
 
--- | Sets the 'Env' in a 'Page'.
+-- | Sets the Env in a 'Page'.
 setPageEnv :: Env -> Page -> Page
 setPageEnv env p = p { pageEnv = env }
 
@@ -429,7 +432,7 @@ apply structure = do
   -- Collections cannot be the first element in the structure. It would be
   -- useless there, since nothing can reference it.
   let h = NE.head reversed
-  when (isNodes h) $ throwError (CollectionFirstInStructure (nodeName h))
+  when (isColl h) $ throwError (CollectionFirstInStructure (nodeName h))
 
   setFilePath (getFilePath structure) <$> apply_ reversed
 
@@ -489,6 +492,9 @@ apply_ (Node name page :| (h : rest)) = do
   -- inner Pages.
   applyPage env' page
 
+-- | Applies the Page by merging the given env with the Page's env, evaluating
+-- the nodes with the combined env, and generating a new env for the Page,
+-- containing @this.url@, @this.nodes@ and @this.content@ in the env.
 applyPage :: Env -> Page -> PencilApp Page
 applyPage env page = do
   let env' = merge (getPageEnv page) env
@@ -507,7 +513,11 @@ applyPage env page = do
   -- accumluated, final, rendered page.
   return $ page { pageEnv = env'' }
 
-nodesToText :: Bool -> [PNode] -> T.Text
+-- | Render nodes. XML/HTML tags are escaped if @escpXml@ is True.
+nodesToText :: Bool
+            -- ^ XML/HTML tags escaped if True.
+            -> [PNode]
+            -> T.Text
 nodesToText escXml nodes =
   (if escXml then escapeForXml else id) (renderNodes nodes)
 
@@ -542,7 +552,7 @@ loadTextFile fp = do
 -- import Control.Exception
 -- import qualified Data.Text.IO as TIO
 --
--- (\e -> print (ioe_description (e :: IOError)) >> return "") `handle` (TIO.readFile "foo")
+-- (\e -> print ('GHC.IO.ioe_description' (e :: IOError)) >> return "") 'Control.Exception.handle' (TIO.readFile "foo")
 -- @
 --
 toPencilException :: IOError -> Maybe PencilException
@@ -560,8 +570,9 @@ isInvalidByteSequence e = ioe_description e == "invalid byte sequence"
 isNoSuchFile :: IOError -> Bool
 isNoSuchFile e = ioe_type e == NoSuchThing
 
+-- | Converts Markdown to HTML using the given options.
 readMarkdownWriteHtml :: P.PandocMonad m => P.ReaderOptions -> P.WriterOptions -> T.Text -> m T.Text
-readMarkdownWriteHtml readerOptions writerOptions content  = do
+readMarkdownWriteHtml readerOptions writerOptions content = do
   pandoc <- P.readMarkdown readerOptions content
   P.writeHtml5String writerOptions pandoc
 
@@ -1018,7 +1029,7 @@ loadAndRender fp =
 -- You commonly use @Structure@s to insert a @Page@ containing content (e.g. a blog
 -- post) into a container (e.g. a layout shared across all your web pages).
 --
--- Build structures using 'structure', '<||' and '<|'.
+-- Build structures using 'struct', '<||' and '<|'.
 --
 -- @
 -- layout <- load "layout.html"
@@ -1056,14 +1067,19 @@ data Structure = Structure
   -- page with `useFilePath = True` was pushed into the structure.
   }
 
+-- | An inner element in the Structure. Either a singular Page, or a collection
+-- of Pages. The Text element is the variable name that the inner page's content
+-- is injected as. Defaults to @"body"@.
 data Node =
     Node T.Text Page
   | Nodes T.Text [Page]
 
-isNodes :: Node -> Bool
-isNodes (Nodes _ _) = True
-isNodes _ = False
+-- | Returns True if the given Node is a collection node.
+isColl :: Node -> Bool
+isColl (Nodes _ _) = True
+isColl _ = False
 
+-- | Get the node's name.
 nodeName :: Node -> T.Text
 nodeName (Node n _) = n
 nodeName (Nodes n _) = n
@@ -1162,7 +1178,7 @@ instance HasFilePath Structure where
 -- | To render something is to create the output web pages, rendering template
 -- directives into their final form using the current environment.
 class Render a where
-  -- | Renders 'a' as web page(s).
+  -- | Renders a as web page(s).
   render :: a -> PencilApp ()
 
 instance Render Resource where

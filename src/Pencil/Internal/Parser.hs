@@ -1,5 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 
+{-|
+Internal implementation of Pencil's template directive parser.
+-}
 module Pencil.Internal.Parser where
 
 import Text.ParserCombinators.Parsec
