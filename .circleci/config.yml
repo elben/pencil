@@ -104,9 +104,9 @@ jobs:
       - run:
           name: Run tests using ghc-8.4
           command: |
-            nix-shell --attr env release-ghc-8.4.nix --run "cabal new-update && cabal new-test && doctest src/"
+            nix-shell --attr env release-ghc-8.4.nix --run "cabal update && cabal test && doctest src/"
 
       - run:
           name: Run tests using ghc-8.6
           command: |
-            nix-shell --attr env release-ghc-8.6.nix --run "cabal new-update && cabal new-test && doctest src/"
+            nix-shell --attr env release-ghc-8.6.nix --run "cabal update && cabal test && doctest src/"
