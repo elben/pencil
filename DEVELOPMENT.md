@@ -143,7 +143,7 @@ nix-channel --update
 
 # Pinning the current channel to a specific version
 # Available channels: https://nixos.org/channels/
-nix-channel --add https://nixos.org/channels/nixos-18.09 nixpkgs
+nix-channel --add https://nixos.org/channels/nixos-19.03 nixpkgs
 ```
 
 ## Release
