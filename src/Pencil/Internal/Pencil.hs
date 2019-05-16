@@ -204,8 +204,6 @@ run :: PencilApp a -> Config -> IO ()
 run app config = do
   e <- runExceptT $ runReaderT app config
   case e of
-    Left (VarNotInEnv var fp) ->
-      putStrLn ("Variable ${" ++ T.unpack var ++ "}" ++ " not found in the environment when rendering file " ++ fp ++ ".")
     Left (FileNotFound (Just fp)) -> do
       e2 <- runExceptT $ runReaderT (mostSimilarFiles fp) config
       case e2 of
@@ -250,9 +248,6 @@ data PencilException
   -- ^ Failed to read a file as a text file.
   | FileNotFound (Maybe FilePath)
   -- ^ File not found. We may or may not know the file we were looking for.
-  | VarNotInEnv T.Text FilePath
-  -- ^ Variable is not in the environment. Variable name, and file where the
-  -- variable was reference.
   | CollectionNotLastInStructure T.Text
   -- ^ The collection in the structure was not the last element in the
   -- structure.
@@ -347,14 +342,47 @@ setPageEnv :: Env -> Page -> Page
 setPageEnv env p = p { pageEnv = env }
 
 -- | Sets this 'Page' as the designated final 'FilePath'.
+--
+-- This is useful when you are building a 'Structure' but don't want the file
+-- path of the last 'Page' in the structure to be the file path of the render.
+--
+-- @
+-- a <- load "a.html"
+-- b <- load "b.html"
+-- c <- load "c.html"
+--
+-- -- Rendered file path is "c.html"
+-- render $ a <|| b <| c
+--
+-- -- Rendered file path is "b.html"
+-- render $ a <|| useFilePath b <| c
+-- @
+--
 useFilePath :: Page -> Page
 useFilePath p = p { pageUseFilePath = True }
 
 -- | Sets this 'Page' to render with escaped XML/HTML tags.
+--
+-- This is useful when you are building an RSS feed, and you need the /contents/
+-- of each item in the feed to HTML-escaped.
+--
+-- @
+-- rss <- load "rss.xml"
+-- item1 <- load "item1.html"
+--
+-- render $ rss <|| escapeXml item1
+-- @
+--
 escapeXml :: Page -> Page
 escapeXml p = p { pageEscapeXml = True }
 
 -- | Transforms the file path.
+--
+-- @
+-- a <- load "a.htm"
+--
+-- render $ struct (rename 'toHtml' a)
+-- @
 rename :: HasFilePath a => (FilePath -> FilePath) -> a -> a
 rename f a = setFilePath (f (getFilePath a)) a
 
@@ -362,13 +390,12 @@ rename f a = setFilePath (f (getFilePath a)) a
 -- is a directory, the file name is kept the same. If the FilePath is a file
 -- name, then the file is renamed.
 --
--- @
--- -- Move assets/style.css to stylesheets/style.css on render.
--- move "stylesheets/" <$> load "assets/style.css"
+-- > -- Move assets/style.css to stylesheets/style.css on render.
+-- > move "stylesheets/" <$> load "assets/style.css"
+-- > 
+-- > -- Move assets/style.css to stylesheets/base.css on render.
+-- > move "stylesheets/base.css" <$> load "assets/style.css"
 --
--- -- Move assets/style.css to stylesheets/base.css on render.
--- move "stylesheets/base.css" <$> load "assets/style.css"
--- @
 move :: HasFilePath a => FilePath -> a -> a
 move fp a =
   let fromFileName = FP.takeFileName (getFilePath a)
@@ -500,7 +527,7 @@ applyPage env page = do
   let env' = merge (getPageEnv page) env
 
   -- Evaluate the Page's nodes with the specified environment.
-  nodes <- evalNodes env' (getNodes (getPageEnv page)) `catchError` setFilePathInException (pageFilePath page)
+  nodes <- evalNodes env' (getNodes (getPageEnv page))
 
   -- Generate this Page's final file path.
   -- Insert the nodes and rendered content into the env.
@@ -524,12 +551,6 @@ nodesToText escXml nodes =
 -- | Escape XML tags in the given Text.
 escapeForXml :: T.Text -> T.Text
 escapeForXml text = T.pack (XML.escapeStringForXML (T.unpack text))
-
--- | Helper to inject a file path into a VarNotInEnv exception. Rethrow the
--- exception afterwards.
-setFilePathInException :: FilePath -> PencilException -> PencilApp a
-setFilePathInException fp (VarNotInEnv var _) = throwError $ VarNotInEnv var fp
-setFilePathInException _ e = throwError e
 
 -- | Loads the given file as a text file. Throws an exception into the ExceptT
 -- monad transformer if the file is not a text file.
@@ -857,8 +878,8 @@ maybeInsertIntoEnv env k v =
 aesonToEnv :: A.Object -> Env
 aesonToEnv = H.foldlWithKey' maybeInsertIntoEnv H.empty
 
--- | Use @Resource@ to load and render files that don't need any manipulation
--- other than conversion (e.g. Sass to CSS), or for static files that you want
+-- | @Resource@ is used to load and render files that just needs conversion
+-- without template directives or structures, or for static files that you want
 -- to copy as-is (e.g. binary files like images, or text files that require no
 -- other processing).
 --
@@ -1018,6 +1039,10 @@ findEnv nodes =
 -- @
 -- -- Load, convert and render as style.css.
 -- loadAndRender "style.sass"
+--
+-- -- Load, convert and render everything in the assets/ folder. Binary files
+-- -- are copied as-is without any further processing.
+-- loadAndRender "assets/"
 -- @
 loadAndRender :: FilePath -> PencilApp ()
 loadAndRender fp =
@@ -1088,7 +1113,7 @@ nodeName :: Node -> T.Text
 nodeName (Node n _) = n
 nodeName (Nodes n _) = n
 
--- | Creates a new @Structure@ from two @Page@s.
+-- | Creates a new @Structure@ from two @Page@s. Pronounced "smash".
 --
 -- @
 -- layout <- load "layout.html"
@@ -1102,7 +1127,7 @@ nodeName (Nodes n _) = n
   , structureFilePathFrozen = False
   }
 
--- | Pushes @Page@ into @Structure@.
+-- | Pushes @Page@ into @Structure@. Pronounced "push".
 --
 -- @
 -- layout <- load "layout.html"
