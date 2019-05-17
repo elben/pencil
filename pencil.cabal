@@ -37,7 +37,7 @@ tested-with:         GHC == 8.0.2,
 library
   hs-source-dirs:      src
   exposed-modules:     Pencil
-                     , Pencil.Blog
+                     , Pencil.Internal.Blog
                      , Pencil.Internal.Pencil
                      , Pencil.Internal.Env
                      , Pencil.Internal.Parser

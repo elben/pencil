@@ -3,7 +3,6 @@
 module Main where
 
 import Pencil
-import Pencil.Blog
 import qualified Data.HashMap.Strict as H
 import qualified Data.Text as T
 

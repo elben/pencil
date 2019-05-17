@@ -32,6 +32,7 @@ import qualified Data.List.NonEmpty as NE
 import qualified Data.Maybe as M
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
+import qualified Data.Time.Format as TF
 import qualified Data.Yaml as A
 import qualified System.Directory as D
 import qualified System.FilePath as FP
@@ -877,6 +878,26 @@ maybeInsertIntoEnv env k v =
 -- | Converts an Aeson Object to an Env.
 aesonToEnv :: A.Object -> Env
 aesonToEnv = H.foldlWithKey' maybeInsertIntoEnv H.empty
+
+-- | Render dates in the RFC 822 format, per the RSS specification.
+toTextRss :: Value -> T.Text
+toTextRss (VDateTime dt) = T.pack $ TF.formatTime TF.defaultTimeLocale rfc822DateFormat dt
+toTextRss v = toText v
+
+-- RFC 822 date format.
+--
+-- Helps to pass https://validator.w3.org/feed/check.cgi.
+--
+-- Same as https://hackage.haskell.org/package/time/docs/Data-Time-Format.html#v:rfc822DateFormat
+-- but no padding for the day section, so that single-digit days only has one space preceeding it.
+--
+-- Also changed to spit out the offset timezone (+0000) because the default was spitting out "UTC"
+-- which is not valid RFC 822. Weird, since the defaultTimeLocal source and docs show that it won't
+-- use "UTC":
+-- https://hackage.haskell.org/package/time/docs/Data-Time-Format.html#v:defaultTimeLocale
+--
+rfc822DateFormat :: String
+rfc822DateFormat = "%a, %d %b %Y %H:%M:%S %z"
 
 -- | @Resource@ is used to load and render files that just needs conversion
 -- without template directives or structures, or for static files that you want

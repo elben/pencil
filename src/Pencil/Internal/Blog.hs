@@ -3,23 +3,8 @@
 {-|
 Useful functionality to make blogging easy.
 -}
-module Pencil.Blog
-  (
-    -- * Getting started
-    --
-    -- $gettingstarted
-    --
-    loadBlogPosts
-  , blogPostUrl
-  , injectTitle
-  , Tag
-  , buildTagPages
-  , buildTagPagesWith
-  , injectTagsEnv
-  , toTextRss
-  ) where
+module Pencil.Internal.Blog where
 
-import Pencil
 import Pencil.Internal.Env
 import Pencil.Internal.Pencil
 import Pencil.Internal.Parser as Parser
@@ -29,55 +14,7 @@ import qualified Data.HashMap.Strict as H
 import qualified Data.List as L
 import qualified Data.Maybe as M
 import qualified Data.Text as T
-import qualified Data.Time.Format as TF
 import qualified System.FilePath as FP
-
--- $gettingstarted
---
--- This module provides a standard way of building and generating blog posts.
--- Check out the Blog example
--- <https://github.com/elben/pencil/blob/master/examples/Blog/ here>.
---
--- To generate a blog for your website, first create a @blog/@ directory in
--- your web page source directory.
---
--- Then, name your blog posts in this format:
---
--- > yyyy-mm-dd-title-of-blog-post.markdown
---
--- Where @yyyy-mm-dd@ should be something like @2019-12-30@. This isn't used for
--- anything other than to keep each post ordered in the directory, for your ease
--- of viewing.
---
--- Each post is expected to have a preamble that has at least @postTitle@ and
--- @date@ defined. The date set in the preamble is used as the sort order of the
--- blog posts. The other variables are optional.
---
--- > <!--PREAMBLE
--- > postTitle: "The Meaning of Life"
--- > date: 2010-01-30
--- > draft: true
--- > tags:
--- >   - philosophy
--- > -->
---
--- You can mark a post as a draft via the @draft@ variable, so that it won't be
--- loaded when you call 'loadBlogPosts'. You can also set the post's tags using,
--- as seen above in @tags@. Then, use 'loadBlogPosts' to load the entire @blog/@
--- directory.
---
--- In the example below, @layout.html@ defines the outer HTML structure (with
--- global components like navigation), and @blog-post.html@ is a generic blog
--- post container that renders @${postTitle}@ as a header, @${date}@, and
--- @${body}@ for the post body.
---
--- @
--- layout <- 'load' "layout.html"
--- postLayout <- 'load' "blog-post.html"
--- posts <- 'loadBlogPosts' "blog/"
--- render (fmap (layout <|| postLayout <|) posts)
--- @
---
 
 -- | Loads the given directory as a series of blog posts, sorted by the @date@
 -- preamble environment variable. Posts with @draft: true@ are filtered out.
@@ -101,26 +38,6 @@ loadBlogPosts fp = do
 --
 blogPostUrl :: FilePath -> FilePath
 blogPostUrl fp = FP.replaceFileName fp (drop 11 (FP.takeBaseName fp)) ++ "/"
-
--- | Render dates in the RFC 822 format, per the RSS specification.
-toTextRss :: Value -> T.Text
-toTextRss (VDateTime dt) = T.pack $ TF.formatTime TF.defaultTimeLocale rfc822DateFormat dt
-toTextRss v = toText v
-
--- RFC 822 date format.
---
--- Helps to pass https://validator.w3.org/feed/check.cgi.
---
--- Same as https://hackage.haskell.org/package/time/docs/Data-Time-Format.html#v:rfc822DateFormat
--- but no padding for the day section, so that single-digit days only has one space preceeding it.
---
--- Also changed to spit out the offset timezone (+0000) because the default was spitting out "UTC"
--- which is not valid RFC 822. Weird, since the defaultTimeLocal source and docs show that it won't
--- use "UTC":
--- https://hackage.haskell.org/package/time/docs/Data-Time-Format.html#v:defaultTimeLocale
---
-rfc822DateFormat :: String
-rfc822DateFormat = "%a, %d %b %Y %H:%M:%S %z"
 
 -- | Given that the current @Page@ has a @postTitle@ in the environment, inject
 -- the post title into the @title@ environment variable, prefixed with the given
