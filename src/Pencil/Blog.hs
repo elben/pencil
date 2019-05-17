@@ -12,8 +12,9 @@ module Pencil.Blog
     loadBlogPosts
   , blogPostUrl
   , injectTitle
-  , buildTagPagesWith
+  , Tag
   , buildTagPages
+  , buildTagPagesWith
   , injectTagsEnv
   , toTextRss
   ) where
@@ -44,20 +45,26 @@ import qualified System.FilePath as FP
 --
 -- > yyyy-mm-dd-title-of-blog-post.markdown
 --
--- The files in that directory are expected to have preambles that have at
--- least @postTitle@ and @date@ defined. The other ones are optional.
+-- Where @yyyy-mm-dd@ should be something like @2019-12-30@. This isn't used for
+-- anything other than to keep each post ordered in the directory, for your ease
+-- of viewing.
+--
+-- Each post is expected to have a preamble that has at least @postTitle@ and
+-- @date@ defined. The date set in the preamble is used as the sort order of the
+-- blog posts. The other variables are optional.
 --
 -- > <!--PREAMBLE
--- > postTitle: "Behind Python's unittest.main()"
+-- > postTitle: "The Meaning of Life"
 -- > date: 2010-01-30
 -- > draft: true
 -- > tags:
--- >   - python
+-- >   - philosophy
 -- > -->
 --
--- You can mark a post as a draft via the @draft@ variable (it won't be
--- loaded when you call 'loadBlogPosts'), and add tagging (see below) via
--- @tags@. Then, use 'loadBlogPosts' to load the entire @blog/@ directory.
+-- You can mark a post as a draft via the @draft@ variable, so that it won't be
+-- loaded when you call 'loadBlogPosts'. You can also set the post's tags using,
+-- as seen above in @tags@. Then, use 'loadBlogPosts' to load the entire @blog/@
+-- directory.
 --
 -- In the example below, @layout.html@ defines the outer HTML structure (with
 -- global components like navigation), and @blog-post.html@ is a generic blog
@@ -73,7 +80,7 @@ import qualified System.FilePath as FP
 --
 
 -- | Loads the given directory as a series of blog posts, sorted by the @date@
--- PREAMBLE environment variable. Posts with @draft: true@ are filtered out.
+-- preamble environment variable. Posts with @draft: true@ are filtered out.
 --
 -- @
 -- posts <- loadBlogPosts "blog/"
@@ -88,7 +95,10 @@ loadBlogPosts fp = do
         (mapM (\p -> rename blogPostUrl <$> load' p) postFps)
 
 -- | Rewrites file path for blog posts.
--- @\/blog\/2011-01-01-the-post-title.html@ => @\/blog\/the-post-title\/@
+--
+-- > blogPostUrl "/blog/2011-01-01-post-title.html"
+-- > -- "/blog/1-post-title.html/"
+--
 blogPostUrl :: FilePath -> FilePath
 blogPostUrl fp = FP.replaceFileName fp (drop 11 (FP.takeBaseName fp)) ++ "/"
 
@@ -123,11 +133,11 @@ rfc822DateFormat = "%a, %d %b %Y %H:%M:%S %z"
 -- injectTitle "My Awesome Website" post
 -- @
 --
--- The above example may insert a @title@ variable with the value @"How to do X
--- - My Awesome Website"@.
+-- The above example may insert a @title@ variable with the value @"The Meaning
+-- of Life - My Awesome Website"@.
 --
 injectTitle :: T.Text
-            -- ^ Title prefix.
+            -- ^ Title prefix
             -> Page
             -> Page
 injectTitle titlePrefix page =
@@ -140,7 +150,11 @@ injectTitle titlePrefix page =
 -- | Like, you know, a hashtag. Wraps a text.
 type Tag = T.Text
 
--- | Helper of 'buildTagPagesWith' defaulting to the variable name @posts@, and
+-- | Finds all the tags from the given pages, and generates a page for each tag
+-- found. Each tag page has a variable "posts" containing all pages that have
+-- the tag.
+--
+-- Helper of 'buildTagPagesWith' defaulting to the variable name @posts@, and
 -- the tag index page file path @blog\/tags\/my-tag-name\/@.
 --
 -- @
@@ -167,7 +181,7 @@ buildTagPages tagPageFp =
 -- tagPages <- buildTagPagesWith
 --               "tag-list.html"
 --               "posts"
---               (\tag _ -> "blog/tags/" ++ 'Data.Text.unpack' tag ++ "/")
+--               (\\tag _ -> "blog\/tags\/" ++ 'Data.Text.unpack' tag ++ "\/")
 --               posts
 -- @
 buildTagPagesWith :: FilePath
@@ -176,7 +190,7 @@ buildTagPagesWith :: FilePath
                   -- ^ Variable name inserted into Tag index pages for the list of
                   -- Pages tagged with the specified tag
                   -> (Tag -> FilePath -> FilePath)
-                  -- ^ Function to generate the URL of the tag pages.
+                  -- ^ Function to generate the URL of the tag pages
                   -> [Page]
                   -> PencilApp (H.HashMap Tag Page)
 buildTagPagesWith tagPageFp pagesVar fpf pages = do
