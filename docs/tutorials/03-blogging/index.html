@@ -34,7 +34,193 @@
 
       <div id="content">
         <h1 id="tutorial-3-blogging">Tutorial 3: Blogging</h1>
-<p>Pencil makes it easy to set up a blog on your website. Follow the source code <a href="https://github.com/elben/pencil-tutorials/blob/source/src/Tutorial1/Main.hs">here</a>.</p>
+<p>This tutorial walks through how we can set up a blog on our website by following the <a href="https://github.com/elben/pencil/tree/master/examples/Blog">Blog example</a> found in the Pencil <code>examples/</code> repo.</p>
+<p>Let’s consider all the features we’d want for our blog:</p>
+<ul>
+<li>Each blog post should get its own URL. Something like <code>mywebsite.com/blog/my-first-post/</code>.</li>
+<li>Be able to add tags to a post.</li>
+<li>An archive page that lists all the blogs post. Perhaps at <code>mywebsite.com/blog</code>.</li>
+<li>An archive page per tag, listing all posts tagged with that tag.</li>
+<li>An RSS feed.</li>
+</ul>
+<p>That’s a pretty thorough feature list. But because Pencil aims to make life as easy for you as possible, it’s loaded with a bunch of these things. They’re not “raw” functionality built into Pencil, but more like user-land features that were so useful that it made it into the core library. And it’s all included when you <code>import Pencil</code>.</p>
+<p>Pencil also ascribes to the philosophy of convention over configuration. And though you could configure these various tools to your liking or even write your own version (none of the functions are too complicated or very long), will follow Pencil’s convention for blogging.</p>
+<p>So let’s get started!</p>
+<h2 id="rendering-blog-posts">Rendering blog posts</h2>
+<p>Unlike the first tutorial, we’re not going to walk through each file you need to create and so forth. Since we’re following the <a href="https://github.com/elben/pencil/tree/master/examples/Blog">Blog example</a>, I trust that you’ll be able to follow along in your own code base.</p>
+<p>First, peruse the <code>site/</code> folder (<a href="https://github.com/elben/pencil/tree/master/examples/Blog/site">here</a>) and get comfortable with a couple of things in there.</p>
+<ul>
+<li>The <code>blog/</code> directory contains all of our blog posts, in Markdown format.</li>
+<li><a href="https://github.com/elben/pencil/blob/master/examples/Blog/site/layout.html"><code>layout.html</code></a> is the layout we’ll use for every page we render.</li>
+<li><a href="https://github.com/elben/pencil/blob/master/examples/Blog/site/post-layout.html"><code>post-layout.html</code></a> is the layout we’ll use for each actual blog post. Notice the for-loop in there for each tag.</li>
+</ul>
+<p>If you open <code>2018-01-30-code-related-stuff.markdown</code>, you’ll see a preamble section at the beginning.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode html"><code class="sourceCode html"><a class="sourceLine" id="cb1-1" title="1"><span class="co">&lt;!--PREAMBLE</span></a>
+<a class="sourceLine" id="cb1-2" title="2"><span class="co">date: 2018-01-30</span></a>
+<a class="sourceLine" id="cb1-3" title="3"><span class="co">postTitle: &quot;Code related stuff&quot;</span></a>
+<a class="sourceLine" id="cb1-4" title="4"><span class="co">tags:</span></a>
+<a class="sourceLine" id="cb1-5" title="5"><span class="co">  - awesome</span></a>
+<a class="sourceLine" id="cb1-6" title="6"><span class="co">--&gt;</span></a></code></pre></div>
+<p>Note that <code>date</code> and <code>postTitle</code> are required. We also see that this one was tagged with “awesome”. We’ll get to tags further down.</p>
+<p>Now, for our first stab:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb2-1" title="1"><span class="ot">{-# LANGUAGE OverloadedStrings #-}</span></a>
+<a class="sourceLine" id="cb2-2" title="2"></a>
+<a class="sourceLine" id="cb2-3" title="3"><span class="kw">module</span> <span class="dt">Main</span> <span class="kw">where</span></a>
+<a class="sourceLine" id="cb2-4" title="4"></a>
+<a class="sourceLine" id="cb2-5" title="5"><span class="kw">import</span> <span class="dt">Pencil</span></a>
+<a class="sourceLine" id="cb2-6" title="6"><span class="kw">import</span> <span class="kw">qualified</span> <span class="dt">Data.HashMap.Strict</span> <span class="kw">as</span> <span class="dt">H</span></a>
+<a class="sourceLine" id="cb2-7" title="7"><span class="kw">import</span> <span class="kw">qualified</span> <span class="dt">Data.Text</span> <span class="kw">as</span> <span class="dt">T</span></a>
+<a class="sourceLine" id="cb2-8" title="8"></a>
+<a class="sourceLine" id="cb2-9" title="9"><span class="kw">import</span> <span class="dt">Control.Monad.Reader</span> (local)</a>
+<a class="sourceLine" id="cb2-10" title="10"></a>
+<a class="sourceLine" id="cb2-11" title="11"><span class="ot">websiteTitle ::</span> <span class="dt">T.Text</span></a>
+<a class="sourceLine" id="cb2-12" title="12">websiteTitle <span class="ot">=</span> <span class="st">&quot;My Blog&quot;</span></a>
+<a class="sourceLine" id="cb2-13" title="13"></a>
+<a class="sourceLine" id="cb2-14" title="14"><span class="ot">config ::</span> <span class="dt">Config</span></a>
+<a class="sourceLine" id="cb2-15" title="15">config <span class="ot">=</span></a>
+<a class="sourceLine" id="cb2-16" title="16">  (updateEnv (insertText <span class="st">&quot;title&quot;</span> websiteTitle) <span class="op">.</span></a>
+<a class="sourceLine" id="cb2-17" title="17">   setSourceDir <span class="st">&quot;examples/Blog/site/&quot;</span> <span class="op">.</span></a>
+<a class="sourceLine" id="cb2-18" title="18">   setOutputDir <span class="st">&quot;examples/Blog/out/&quot;</span></a>
+<a class="sourceLine" id="cb2-19" title="19">  ) defaultConfig</a>
+<a class="sourceLine" id="cb2-20" title="20"></a>
+<a class="sourceLine" id="cb2-21" title="21"><span class="ot">website ::</span> <span class="dt">PencilApp</span> ()</a>
+<a class="sourceLine" id="cb2-22" title="22">website <span class="ot">=</span> <span class="kw">do</span></a>
+<a class="sourceLine" id="cb2-23" title="23">  loadAndRender <span class="st">&quot;assets/style.scss&quot;</span></a>
+<a class="sourceLine" id="cb2-24" title="24">  </a>
+<a class="sourceLine" id="cb2-25" title="25">  layout <span class="ot">&lt;-</span> load <span class="st">&quot;layout.html&quot;</span></a>
+<a class="sourceLine" id="cb2-26" title="26">  postLayout <span class="ot">&lt;-</span> load <span class="st">&quot;post-layout.html&quot;</span></a>
+<a class="sourceLine" id="cb2-27" title="27"></a>
+<a class="sourceLine" id="cb2-28" title="28">  posts <span class="ot">&lt;-</span> loadBlogPosts <span class="st">&quot;blog/&quot;</span></a>
+<a class="sourceLine" id="cb2-29" title="29">  </a>
+<a class="sourceLine" id="cb2-30" title="30">  render <span class="op">$</span> <span class="fu">fmap</span> ((layout <span class="op">&lt;||</span> postLayout <span class="op">&lt;|</span>)) posts</a>
+<a class="sourceLine" id="cb2-31" title="31">  </a>
+<a class="sourceLine" id="cb2-32" title="32"><span class="ot">main ::</span> <span class="dt">IO</span> ()</a>
+<a class="sourceLine" id="cb2-33" title="33">main <span class="ot">=</span> run website config</a></code></pre></div>
+<p>With these first few lines of code, you should be able to see something working. As usual:</p>
+<pre><code>stack exec my-website
+cd out &amp;&amp; python -m SimpleHTTPServer 8000</code></pre>
+<p>And you should see our blog posts rendered! For example: <a href="http://localhost:8000/blog/code-related-stuff/">http://localhost:8000/blog/code-related-stuff/</a>. Of course it’s not listing any tags yet, and we don’t have a blog index or anything. But it’s a start.</p>
+<p>Now, you should be familiar with the <code>load</code> function by now. But here we see <code>loadBlogPosts</code>. This is a helper function provided by Pencil to do the following:</p>
+<ul>
+<li>Load all pages found in the <code>blog/</code> folder.</li>
+<li>Rename the file path from <code>blog/2018-01-31-ramblings.markdown</code> to <code>blog/ramblings/</code>.</li>
+<li>Sort by the date specified in each page’s <code>date</code> variable found in the preamble.</li>
+<li>And return the list of <code>Page</code>s.</li>
+</ul>
+<p>Don’t be shy about reading the source code. You’ll find that I sent more characters explaining it above than the actual source of <code>loadBlogPosts</code>.</p>
+<p>To render each post, we had this:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb4-1" title="1">render <span class="op">$</span> <span class="fu">fmap</span> ((layout <span class="op">&lt;||</span> postLayout <span class="op">&lt;|</span>)) posts</a></code></pre></div>
+<p>This converts a list of <code>Page</code>s into a list of <code>Structure</code>s, pushing each page into the layout structure. We then render the list of <code>Structure</code>.</p>
+<div class="note">
+<p>There’s an instance of the <code>Render</code> typeclass for list of <code>Page</code>s. That’s why you can call <code>render</code> on a list.</p>
+</div>
+<p>If you loaded one of the rendered pages in your browser, you’ll notice that the <code>&lt;title&gt;</code> tag still just says “My Blog”. But shouldn’t it contain the title of the blog post also?</p>
+<p>Well, this ain’t the first time someone ran into this problem. Use <code>injectTitle</code> to fix it:</p>
+<pre><code>render $
+  fmap ((layout &lt;|| postLayout &lt;|) . injectTitle websiteTitle)
+    posts</code></pre>
+<p><code>injectTitle</code> takes the <code>postTitle</code> variable in each post’s preamble and puts it in the front of the given website title. Rebuild the website, and the “Code related stuff” post now has the title “Code related stuff - My Blog”.</p>
+<div class="note">
+<p>The dot operator <code>(.)</code> is function composition. <code>(a . b . c) d</code> translates to <code>a (b (c d))</code>.</p>
+</div>
+<h2 id="listing-all-blog-posts">Listing all blog posts</h2>
+<p>We’ll of course want to build a page that lists out all of our blog posts. To do that, let’s add a couple of lines to our <code>website</code> function:</p>
+<pre><code>index &lt;- load &quot;index.html&quot;
+render (layout &lt;|| index &lt;&lt;| coll &quot;posts&quot; posts)</code></pre>
+<p>Ooo, some new stuff! Let’s talk about structures. As you know from the previous tutorials (and reference pages, and the <a href="http://hackage.haskell.org/package/pencil/docs/Pencil.html">Pencil docs</a>) A structure is a nesting of pages. But sometimes we’ll want to nest not just a single page, but a collection of pages. In our case, we need our index page to have access to the list of post pages so that we can, in our template, loop through each post and display its <code>postTitle</code> along with its <code>date</code> and URL.</p>
+<p>Well, that’s possible, as long as the collection element is (1) always the last element in the structure and (2) not the first. So you can’t have a structure with just a collection, for example.</p>
+<p>This rule is there to keep things simple, and it makes sense too. For most use-cases, the collection is the “most important thing” for the page we’re trying to build.</p>
+<p>Let’s talk about the contents of <code>index.html</code> too.</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode html"><code class="sourceCode html"><a class="sourceLine" id="cb7-1" title="1"><span class="kw">&lt;h1&gt;</span>My Blog<span class="kw">&lt;/h1&gt;</span></a>
+<a class="sourceLine" id="cb7-2" title="2"></a>
+<a class="sourceLine" id="cb7-3" title="3"><span class="kw">&lt;p&gt;</span>This is my blog. Check out my blog posts:<span class="kw">&lt;/p&gt;</span></a>
+<a class="sourceLine" id="cb7-4" title="4"></a>
+<a class="sourceLine" id="cb7-5" title="5">${partial(&quot;post-list.html&quot;)}</a>
+<a class="sourceLine" id="cb7-6" title="6"></a>
+<a class="sourceLine" id="cb7-7" title="7"><span class="kw">&lt;p&gt;&lt;a</span><span class="ot"> href=</span><span class="st">&quot;/rss.xml&quot;</span><span class="kw">&gt;</span>RSS Feed<span class="kw">&lt;/a&gt;&lt;/p&gt;</span></a></code></pre></div>
+<p>First, ignore the RSS stuff—we’ll get to it later. But look out that <code>${partial()}</code> template directive. A partial is just a copy-paste of the contents in the partial. Nothing fancy is going on. So we’ll need to check out <code>post-list.html</code>:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode html"><code class="sourceCode html"><a class="sourceLine" id="cb8-1" title="1"><span class="kw">&lt;ul&gt;</span></a>
+<a class="sourceLine" id="cb8-2" title="2">  </a>
+<a class="sourceLine" id="cb8-5" title="5"><span class="kw">&lt;/ul&gt;</span></a></code></pre></div>
+<p>Interesting! Here we loop over the <code>posts</code> variable. This comes from that collection structure that we built, when we did <code>coll "posts" posts</code>. For each post, we render the <code>post-bullet.html</code> partial:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode html"><code class="sourceCode html"><a class="sourceLine" id="cb9-1" title="1"><span class="kw">&lt;li&gt;</span></a>
+<a class="sourceLine" id="cb9-2" title="2">  <span class="kw">&lt;a</span><span class="ot"> href=</span><span class="st">&quot;${this.url}&quot;</span><span class="kw">&gt;</span>${postTitle} - ${date}<span class="kw">&lt;/a&gt;</span></a>
+<a class="sourceLine" id="cb9-3" title="3"><span class="kw">&lt;/li&gt;</span></a></code></pre></div>
+<p>What you’ll want to understand here is the fact that when we are inside the for-loop, the <em>environment context</em> has changed. We have access to the post’s variables like <code>postTitle</code> and <code>date</code>. And note that <code>this.url</code> is <em>automatically</em> set by Pencil during render.</p>
+<p>So if we build our website now, we’ll see a sweet index page listing all of our blog posts!</p>
+<p><strong>Exercise</strong>: Create a new blog post and re-build your website. Reference variables in your blog post, like <code>${postTitle}</code> and <code>Pencil Documentation</code> (which is the website’s main title).</p>
+<h2 id="tags-tags-tags">Tags, Tags, Tags</h2>
+<p>So we are now rendering each blog post, and we have a listing of blog posts. Time to deal with tags.</p>
+<p>A bit of warning: there’s some hand-wavy stuff in this section. Not because it’s magical, but because it can be confusing to explain without actually looking at the implementation.</p>
+<p>Add these lines to the <code>website</code> function:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb10-1" title="1">tagPages <span class="ot">&lt;-</span> buildTagPages <span class="st">&quot;tag-list.html&quot;</span> posts</a>
+<a class="sourceLine" id="cb10-2" title="2">render <span class="op">$</span> <span class="fu">fmap</span> (layout <span class="op">&lt;||</span>) (H.elems tagPages)</a></code></pre></div>
+<p><code>buildTagPages</code> takes <code>tag-list.html</code> and a list of post pages. It returns (hand-waving about to happen) a hash map of tags (which is just a <code>Text</code>) to a <code>Page</code>. That <code>Page</code> is a version of the page loaded from <code>tag-list.html</code>, but with the <code>tag</code> variable set to the tag in the key, and a <code>posts</code> array containing all posts that was tagged with the current tag. Oh, and the page’s URL is set to <code>blog/tags/${tag}/</code>.</p>
+<p>Yeah, <code>buildTagPages</code> is complicated. If you want to control some of the configuration, use <code>buildTagPagesWith</code>.</p>
+<p>So as an example, the value for the key <code>"awesome"</code> is a <code>Page</code> where the <code>posts</code> variable contain <code>Page</code>s containing the posts from <code>2018-01-30-code-related-stuff.markdown</code> and <code>2018-02-01-more-ramblings.markdown</code>, since they were both tagged with <code>awesome</code>. The URL for the page is <code>blog/tags/awesome/</code>.</p>
+<p>We actually can now page for each tag, listing out all the posts tagged with the tag. This is what <code>render $ fmap (layout &lt;||) (H.elems tagPages)</code> does. It takes each <code>Page</code>, which is a version of <code>tag-list.html</code>, and renders it.</p>
+<p>Re-build your website, and check out <a href="http://localhost:8000/blog/tags/awesome/">localhost:8000/blog/tags/awesome/</a>.</p>
+<p>OK that’s pretty sweet. But we also want to list out the tags on each of the blog post page that we rendered. And not only that, but we want to link each tag to the tag listing page. This is common-enough and confusing-enough to warrant a built-in method. We can use <code>injectTagsEnv</code> during the blog post render, like this:</p>
+<pre><code>render $
+  fmap ((layout &lt;|| postLayout &lt;|)
+        . injectTagsEnv tagPages
+        . injectTitle websiteTitle)
+    posts</code></pre>
+<p>Basically we’re giving each post the entire mapping of tags to posts. Open <code>post-layout.html</code> and notice this:</p>
+<pre><code></code></pre>
+<p><code>injectTagsEnv</code> filters out the <code>tagPages</code> you passed in only to the tags found in the current page. Thus we can loop through <code>tags</code> and link to the tag listing page, just like that.</p>
+<p>There ya go. Tags. It’s complicated underneath the hood, but at least the method are easy to use, right? As always, if you’re interested in learning more, the source code is always available. If you want a more interesting tagging system (sub-tags?), the existing implementation would serve as a good starting point.</p>
+<h2 id="rss">RSS</h2>
+<p>The final thing we’ll tackle is RSS. Let’s look at <code>rss.xml</code>:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode xml"><code class="sourceCode xml"><a class="sourceLine" id="cb13-1" title="1"><span class="kw">&lt;?xml</span> version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;<span class="kw">?&gt;</span></a>
+<a class="sourceLine" id="cb13-2" title="2"><span class="kw">&lt;rss</span><span class="ot"> version=</span><span class="st">&quot;2.0&quot;</span><span class="ot"> xmlns:atom=</span><span class="st">&quot;http://www.w3.org/2005/Atom&quot;</span><span class="kw">&gt;</span></a>
+<a class="sourceLine" id="cb13-3" title="3"><span class="kw">&lt;channel&gt;</span></a>
+<a class="sourceLine" id="cb13-4" title="4">  <span class="kw">&lt;title&gt;</span>Example RSS Feed<span class="kw">&lt;/title&gt;</span></a>
+<a class="sourceLine" id="cb13-5" title="5">  <span class="kw">&lt;link&gt;</span>http://example.com/rss.xml<span class="kw">&lt;/link&gt;</span></a>
+<a class="sourceLine" id="cb13-6" title="6">  <span class="kw">&lt;description&gt;</span>An example RSS feed.<span class="kw">&lt;/description&gt;</span></a>
+<a class="sourceLine" id="cb13-7" title="7"></a>
+<a class="sourceLine" id="cb13-8" title="8">  </a>
+<a class="sourceLine" id="cb13-17" title="17"><span class="kw">&lt;/channel&gt;</span></a>
+<a class="sourceLine" id="cb13-18" title="18"><span class="kw">&lt;/rss&gt;</span></a></code></pre></div>
+<p>You’ve seen all of this before. It’s your usual template directives, except it’s in an XML file now instead of HTML.</p>
+<p>Modifying <code>website</code>, we can add:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb14-1" title="1">rssLayout <span class="ot">&lt;-</span> load <span class="st">&quot;rss.xml&quot;</span></a>
+<a class="sourceLine" id="cb14-2" title="2"></a>
+<a class="sourceLine" id="cb14-3" title="3"><span class="kw">let</span> rssFeedStruct <span class="ot">=</span> struct rssLayout <span class="op">&lt;&lt;|</span></a>
+<a class="sourceLine" id="cb14-4" title="4">  coll <span class="st">&quot;posts&quot;</span> (<span class="fu">fmap</span> escapeXml (<span class="fu">take</span> <span class="dv">10</span> posts))</a>
+<a class="sourceLine" id="cb14-5" title="5"></a>
+<a class="sourceLine" id="cb14-6" title="6">local (setDisplayValue toTextRss)</a>
+<a class="sourceLine" id="cb14-7" title="7">    (render rssFeedStruct)</a></code></pre></div>
+<p>I think we understand <code>load "rss.xml"</code> by now, but what is that monstrosity in the next line? Examining it from right-to-left:</p>
+<ul>
+<li>Take only the ten newest posts.</li>
+<li>Mark each <code>Page</code> as <code>escapeXml</code>. This is because we need the HTML tags of our posts to be escaped when we render it in the <code>&lt;description&gt;</code> tag. The <code>escapeXml</code> function just marks a boolean inside of the <code>Page</code> to note it to escape tags whenever the page is rendered.</li>
+<li>We’ve seen <code>coll "posts"</code> before. It puts our ten pages into the structure as a collection.</li>
+<li><code>struct page</code> initializes the page in a structure. Then we push the collection element into the structure using <code>&lt;&lt;|</code>.</li>
+</ul>
+<p>So now we have a structure containing all of the RSS posts we want to render. Can’t we call <code>render rssFeedStruct</code>? Well, almost.</p>
+<p>The RSS specification expects the <code>&lt;pubDate&gt;</code> value to be in the RFC 822 date format (e.g. <code>Wed, 31 Jan 2018 00:00:00 +0000</code>). But Pencil’s default renderer will render a <code>VDateTime</code> in <code>YYYY-MM-DD</code> format. The transformation of <code>Value</code>s to their final string outputs is defined in the config by <a href="http://hackage.haskell.org/package/pencil/docs/Pencil-Internal-Pencil.html#v:configDisplayValue"><code>configDisplayValue</code></a>. As you can see in the Hackage documentation, the default value is <a href="http://hackage.haskell.org/package/pencil/docs/Pencil-Internal-Env.html#v:toText"><code>toText</code></a>. We need to replace <code>toText</code> with a different one, a Pencil-supplied one called <a href="http://hackage.haskell.org/package/pencil/docs/src/Pencil.Internal.Env.html#toTextRss"><code>toTextRss</code></a>. The only difference between the two is how <code>VDateTime</code> values are rendered.</p>
+<p>We could update our <code>config</code> value to:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb15-1" title="1"><span class="ot">config ::</span> <span class="dt">Config</span></a>
+<a class="sourceLine" id="cb15-2" title="2">config <span class="ot">=</span></a>
+<a class="sourceLine" id="cb15-3" title="3">  (updateEnv (insertText <span class="st">&quot;title&quot;</span> websiteTitle) <span class="op">.</span></a>
+<a class="sourceLine" id="cb15-4" title="4">   setSourceDir <span class="st">&quot;examples/Blog/site/&quot;</span> <span class="op">.</span></a>
+<a class="sourceLine" id="cb15-5" title="5">   setOutputDir <span class="st">&quot;examples/Blog/out/&quot;</span> <span class="op">.</span></a>
+<a class="sourceLine" id="cb15-6" title="6">   setDisplayValue toTextRss</a>
+<a class="sourceLine" id="cb15-7" title="7">  ) defaultConfig</a></code></pre></div>
+<p>But that would change how dates are rendered <em>everywhere</em>. What we need to do is <em>temporarily</em> set <code>configDisplayValue</code> too <code>toTextRss</code>.</p>
+<p>This is where <a href="https://hackage.haskell.org/package/transformers/docs/Control-Monad-Trans-Reader.html#v:local"><code>local</code></a> comes in. <code>local</code> allows us to temporarily run some command in a <em>modified</em> <code>Config</code> environment.</p>
+<pre><code>local (setDisplayValue toTextRss) (render rssFeedStruct)</code></pre>
+<p>The above means that <code>render rssFeedStructure</code> runs with <code>configDisplayValue</code> set to <code>toTextRss</code>.</p>
+<p>Let’s re-compile our website one more time and check out <a href="http://localhost:8000/rss.xml">localhost:8000/rss.xml</a>. We have an RSS feed indeed.</p>
+<h2 id="conclusion">Conclusion</h2>
+<p>In this tutorial you learned:</p>
+<ul>
+<li>How to use Pencil’s built-in blogging functionality to load blog posts, render them, build an archive page, and deal with tags.</li>
+<li>How partials work.</li>
+<li>How to push collection of pages into a structure.</li>
+<li>How to run commands in a temporarily-modified <code>Config</code> environment.</li>
+</ul>
       </div>
     </div>
   </body>
