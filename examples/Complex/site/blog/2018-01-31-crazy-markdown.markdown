@@ -10,6 +10,4 @@ form**. So life is like cold water in <em>cloud</em> form.
 I am <em>more</em> like me. These em tags should be escaped.
 ```
 
-The website's title is "${title}" and this post's title is ${postTitle}.
-
-Fix this: **${title}** and **${postTitle}**
+The website's title is **${title}** and this post's title is **${postTitle}**.

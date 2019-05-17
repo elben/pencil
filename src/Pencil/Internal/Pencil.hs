@@ -24,7 +24,7 @@ import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
 import GHC.IO.Exception (IOException(ioe_description, ioe_filename, ioe_type), IOErrorType(NoSuchThing))
 import Text.EditDistance (levenshteinDistance, defaultEditCosts)
-import Text.Pandoc.Extensions (enableExtension, Extension(..))
+import Text.Pandoc.Extensions (disableExtension, Extension(..))
 import Text.Sass.Options (defaultSassOptions)
 import qualified Data.HashMap.Strict as H
 import qualified Data.List as L
@@ -85,12 +85,17 @@ instance Default Config where
 --  , 'configDisplayValue' = 'toText'
 --  , 'configSassOptions' = Text.Sass.Options.defaultSassOptions
 --  , 'configPandocReaderOptions' = Text.Pandoc.def {
---       Text.Pandoc.readerExtensions = Text.Pandoc.Extensions.getDefaultExtensions "markdown"
+--       Text.Pandoc.readerExtensions = 'Text.Pandoc.Extensions.disableExtension' 'Text.Pandoc.Extensions.Ext_tex_math_dollars' ('Text.Pandoc.Extensions.getDefaultExtensions' "markdown")
 --    }
 --  , 'configPandocWriterOptions' = Text.Pandoc.def { Text.Pandoc.writerHighlightStyle = Just Text.Pandoc.Highlighting.monochrome }
 --  , 'configDisplayValue = 'toText'
 --  }
 -- @
+--
+-- @Ext_tex_math_dollars@ is disabled because it messes with parsing template
+-- variable directives. If you want TeX math, the better option is drop in a
+-- JavaScript library like KaTeX (https://katex.org) or MathJax
+-- (https://www.mathjax.org).
 --
 defaultConfig :: Config
 defaultConfig = Config
@@ -100,9 +105,14 @@ defaultConfig = Config
   , configSassOptions = Text.Sass.Options.defaultSassOptions
 
   -- For markdown reader. We use getDefaultExtensions "markdown" here to get default Markdown extensions.
-  -- See https://hackage.haskell.org/package/pandoc-2.5/docs/Text-Pandoc-Extensions.html#v:getDefaultExtensions
+  -- See
+  -- https://hackage.haskell.org/package/pandoc/docs/Text-Pandoc-Extensions.html#v:getDefaultExtensions
+  --
+  -- Ext_text_math_dollars is disabled because it messes with variable
+  -- directives. For example, this renders weird (as of Pandoc 2.7.2):
+  -- **${name}** and **${age}**
   , configPandocReaderOptions = P.def {
-      P.readerExtensions = P.getDefaultExtensions "markdown"
+      P.readerExtensions = disableExtension Ext_tex_math_dollars (P.getDefaultExtensions "markdown")
     }
   , configPandocWriterOptions = P.def {
       P.writerHighlightStyle = Just Text.Pandoc.Highlighting.monochrome
