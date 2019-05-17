@@ -110,7 +110,7 @@ defaultConfig = Config
   --
   -- Ext_text_math_dollars is disabled because it messes with variable
   -- directives. For example, this renders weird (as of Pandoc 2.7.2):
-  -- **${name}** and **${age}**
+  -- > **${name}** and **${age}**
   , configPandocReaderOptions = P.def {
       P.readerExtensions = disableExtension Ext_tex_math_dollars (P.getDefaultExtensions "markdown")
     }

@@ -6,7 +6,7 @@ import Pencil
 import qualified Data.HashMap.Strict as H
 import qualified Data.Text as T
 
-import Control.Monad.Reader.Class
+import Control.Monad.Reader (local)
 
 websiteTitle :: T.Text
 websiteTitle = "My Blog"
@@ -23,9 +23,9 @@ website = do
   loadAndRender "assets/style.scss"
 
   layout <- load "layout.html"
+  postLayout <- load "post-layout.html"
 
   -- Load all our blog posts into `posts`, which is of type [Page]
-  postLayout <- load "post-layout.html"
   posts <- loadBlogPosts "blog/"
 
   -- Build tag index pages. This is a map of a Tag (which is just Text)
@@ -56,17 +56,12 @@ website = do
 
   -- Build our index page.
   --
-  -- - useFilePath - Sets rssLayout's file path as the final file path of the
-  --   rendered structure. So that the file is rendered as /index.html, and not
-  --   whatever is in the rest of the structure. If no page is specified through
-  --   `useFilePath`, the last page in the structure is used as the final file path.
-  --
   -- - coll "posts" posts - Creates a collection of pages inside the Structure.
   --   The entire structure has access to these pages, via the "posts" variable.
   --
   -- - a <<| c - pushes the collection node c into Structure a.
   --
-  render (layout <|| useFilePath index <<| coll "posts" posts)
+  render (layout <|| index <<| coll "posts" posts)
 
   -- Render tag list pages. This is so that we can go to /blog/tags/awesome to
   -- see all the blog posts tagged with "awesome".
@@ -77,8 +72,6 @@ website = do
 
   -- Build RSS feed of the last 10 posts.
   --
-  -- - `useFilePath` so that the file is rendered as /rss.xml.
-  --
   -- - `struct` converts the Page into a Struct
   --
   -- - `escapeXml` sets the Page to escape the XML/HTML tags in our blog
@@ -88,7 +81,7 @@ website = do
   -- - `coll "posts" ...` creates a collection of pages inside the Structure.
   --   See rss.xml file to see how that's used.
   --
-  let rssFeedStruct = struct (useFilePath rssLayout) <<| coll "posts" (fmap escapeXml (take 10 posts))
+  let rssFeedStruct = struct rssLayout <<| coll "posts" (fmap escapeXml (take 10 posts))
 
   -- Render the RSS feed. We need to render inside a modified environment, where
   -- @toTextRss@ is used as the render function, so that dates are rendered in
