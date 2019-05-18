@@ -1056,6 +1056,22 @@ load' fp = do
   let env' = H.insert "this.nodes" (VNodes (filter (not . isPreamble) nodes)) (findEnv nodes)
   return $ Page env' fp False False
 
+loadDir :: Bool
+        -- ^ Recursive if true
+        -> FilePath
+        -> PencilApp [Page]
+loadDir recur fp = do
+  fps <- listDir recur fp
+  mapM load fps
+
+loadDir' :: Bool
+         -- ^ Recursive if true
+         -> FilePath
+         -> PencilApp [Page]
+loadDir' recur fp = do
+  fps <- listDir recur fp
+  mapM load' fps
+
 -- | Find preamble node, and load as an Env. If no preamble is found, return a
 -- blank Env.
 findEnv :: [PNode] -> Env

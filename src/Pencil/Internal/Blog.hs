@@ -24,12 +24,10 @@ import qualified System.FilePath as FP
 -- @
 loadBlogPosts :: FilePath -> PencilApp [Page]
 loadBlogPosts fp = do
-  -- Load posts
-  postFps <- listDir False fp
-
-  -- Sort by date (newest first) and filter out drafts
-  liftM (filterByVar True "draft" (VBool True /=) . sortByVar "date" dateOrdering)
-        (mapM (\p -> rename blogPostUrl <$> load' p) postFps)
+  posts <- loadDir False fp
+  return $
+    (filterByVar True "draft" (VBool True /=) . sortByVar "date" dateOrdering)
+    (fmap (rename blogPostUrl) posts)
 
 -- | Rewrites file path for blog posts.
 --

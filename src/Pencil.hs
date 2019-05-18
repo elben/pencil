@@ -15,6 +15,9 @@ module Pencil
     Page
   , getPageEnv, setPageEnv
   , load
+  , load'
+  , loadDir
+  , loadDir'
   , withEnv
   , loadAndRender
   , useFilePath
