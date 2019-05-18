@@ -78,11 +78,11 @@ You can now access this in `index.html` like this:
 
 ```html
 <ul>
-${for(posts)}
+$${for(posts)}
   <li>
-    <a href=${this.url}>${postTitle} - ${date}</a>
+    <a href=$${this.url}>${postTitle} - $${date}</a>
   </li>
-${end}
+$${end}
 </ul>
 ```
 

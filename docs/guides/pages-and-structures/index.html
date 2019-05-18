@@ -107,7 +107,11 @@
 <p>We load two posts, and want to somehow inject them into our index page so that we can iterate through each post and print out the post’s title. To do this, we create a collection through <code>coll "posts" posts</code>. The first argument, <code>"posts"</code> is the variable name that will hold your pages. We then push this collection into the structure using <code>(&lt;&lt;|)</code>.</p>
 <p>You can now access this in <code>index.html</code> like this:</p>
 <div class="sourceCode" id="cb5"><pre class="sourceCode html"><code class="sourceCode html"><a class="sourceLine" id="cb5-1" title="1"><span class="kw">&lt;ul&gt;</span></a>
-<a class="sourceLine" id="cb5-2" title="2"></a>
+<a class="sourceLine" id="cb5-2" title="2">${for(posts)}</a>
+<a class="sourceLine" id="cb5-3" title="3">  <span class="kw">&lt;li&gt;</span></a>
+<a class="sourceLine" id="cb5-4" title="4">    <span class="kw">&lt;a</span><span class="ot"> href=</span><span class="st">${this.url}</span><span class="kw">&gt;</span>${postTitle} - ${date}<span class="kw">&lt;/a&gt;</span></a>
+<a class="sourceLine" id="cb5-5" title="5">  <span class="kw">&lt;/li&gt;</span></a>
+<a class="sourceLine" id="cb5-6" title="6">${end}</a>
 <a class="sourceLine" id="cb5-7" title="7"><span class="kw">&lt;/ul&gt;</span></a></code></pre></div>
 <ul>
 <li>All variables defined by the post page (e.g. if the preamble contains <code>postTitle</code> and <code>date</code>) is accessible inside the for-loop.</li>
