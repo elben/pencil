@@ -13,22 +13,23 @@ config =
 
 website :: PencilApp ()
 website = do
-    loadAndRender "default.scss"
-    loadAndRender "tutorials/images/"
+  loadAndRender "default.scss"
+  loadAndRender "tutorials/images/"
 
-    layout <- load "layout.html"
+  layout <- load "layout.html"
 
-    index <- load "index.markdown"
-    render (layout <|| index)
+  index <- load "index.markdown"
+  render (layout <|| index)
 
-    t1 <- load "tutorials/01-getting-started.markdown"
-    render (layout <|| rename toDir t1)
+  tuts <- loadDir' False "tutorials/"
+  renderDir layout tuts
 
-    t2 <- load "tutorials/02-deploying-to-github-pages-using-circle.markdown"
-    render (layout <|| rename toDir t2)
+  guides <- loadDir' False "guides/"
+  renderDir layout guides
 
-    t3 <- load "tutorials/03-blogging.markdown"
-    render (layout <|| rename toDir t3)
+  where
+    renderDir layout pages = render $ fmap ((layout <||) . rename toDir) pages
+
 
 main :: IO ()
 main = run website config
