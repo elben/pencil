@@ -15,6 +15,7 @@ website :: PencilApp ()
 website = do
   loadAndRender "default.scss"
   loadAndRender "tutorials/images/"
+  loadAndRender "guides/images/"
 
   layout <- load "layout.html"
 
