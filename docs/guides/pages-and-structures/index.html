@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8">
   <title>Pencil Documentation</title>
-  <link rel="stylesheet" href="/default.css" />
+  <link rel="stylesheet" href="/pencil/default.css" />
   <link href="https://fonts.googleapis.com/css?family=Fira+Sans:300,400,400i,700" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css?family=Fira+Mono:400,700" rel="stylesheet">
 </head>
@@ -45,6 +45,11 @@
             </a>
           </li>
           <li>
+            <a href="/pencil/guides/static-assets/">
+              Dealing with Static Assets
+            </a>
+          </li>
+          <li>
               Environments
           </li>
         </ul>
@@ -53,6 +58,84 @@
 
     <div id="content">
       <h1 id="pages-and-structures">Pages and Structures</h1>
+<p>Pages and Structures are fundamental data types in Pencil. Understand them and you shall succeed.</p>
+<p>A <strong>Page</strong> contains:</p>
+<ul>
+<li>The contents of the file that you loaded.</li>
+<li>The outbound file path.</li>
+<li>Settings on <em>how</em> the page should be rendered. For example, <code>escapeXml :: Page -&gt; Page</code> is a function that will tell the page to escape XML/HTML tags when rendered.</li>
+</ul>
+<p>That seems easy enough. But if all we had was the <code>Page</code> type, Pencil wouldn’t be all that useful. It would be just a glorified Markdown renderer. To support page re-use, we need some way to <em>combine</em> or <em>stitch</em> different pages together. This is where the <code>Structure</code> type comes in.</p>
+<p>A <strong>Structure</strong> defines a nesting structure of <code>Page</code>s. Think of them like <a href="https://en.wikipedia.org/wiki/Matryoshka_doll">Russian nesting dolls</a>.</p>
+<p>Consider the canonical Pencil example:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb1-1" title="1">layout <span class="ot">&lt;-</span> load <span class="st">&quot;layout.html&quot;</span></a>
+<a class="sourceLine" id="cb1-2" title="2"><span class="fu">index</span> <span class="ot">&lt;-</span> load <span class="st">&quot;index.markdown&quot;</span></a>
+<a class="sourceLine" id="cb1-3" title="3">render <span class="op">$</span> layout <span class="op">&lt;||</span> <span class="fu">index</span></a></code></pre></div>
+<p>Here, we combine two pages, <code>layout</code> and <code>index</code>, into a single structure via <code>layout &lt;|| index</code>. As described in the tutorials, underneath the hood a <code>Structure</code> is a non-empty linked list.</p>
+<p>Here’s a diagram of a longer example:</p>
+<pre><code>render $ layout &lt;|| a &lt;| b &lt;| c</code></pre>
+<p><img src="../images/structure.png" alt="Diagram describing the structure code above." />.</p>
+<p>Each page’s content is accessible to the page above through <code>body</code>.</p>
+<p>So when <code>render</code> is called on this structure, Pencil does the following:</p>
+<ul>
+<li>Gathers all the variables from all the pages in the structure.</li>
+<li>Renders the contents of <code>index</code> with this combined environment.
+<ul>
+<li>This means that <code>index.markdown</code> can reference variables defined in <code>layout.html</code>, in <code>index.markdown</code>, or in the global environment specified in the <code>Config</code>.</li>
+</ul></li>
+<li>Inserts the rendered HTML content into the <code>body</code> variable.</li>
+<li>Now, it renders contents of <code>layout</code>. Note that because we now have <code>body</code> available, <code>layout.html</code> can use <code>${body}</code> in its contents, which is replaced with the contents of <code>index</code>.</li>
+<li>Writes a new file in the output directory, <code>index.html</code>.</li>
+</ul>
+<p>So how did Pencil decide on the output file path?</p>
+<p><strong>The Default File Path Rule</strong>. By default Pencil uses the file path of last non-collection <code>Page</code> in the <code>Structure</code>.</p>
+<p>In this case, that would be <code>index</code>’s file path. When we call <code>load "index.markdown"</code>, <code>load</code> looks at the original extension (<code>.markdown</code>) and automatically converts it to <code>.html</code>.</p>
+<p>If we wanted a different output file name, we could use some of the provided methods like <a href="https://hackage.haskell.org/package/pencil/docs/Pencil.html#v:rename"><code>rename</code></a> and <a href="https://hackage.haskell.org/package/pencil/docs/Pencil.html#v:move"><code>move</code></a>:</p>
+<pre><code>render $ layout &lt;|| rename &quot;another-name.html&quot; index</code></pre>
+<h2 id="collections">Collections</h2>
+<p>Sometimes we’ll want to nest not just a single page, but a collection of pages. For example, we may want to build a page listing all of the blog posts we’ve loaded. In this page, we’d want to loop through each post and render the post’s title, date and URL.</p>
+<p>Pencil accomplishes this through collections, which is also covered in <a href="/pencil/03-blogging/">Tutorial 3: Blogging</a>.</p>
+<p>Consider this example:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb4-1" title="1">layout <span class="ot">&lt;-</span> load <span class="st">&quot;layout.html&quot;</span></a>
+<a class="sourceLine" id="cb4-2" title="2"><span class="fu">index</span> <span class="ot">&lt;-</span> load <span class="st">&quot;index.html&quot;</span></a>
+<a class="sourceLine" id="cb4-3" title="3"></a>
+<a class="sourceLine" id="cb4-4" title="4">post1 <span class="ot">&lt;-</span> load <span class="st">&quot;post1.markdown&quot;</span></a>
+<a class="sourceLine" id="cb4-5" title="5">post2 <span class="ot">&lt;-</span> load <span class="st">&quot;post2.markdown&quot;</span></a>
+<a class="sourceLine" id="cb4-6" title="6"><span class="kw">let</span> posts <span class="ot">=</span> [post1, post2]</a>
+<a class="sourceLine" id="cb4-7" title="7"></a>
+<a class="sourceLine" id="cb4-8" title="8">render <span class="op">$</span> layout <span class="op">&lt;||</span> <span class="fu">index</span> <span class="op">&lt;&lt;|</span> coll <span class="st">&quot;posts&quot;</span> posts</a></code></pre></div>
+<p>We load two posts, and want to somehow inject them into our index page so that we can iterate through each post and print out the post’s title. To do this, we create a collection through <code>coll "posts" posts</code>. The first argument, <code>"posts"</code> is the variable name that will hold your pages. We then push this collection into the structure using <code>(&lt;&lt;|)</code>.</p>
+<p>You can now access this in <code>index.html</code> like this:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode html"><code class="sourceCode html"><a class="sourceLine" id="cb5-1" title="1"><span class="kw">&lt;ul&gt;</span></a>
+<a class="sourceLine" id="cb5-2" title="2"></a>
+<a class="sourceLine" id="cb5-7" title="7"><span class="kw">&lt;/ul&gt;</span></a></code></pre></div>
+<ul>
+<li>All variables defined by the post page (e.g. if the preamble contains <code>postTitle</code> and <code>date</code>) is accessible inside the for-loop.</li>
+<li>Each page’s URL is accessible through the special variable <code>this.url</code>.</li>
+<li>Each page’s content is accessible through the special variable <code>this.content</code>.</li>
+</ul>
+<p><strong>The Collection Rule</strong> states that a collection (1) must be the last element in the structure and (2) not the first.</p>
+<p>So you can’t have a structure with just a collection, for example. This rule is there to keep things simple, and it makes sense too. For most use-cases, the collection is the “most important thing” for the page we’re trying to build and does not need inner-pages.</p>
+<p>Here is a diagram describing the collection structure above:</p>
+<p><img src="../images/structure-collection.png" alt="Diagram describing a collection structure." />.</p>
+<h2 id="commonly-used-functions">Commonly Used Functions</h2>
+<p>Check out the Hackage links for detailed information and examples.</p>
+<h3 id="page">Page</h3>
+<ul>
+<li><code>load</code> and <code>load'</code></li>
+<li><code>loadDir</code> and <code>loadDir'</code></li>
+<li><code>loadAndRender</code></li>
+<li><code>rename</code></li>
+<li><code>move</code></li>
+</ul>
+<h3 id="structure">Structure</h3>
+<ul>
+<li><code>struct</code></li>
+<li><code>coll</code></li>
+<li><code>(&lt;||)</code></li>
+<li><code>(&lt;|)</code></li>
+<li><code>(&lt;&lt;||)</code></li>
+</ul>
     </div>
   </div>
 </body>

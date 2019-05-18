@@ -1,16 +1,22 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8">
-    <title>Pencil Documentation</title>
-    <link rel="stylesheet" href="/pencil/default.css" />
-    <link href="https://fonts.googleapis.com/css?family=Fira+Sans:300,400,400i,700" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css?family=Fira+Mono:400,700" rel="stylesheet">
-  </head>
-  <body>
-    <div id="structure">
-      <div id="header">
-        <h1><a href="/pencil">Pencil</a></h1>
+
+<head>
+  <meta charset="utf-8">
+  <title>Pencil Documentation</title>
+  <link rel="stylesheet" href="/pencil/default.css" />
+  <link href="https://fonts.googleapis.com/css?family=Fira+Sans:300,400,400i,700" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Fira+Mono:400,700" rel="stylesheet">
+</head>
+
+<body>
+  <div id="structure">
+    <div id="header">
+      <h1><a href="/pencil">Pencil</a></h1>
+
+      <div class="nav-section">
+        <h2>Tutorials</h2>
+
         <ul class="nav">
           <li>
             <a href="/pencil/tutorials/01-getting-started/">
@@ -18,22 +24,40 @@
             </a>
           </li>
           <li>
-            <a
-              href="/pencil/tutorials/02-deploying-to-github-pages-using-circle/">
+            <a href="/pencil/tutorials/02-deploying-to-github-pages-using-circle/">
               Tutorial 2: Deploying to GitHub Pages using Circle
             </a>
           </li>
           <li>
-            <a
-              href="/pencil/tutorials/03-blogging/">
+            <a href="/pencil/tutorials/03-blogging/">
               Tutorial 3: Blogging
             </a>
           </li>
         </ul>
       </div>
 
-      <div id="content">
-        <h1 id="tutorial-3-blogging">Tutorial 3: Blogging</h1>
+      <div class="nav-section">
+        <h2>Guides</h2>
+        <ul class="nav">
+          <li>
+            <a href="/pencil/guides/pages-and-structures/">
+              Pages and Structures
+            </a>
+          </li>
+          <li>
+            <a href="/pencil/guides/static-assets/">
+              Dealing with Static Assets
+            </a>
+          </li>
+          <li>
+              Environments
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div id="content">
+      <h1 id="tutorial-3-blogging">Tutorial 3: Blogging</h1>
 <p>This tutorial walks through how we can set up a blog on our website by following the <a href="https://github.com/elben/pencil/tree/master/examples/Blog">Blog example</a> found in the Pencil <code>examples/</code> repo.</p>
 <p>Let’s consider all the features we’d want for our blog:</p>
 <ul>
@@ -182,7 +206,8 @@ render (layout &lt;|| index &lt;&lt;| coll &quot;posts&quot; posts)</code></pre>
 <a class="sourceLine" id="cb13-8" title="8">  </a>
 <a class="sourceLine" id="cb13-17" title="17"><span class="kw">&lt;/channel&gt;</span></a>
 <a class="sourceLine" id="cb13-18" title="18"><span class="kw">&lt;/rss&gt;</span></a></code></pre></div>
-<p>You’ve seen all of this before. It’s your usual template directives, except it’s in an XML file now instead of HTML.</p>
+<p>This is our template. We loop over ever post and render the post’s URL, title, date and content. <code>this.content</code> is something we’ve never seen before. Any page’s content is always available through the special <code>this.content</code> variable. So to render each page’s content, all we need to do is type <code>${this.content}</code>.</p>
+<p>We use <code>this.content</code> instead of <code>body</code> because <code>body</code> refers to the <em>inner</em> page’s content. But inside the for-loop, the context is the current page being looped over. And our post page does not have an inner page to render, so <code>body</code> is not available.</p>
 <p>Modifying <code>website</code>, we can add:</p>
 <div class="sourceCode" id="cb14"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb14-1" title="1">rssLayout <span class="ot">&lt;-</span> load <span class="st">&quot;rss.xml&quot;</span></a>
 <a class="sourceLine" id="cb14-2" title="2"></a>
@@ -221,8 +246,8 @@ render (layout &lt;|| index &lt;&lt;| coll &quot;posts&quot; posts)</code></pre>
 <li>How to push collection of pages into a structure.</li>
 <li>How to run commands in a temporarily-modified <code>Config</code> environment.</li>
 </ul>
-      </div>
     </div>
-  </body>
-</html>
+  </div>
+</body>
 
+</html>

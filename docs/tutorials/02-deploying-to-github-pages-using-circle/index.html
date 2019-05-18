@@ -1,16 +1,22 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8">
-    <title>Pencil Documentation</title>
-    <link rel="stylesheet" href="/pencil/default.css" />
-    <link href="https://fonts.googleapis.com/css?family=Fira+Sans:300,400,400i,700" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css?family=Fira+Mono:400,700" rel="stylesheet">
-  </head>
-  <body>
-    <div id="structure">
-      <div id="header">
-        <h1><a href="/pencil">Pencil</a></h1>
+
+<head>
+  <meta charset="utf-8">
+  <title>Pencil Documentation</title>
+  <link rel="stylesheet" href="/pencil/default.css" />
+  <link href="https://fonts.googleapis.com/css?family=Fira+Sans:300,400,400i,700" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Fira+Mono:400,700" rel="stylesheet">
+</head>
+
+<body>
+  <div id="structure">
+    <div id="header">
+      <h1><a href="/pencil">Pencil</a></h1>
+
+      <div class="nav-section">
+        <h2>Tutorials</h2>
+
         <ul class="nav">
           <li>
             <a href="/pencil/tutorials/01-getting-started/">
@@ -18,22 +24,40 @@
             </a>
           </li>
           <li>
-            <a
-              href="/pencil/tutorials/02-deploying-to-github-pages-using-circle/">
+            <a href="/pencil/tutorials/02-deploying-to-github-pages-using-circle/">
               Tutorial 2: Deploying to GitHub Pages using Circle
             </a>
           </li>
           <li>
-            <a
-              href="/pencil/tutorials/03-blogging/">
+            <a href="/pencil/tutorials/03-blogging/">
               Tutorial 3: Blogging
             </a>
           </li>
         </ul>
       </div>
 
-      <div id="content">
-        <h1 id="tutorial-2-deploying-to-github-pages-using-circle">Tutorial 2: Deploying to GitHub Pages using Circle</h1>
+      <div class="nav-section">
+        <h2>Guides</h2>
+        <ul class="nav">
+          <li>
+            <a href="/pencil/guides/pages-and-structures/">
+              Pages and Structures
+            </a>
+          </li>
+          <li>
+            <a href="/pencil/guides/static-assets/">
+              Dealing with Static Assets
+            </a>
+          </li>
+          <li>
+              Environments
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div id="content">
+      <h1 id="tutorial-2-deploying-to-github-pages-using-circle">Tutorial 2: Deploying to GitHub Pages using Circle</h1>
 <p>In this tutorial, we’ll deploy our website that we started in Tutorial 1 to <a href="https://pages.github.com">GitHub Pages</a> using <a href="https://circleci.com">CircleCI</a>. By the end of this tutorial, you’ll have:</p>
 <ul>
 <li>Your source code in the <code>source</code> branch.</li>
@@ -86,8 +110,8 @@ git push</code></pre>
 <p>If CircleCI fails to push to GitHub, you may need to set up your SSH keys to have write access to the GitHub repo. Follow the instructions in your project’s “Checkout SSH keys” settings page to set up either a user key or a deploy key with write access (circleci.com/gh/your-username/your-project/edit#checkout).</p>
 <p>Once the build is done (it may take a while at first as it’s downloading and caching all the Haskell dependencies), GitHub will deploy your website to GitHub will then deploy your website to <a href="http://myusername.github.io/my-website">myusername.github.io/my-website</a></p>
 <p>And that’s it! You’ve successfully set up continuous integration. Any new pushes to <code>source</code> will now kick-off a build and deploy.</p>
-      </div>
     </div>
-  </body>
-</html>
+  </div>
+</body>
 
+</html>

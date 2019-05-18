@@ -244,7 +244,9 @@ The final thing we'll tackle is RSS. Let's look at `rss.xml`:
 </rss>
 ```
 
-You've seen all of this before. It's your usual template directives, except it's in an XML file now instead of HTML. 
+This is our template. We loop over ever post and render the post's URL, title, date and content. `this.content` is something we've never seen before. Any page's content is always available through the special `this.content` variable. So to render each page's content, all we need to do is type `${this.content}`.
+
+We use `this.content` instead of `body` because `body` refers to the *inner* page's content. But inside the for-loop, the context is the current page being looped over. And our post page does not have an inner page to render, so `body` is not available.
 
 Modifying `website`, we can add:
 

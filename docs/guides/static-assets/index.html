@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>Pencil Documentation</title>
+  <link rel="stylesheet" href="/pencil/default.css" />
+  <link href="https://fonts.googleapis.com/css?family=Fira+Sans:300,400,400i,700" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Fira+Mono:400,700" rel="stylesheet">
+</head>
+
+<body>
+  <div id="structure">
+    <div id="header">
+      <h1><a href="/pencil">Pencil</a></h1>
+
+      <div class="nav-section">
+        <h2>Tutorials</h2>
+
+        <ul class="nav">
+          <li>
+            <a href="/pencil/tutorials/01-getting-started/">
+              Tutorial 1: Getting Started
+            </a>
+          </li>
+          <li>
+            <a href="/pencil/tutorials/02-deploying-to-github-pages-using-circle/">
+              Tutorial 2: Deploying to GitHub Pages using Circle
+            </a>
+          </li>
+          <li>
+            <a href="/pencil/tutorials/03-blogging/">
+              Tutorial 3: Blogging
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="nav-section">
+        <h2>Guides</h2>
+        <ul class="nav">
+          <li>
+            <a href="/pencil/guides/pages-and-structures/">
+              Pages and Structures
+            </a>
+          </li>
+          <li>
+            <a href="/pencil/guides/static-assets/">
+              Dealing with Static Assets
+            </a>
+          </li>
+          <li>
+              Environments
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div id="content">
+      <h1 id="dealing-with-static-assets">Dealing with Static Assets</h1>
+<p>Some files don’t need any special manipulation. We just want to either copy-and-paste the files from our source directory to the output directory, or a straight-forward conversion (e.g. SCSS to CSS) without needing pages and structures and environment variables.</p>
+<p>Pencil understands this, and supplies a couple of functions to make this easy. The <a href="http://hackage.haskell.org/package/pencil/docs/Pencil.html#t:Resource">Hackage documentation</a> has lots of examples. You can also look at the <a href="https://github.com/elben/pencil/tree/master/examples/Complex">Complex example</a>, which tests all of these scenarios.</p>
+<p>If you have a folder of mixed assets like SCSS files and images, you can use <a href="http://hackage.haskell.org/package/pencil/docs/Pencil.html#v:loadAndRender"><code>loadAndRender</code></a>:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb1-1" title="1">loadAndRender <span class="st">&quot;assets/&quot;</span></a>
+<a class="sourceLine" id="cb1-2" title="2">loadAndRender <span class="st">&quot;profile-pic.jpg&quot;</span></a></code></pre></div>
+<p>Convertible files will be converted, but binary files are copy-and-pasted through.</p>
+<p>If you have files that you want to render <em>without</em> any conversion, like a Markdown file that you want to <em>keep as</em> Markdown, use <a href="http://hackage.haskell.org/package/pencil/docs/Pencil.html#v:loadAndRender"><code>passthrough</code></a>:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb2-1" title="1">passthrough <span class="st">&quot;assets/&quot;</span> <span class="op">&gt;&gt;=</span> render</a>
+<a class="sourceLine" id="cb2-2" title="2">passthroguh <span class="st">&quot;example.markdown&quot;</span> <span class="op">&gt;&gt;=</span> render</a></code></pre></div>
+<p>You can also combine these functions with file-path-changing functions like <code>move</code> and <code>rename</code>:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb3-1" title="1">move <span class="st">&quot;assets/example.markdown&quot;</span> <span class="op">&lt;$&gt;</span> passthrough <span class="st">&quot;assets/ex.markdown&quot;</span> <span class="op">&gt;&gt;=</span> render</a></code></pre></div>
+<p>We use the functor <code>&lt;$&gt;</code> function (i.e. <code>fmap</code>) because <code>passthrough</code> has the type <code>FilePath -&gt; PencilApp Resource</code>.</p>
+    </div>
+  </div>
+</body>
+
+</html>

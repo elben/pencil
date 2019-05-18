@@ -180,7 +180,6 @@ Documentation created: dist/doc/html/pencil/index.html
 [nix-shell]$ cabal sdist
 ```
 
-
 Generate and check the Pencil docs site:
 
 ```

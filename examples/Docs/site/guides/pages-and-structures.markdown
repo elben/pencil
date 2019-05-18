@@ -8,7 +8,9 @@ A **Page** contains:
 - The outbound file path.
 - Settings on _how_ the page should be rendered. For example, `escapeXml :: Page -> Page`  is a function that will tell the page to escape XML/HTML tags when rendered.
 
-That seems easy enough. But if all we had was the `Page` type, Pencil wouldn’t be all that useful. It would be just a glorified Markdown renderer. To support page re-use, we need some way to *combine* or *stitch* different pages together. This is where the **Structure** type comes in.
+That seems easy enough. But if all we had was the `Page` type, Pencil wouldn’t be all that useful. It would be just a glorified Markdown renderer. To support page re-use, we need some way to *combine* or *stitch* different pages together. This is where the `Structure` type comes in.
+
+A **Structure** defines a nesting structure of `Page`s. Think of them like [Russian nesting dolls](https://en.wikipedia.org/wiki/Matryoshka_doll).
 
 Consider the canonical Pencil example:
 
@@ -18,14 +20,18 @@ index <- load "index.markdown"
 render $ layout <|| index
 ```
 
-Here, we combine two pages, `layout` and `index`, into a single structure via `layout <|| index`. As described in the tutorials, `Structure` is essentially a non-empty linked list underneath the hood.
+Here, we combine two pages, `layout` and `index`, into a single structure via `layout <|| index`. As described in the tutorials, underneath the hood a `Structure` is a non-empty linked list.
 
 Here’s a diagram of a longer example:
 
 ```
 render $ layout <|| a <| b <| c
 ```
-	
+
+![Diagram describing the structure code above.](../images/structure.png).
+
+Each page's content is accessible to the page above through `body`.
+
 So when `render` is called on this structure, Pencil does the following:
 
 - Gathers all the variables from all the pages in the structure.
@@ -49,6 +55,12 @@ render $ layout <|| rename "another-name.html" index
 
 ## Collections
 
+Sometimes we'll want to nest not just a single page, but a collection of pages. For example, we may want to build a page listing all of the blog posts we've loaded. In this page, we'd want to loop through each post and render the post's title, date and URL.
+
+Pencil accomplishes this through collections, which is also covered in [Tutorial 3: Blogging](/pencil/03-blogging/).
+
+Consider this example:
+
 ```haskell
 layout <- load "layout.html"
 index <- load "index.html"
@@ -60,15 +72,40 @@ let posts = [post1, post2]
 render $ layout <|| index <<| coll "posts" posts
 ```
 
+We load two posts, and want to somehow inject them into our index page so that we can iterate through each post and print out the post's title. To do this, we create a collection through `coll "posts" posts`. The first argument, `"posts"` is the variable name that will hold your pages. We then push this collection into the structure using `(<<|)`.
 
-## Useful Functions
+You can now access this in `index.html` like this:
 
-Here are some commonly-used functions. Check out the Hackage links for detailed information and examples.
+```html
+<ul>
+${for(posts)}
+  <li>
+    <a href=${this.url}>${postTitle} - ${date}</a>
+  </li>
+${end}
+</ul>
+```
+
+- All variables defined by the post page (e.g. if the preamble contains `postTitle` and `date`) is accessible inside the for-loop.
+- Each page's URL is accessible through the special variable `this.url`.
+- Each page's content is accessible through the special variable `this.content`.
+
+**The Collection Rule** states that a collection (1) must be the last element in the structure and (2) not the first.
+
+So you can't have a structure with just a collection, for example. This rule is there to keep things simple, and it makes sense too. For most use-cases, the collection is the "most important thing" for the page we're trying to build and does not need inner-pages.
+
+Here is a diagram describing the collection structure above:
+
+![Diagram describing a collection structure.](../images/structure-collection.png).
+
+## Commonly Used Functions
+
+Check out the Hackage links for detailed information and examples.
 
 ### Page
 
-- `load`
-- `loadDir`
+- `load` and `load'`
+- `loadDir` and `loadDir'`
 - `loadAndRender`
 - `rename`
 - `move`
@@ -76,5 +113,7 @@ Here are some commonly-used functions. Check out the Hackage links for detailed 
 ### Structure
 
 - `struct`
+- `coll`
 - `(<||)`
 - `(<|)`
+- `(<<||)`

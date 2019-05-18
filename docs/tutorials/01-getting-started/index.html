@@ -1,16 +1,22 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8">
-    <title>Pencil Documentation</title>
-    <link rel="stylesheet" href="/pencil/default.css" />
-    <link href="https://fonts.googleapis.com/css?family=Fira+Sans:300,400,400i,700" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css?family=Fira+Mono:400,700" rel="stylesheet">
-  </head>
-  <body>
-    <div id="structure">
-      <div id="header">
-        <h1><a href="/pencil">Pencil</a></h1>
+
+<head>
+  <meta charset="utf-8">
+  <title>Pencil Documentation</title>
+  <link rel="stylesheet" href="/pencil/default.css" />
+  <link href="https://fonts.googleapis.com/css?family=Fira+Sans:300,400,400i,700" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Fira+Mono:400,700" rel="stylesheet">
+</head>
+
+<body>
+  <div id="structure">
+    <div id="header">
+      <h1><a href="/pencil">Pencil</a></h1>
+
+      <div class="nav-section">
+        <h2>Tutorials</h2>
+
         <ul class="nav">
           <li>
             <a href="/pencil/tutorials/01-getting-started/">
@@ -18,22 +24,40 @@
             </a>
           </li>
           <li>
-            <a
-              href="/pencil/tutorials/02-deploying-to-github-pages-using-circle/">
+            <a href="/pencil/tutorials/02-deploying-to-github-pages-using-circle/">
               Tutorial 2: Deploying to GitHub Pages using Circle
             </a>
           </li>
           <li>
-            <a
-              href="/pencil/tutorials/03-blogging/">
+            <a href="/pencil/tutorials/03-blogging/">
               Tutorial 3: Blogging
             </a>
           </li>
         </ul>
       </div>
 
-      <div id="content">
-        <h1 id="tutorial-1-getting-started">Tutorial 1: Getting Started</h1>
+      <div class="nav-section">
+        <h2>Guides</h2>
+        <ul class="nav">
+          <li>
+            <a href="/pencil/guides/pages-and-structures/">
+              Pages and Structures
+            </a>
+          </li>
+          <li>
+            <a href="/pencil/guides/static-assets/">
+              Dealing with Static Assets
+            </a>
+          </li>
+          <li>
+              Environments
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div id="content">
+      <h1 id="tutorial-1-getting-started">Tutorial 1: Getting Started</h1>
 <p>This tutorial walks you through our first Pencil website. At the end of this tutorial, you’ll understand some of the core Pencil concepts and have the beginnings of a website built out.</p>
 <p>You may find it useful to also have <a href="https://hackage.haskell.org/package/pencil/docs/Pencil.html">Pencil’s Haddock page</a> open as a reference.</p>
 <p>We’ll be using <a href="http://haskellstack.org">stack</a> in this tutorial, so make sure you have it installed. Let’s create our project:</p>
@@ -172,8 +196,8 @@ cd out &amp;&amp; python -m SimpleHTTPServer 8000</code></pre>
 <li>You can set global variables in the <code>Config</code>.</li>
 </ul>
 <p>Next, we’ll setup continuous integration with CircleCI and GitHub Pages for automatic deployments. Continue onward to <a href="/pencil/tutorials/02-deploying-to-github-pages-using-circle/">Tutorial 2: Deploying to GitHub Pages using Circle</a></p>
-      </div>
     </div>
-  </body>
-</html>
+  </div>
+</body>
 
+</html>
