@@ -67,18 +67,6 @@ load the `nix-shell` with the `zlib` package:
 nix-shell --attr env -p zlib
 ```
 
-## Documentation
-
-Generate documentation.
-
-```
-[nix-shell]$ cabal haddock
-
-...
-Documentation created: dist/doc/html/pencil/index.html
-...
-```
-
 ## IDE
 
 Getting various IDEs set up to develop Pencil.
@@ -128,7 +116,7 @@ The JSON setting would look like:
 }
 ```
 
-## Ctags
+### Ctags
 
 ```bash
 nix-env -iA nixpkgs.haskellPackages.hasktags

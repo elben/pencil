@@ -6,6 +6,10 @@ All notable changes to this project will be documented in this file.
 
 ## [1.0.0]
 
+This is a milestone release! Version 1.0.0. Several breaking changes, but if you
+read through the changes below, you should find updating your code to be pretty
+easy. Please email me if you are having problems!
+
 ### Added
 - Added GHC 8.4 and 8.6 support.
 - Added `(<<|)` and `coll` to add collection values into structrues.
