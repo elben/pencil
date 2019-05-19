@@ -1,18 +1,40 @@
-all: build docs
+all: build test docs
 	@true
 
-build:
-	stack build --pedantic
+shell:
+	nix-shell --attr env
 
-docs:
-	stack haddock
+build:
+	cabal build
+
+haddock:
+	cabal haddock
 
 tags:
 	@hasktags --ctags .
 
-example-simple: build
-	stack exec pencil-example-simple
+docs:
+	rm -rf docs/*
+	cabal test pencil-docs
 
-example-blog: build
-	stack exec pencil-example-blog
+test:
+	cabal test
+	doctest src/
 
+example-simple:
+	rm -rf examples/Simple/out/*
+	cabal test pencil-example-simple
+
+example-blog:
+	rm -rf examples/Blog/out/*
+	cabal test pencil-example-blog
+
+example-complex:
+	rm -rf examples/Complex/out/*
+	cabal test pencil-example-complex
+
+candidate:
+	cabal check
+	FILENAME=`cabal sdist | grep "Source tarball created" | awk '{ print $4 }'`
+	# echo ${$FILENAME}
+	# cabal upload ${FILENAME}

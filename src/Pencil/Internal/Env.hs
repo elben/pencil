@@ -17,8 +17,8 @@ import qualified Data.Yaml as A
 
 -- | Represents the data types found in an environment.
 --
--- This includes at least Data.Aeson Value type
--- (https://hackage.haskell.org/package/aeson-1.2.3.0/docs/Data-Aeson.html#t:Value),
+-- This includes at least 'Data.Aeson' Value type
+-- (<https://hackage.haskell.org/package/aeson/docs/Data-Aeson.html#t:Value here>),
 -- plus other useful ones.
 data Value =
     VNull -- JSON null

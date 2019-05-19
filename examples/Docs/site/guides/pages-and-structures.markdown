@@ -53,6 +53,24 @@ If we wanted a different output file name, we could use some of the provided met
 render $ layout <|| rename "another-name.html" index
 ```
 
+If you don’t want to use the last page’s file path, you can set any preceding page as the file path by using `useFilePath`. For example, say the last item in your structure is a comments widget:
+
+```haskell
+layout <- load "layout.html"
+about <- load "about.html"
+comment <- load "comment-widget.html"
+
+render $ layout <|| about <| comment
+```
+
+By default, this would render your page into the file named `commen-widget.html`. To use `about`’s file path:
+
+```
+render $ layout <|| useFilePath about <| comment
+```
+
+And now the output file path is `about.html`.
+
 ## Collections
 
 Sometimes we'll want to nest not just a single page, but a collection of pages. For example, we may want to build a page listing all of the blog posts we've loaded. In this page, we'd want to loop through each post and render the post's title, date and URL.
