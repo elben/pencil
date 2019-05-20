@@ -92,27 +92,36 @@
 <p>In this case, that would be <code>index</code>’s file path. When we call <code>load "index.markdown"</code>, <code>load</code> looks at the original extension (<code>.markdown</code>) and automatically converts it to <code>.html</code>.</p>
 <p>If we wanted a different output file name, we could use some of the provided methods like <a href="https://hackage.haskell.org/package/pencil/docs/Pencil.html#v:rename"><code>rename</code></a> and <a href="https://hackage.haskell.org/package/pencil/docs/Pencil.html#v:move"><code>move</code></a>:</p>
 <pre><code>render $ layout &lt;|| rename &quot;another-name.html&quot; index</code></pre>
+<p>If you don’t want to use the last page’s file path, you can set any preceding page as the file path by using <code>useFilePath</code>. For example, say the last item in your structure is a comments widget:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb4-1" title="1">layout <span class="ot">&lt;-</span> load <span class="st">&quot;layout.html&quot;</span></a>
+<a class="sourceLine" id="cb4-2" title="2">about <span class="ot">&lt;-</span> load <span class="st">&quot;about.html&quot;</span></a>
+<a class="sourceLine" id="cb4-3" title="3">comment <span class="ot">&lt;-</span> load <span class="st">&quot;comment-widget.html&quot;</span></a>
+<a class="sourceLine" id="cb4-4" title="4"></a>
+<a class="sourceLine" id="cb4-5" title="5">render <span class="op">$</span> layout <span class="op">&lt;||</span> about <span class="op">&lt;|</span> comment</a></code></pre></div>
+<p>By default, this would render your page into the file named <code>commen-widget.html</code>. To use <code>about</code>’s file path:</p>
+<pre><code>render $ layout &lt;|| useFilePath about &lt;| comment</code></pre>
+<p>And now the output file path is <code>about.html</code>.</p>
 <h2 id="collections">Collections</h2>
 <p>Sometimes we’ll want to nest not just a single page, but a collection of pages. For example, we may want to build a page listing all of the blog posts we’ve loaded. In this page, we’d want to loop through each post and render the post’s title, date and URL.</p>
 <p>Pencil accomplishes this through collections, which is also covered in <a href="/pencil/03-blogging/">Tutorial 3: Blogging</a>.</p>
 <p>Consider this example:</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb4-1" title="1">layout <span class="ot">&lt;-</span> load <span class="st">&quot;layout.html&quot;</span></a>
-<a class="sourceLine" id="cb4-2" title="2"><span class="fu">index</span> <span class="ot">&lt;-</span> load <span class="st">&quot;index.html&quot;</span></a>
-<a class="sourceLine" id="cb4-3" title="3"></a>
-<a class="sourceLine" id="cb4-4" title="4">post1 <span class="ot">&lt;-</span> load <span class="st">&quot;post1.markdown&quot;</span></a>
-<a class="sourceLine" id="cb4-5" title="5">post2 <span class="ot">&lt;-</span> load <span class="st">&quot;post2.markdown&quot;</span></a>
-<a class="sourceLine" id="cb4-6" title="6"><span class="kw">let</span> posts <span class="ot">=</span> [post1, post2]</a>
-<a class="sourceLine" id="cb4-7" title="7"></a>
-<a class="sourceLine" id="cb4-8" title="8">render <span class="op">$</span> layout <span class="op">&lt;||</span> <span class="fu">index</span> <span class="op">&lt;&lt;|</span> coll <span class="st">&quot;posts&quot;</span> posts</a></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb6-1" title="1">layout <span class="ot">&lt;-</span> load <span class="st">&quot;layout.html&quot;</span></a>
+<a class="sourceLine" id="cb6-2" title="2"><span class="fu">index</span> <span class="ot">&lt;-</span> load <span class="st">&quot;index.html&quot;</span></a>
+<a class="sourceLine" id="cb6-3" title="3"></a>
+<a class="sourceLine" id="cb6-4" title="4">post1 <span class="ot">&lt;-</span> load <span class="st">&quot;post1.markdown&quot;</span></a>
+<a class="sourceLine" id="cb6-5" title="5">post2 <span class="ot">&lt;-</span> load <span class="st">&quot;post2.markdown&quot;</span></a>
+<a class="sourceLine" id="cb6-6" title="6"><span class="kw">let</span> posts <span class="ot">=</span> [post1, post2]</a>
+<a class="sourceLine" id="cb6-7" title="7"></a>
+<a class="sourceLine" id="cb6-8" title="8">render <span class="op">$</span> layout <span class="op">&lt;||</span> <span class="fu">index</span> <span class="op">&lt;&lt;|</span> coll <span class="st">&quot;posts&quot;</span> posts</a></code></pre></div>
 <p>We load two posts, and want to somehow inject them into our index page so that we can iterate through each post and print out the post’s title. To do this, we create a collection through <code>coll "posts" posts</code>. The first argument, <code>"posts"</code> is the variable name that will hold your pages. We then push this collection into the structure using <code>(&lt;&lt;|)</code>.</p>
 <p>You can now access this in <code>index.html</code> like this:</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode html"><code class="sourceCode html"><a class="sourceLine" id="cb5-1" title="1"><span class="kw">&lt;ul&gt;</span></a>
-<a class="sourceLine" id="cb5-2" title="2">${for(posts)}</a>
-<a class="sourceLine" id="cb5-3" title="3">  <span class="kw">&lt;li&gt;</span></a>
-<a class="sourceLine" id="cb5-4" title="4">    <span class="kw">&lt;a</span><span class="ot"> href=</span><span class="st">${this.url}</span><span class="kw">&gt;</span>${postTitle} - ${date}<span class="kw">&lt;/a&gt;</span></a>
-<a class="sourceLine" id="cb5-5" title="5">  <span class="kw">&lt;/li&gt;</span></a>
-<a class="sourceLine" id="cb5-6" title="6">${end}</a>
-<a class="sourceLine" id="cb5-7" title="7"><span class="kw">&lt;/ul&gt;</span></a></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode html"><code class="sourceCode html"><a class="sourceLine" id="cb7-1" title="1"><span class="kw">&lt;ul&gt;</span></a>
+<a class="sourceLine" id="cb7-2" title="2">${for(posts)}</a>
+<a class="sourceLine" id="cb7-3" title="3">  <span class="kw">&lt;li&gt;</span></a>
+<a class="sourceLine" id="cb7-4" title="4">    <span class="kw">&lt;a</span><span class="ot"> href=</span><span class="st">${this.url}</span><span class="kw">&gt;</span>${postTitle} - ${date}<span class="kw">&lt;/a&gt;</span></a>
+<a class="sourceLine" id="cb7-5" title="5">  <span class="kw">&lt;/li&gt;</span></a>
+<a class="sourceLine" id="cb7-6" title="6">${end}</a>
+<a class="sourceLine" id="cb7-7" title="7"><span class="kw">&lt;/ul&gt;</span></a></code></pre></div>
 <ul>
 <li>All variables defined by the post page (e.g. if the preamble contains <code>postTitle</code> and <code>date</code>) is accessible inside the for-loop.</li>
 <li>Each page’s URL is accessible through the special variable <code>this.url</code>.</li>

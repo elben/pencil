@@ -1060,17 +1060,30 @@ loadDir :: Bool
         -- ^ Recursive if true
         -> FilePath
         -> PencilApp [Page]
-loadDir recur fp = do
-  fps <- listDir recur fp
-  mapM load fps
+loadDir = loadDirWith load
 
 loadDir' :: Bool
          -- ^ Recursive if true
          -> FilePath
          -> PencilApp [Page]
-loadDir' recur fp = do
+loadDir' = loadDirWith load'
+
+loadDirWith :: (FilePath -> PencilApp Page)
+            -> Bool
+            -- ^ Recursive if true
+            -> FilePath
+            -> PencilApp [Page]
+loadDirWith loadF recur fp = do
   fps <- listDir recur fp
-  mapM load' fps
+  foldM
+    (\acc fp -> do
+      ps <- (loadF fp >>= \p -> return [p]) `catchError` handle
+      return (acc ++ ps))
+    []
+    fps
+  where handle e = case e of
+                    NotTextFile _ -> return []
+                    _ -> throwError e
 
 -- | Find preamble node, and load as an Env. If no preamble is found, return a
 -- blank Env.

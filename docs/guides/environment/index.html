@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>Pencil Documentation</title>
+  <link rel="stylesheet" href="/pencil/default.css" />
+  <link href="https://fonts.googleapis.com/css?family=Fira+Sans:300,400,400i,700" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Fira+Mono:400,700" rel="stylesheet">
+</head>
+
+<body>
+  <div id="structure">
+    <div id="header">
+      <h1><a href="/pencil">Pencil</a></h1>
+
+      <div class="nav-section">
+        <h2>Tutorials</h2>
+
+        <ul class="nav">
+          <li>
+            <a href="/pencil/tutorials/01-getting-started/">
+              Tutorial 1: Getting Started
+            </a>
+          </li>
+          <li>
+            <a href="/pencil/tutorials/02-deploying-to-github-pages-using-circle/">
+              Tutorial 2: Deploying to GitHub Pages using Circle
+            </a>
+          </li>
+          <li>
+            <a href="/pencil/tutorials/03-blogging/">
+              Tutorial 3: Blogging
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="nav-section">
+        <h2>Guides</h2>
+        <ul class="nav">
+          <li>
+            <a href="/pencil/guides/pages-and-structures/">
+              Pages and Structures
+            </a>
+          </li>
+          <li>
+            <a href="/pencil/guides/static-assets/">
+              Dealing with Static Assets
+            </a>
+          </li>
+          <li>
+              Environments
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div id="content">
+      <h1 id="the-environment">The Environment</h1>
+<p>When you load and render pages in Pencil, an environment of variables is calculated. This is what allows you to reference variables defined from other pages.</p>
+<p>But Pencil’s variable closure works differently than most programming languages. Consider this example:</p>
+<pre><code>print value
+if (true) {
+  let value = &quot;Hello!&quot;
+}</code></pre>
+<p>In most languages, this wouldn’t run because (1) you can’t use something before it’s declared and (2) <code>value</code>’s scope exists only inside the <code>if</code>-block. But because Pencil is purpose-built for building web pages, we bashfully reject these sane limitations.</p>
+<p><strong>Pencil’s variable scoping</strong> allows any page in the structure to reference any variable from any other page in the structure.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb2-1" title="1">layout <span class="ot">&lt;-</span> load <span class="st">&quot;layout.html&quot;</span></a>
+<a class="sourceLine" id="cb2-2" title="2">about <span class="ot">&lt;-</span> load <span class="st">&quot;about.html&quot;</span></a>
+<a class="sourceLine" id="cb2-3" title="3"></a>
+<a class="sourceLine" id="cb2-4" title="4">render <span class="op">$</span> layout <span class="op">&lt;||</span> about</a></code></pre></div>
+<p>Both <code>layout.html</code> and <code>about.html</code> can declare new variables in the preamble, and they can access each other’s variables. They can also access, of course, the “global” variables defined in the <code>Config</code>’s environment.</p>
+<p>The reason for this is simple: it’s often the case that the outer pages (e.g. the layout) will need to use a variable defined in the inner pages. When you render a blog post, the blog post’s title is defined in the inner page, but the layout may need to know it as part of its header tag: <code>&lt;h1&gt;${postTitle}&lt;/h1&gt;</code>.</p>
+<p>The reverse is also true. Often times, an inner page will need access to an outer page’s variables. For example, a comment widget that requires the blog post ID.</p>
+<p><strong>Duplicate Variable Rule</strong>. If two pages in the structure define the same variable name, then the value is based off the context:</p>
+<ul>
+<li>If the variable is defined in the page, then the page gets that variable’s value.</li>
+<li>Otherwise, the deepest page’s value wins.</li>
+</ul>
+<h2 id="manipulating-the-environment">Manipulating the Environment</h2>
+<p>Though page preambles and variable scoping provide a common pattern for most pages, sometimes you’ll need to manipulate the variable values yourself, in Haskell code. Pencil provides several helper functions to help you gain access to the raw variable context.</p>
+<p>As seen in the first tutorial, you can define “global” variables in the config.</p>
+<pre><code>config :: Config
+config =
+  (updateEnv (insertText &quot;title&quot; &quot;My Awesome Website&quot;)
+   defaultConfig</code></pre>
+<p>These variables follow the same rule as page-defined variables. Think of them as a part of a “Page 0” that begins every structure.</p>
+<p>You can use <code>updateEnv</code> with methods like <code>insertEnv</code>, <code>insertText</code>, <code>insertPages</code>, <code>updateEnvVal</code>.</p>
+<p>You can also use <code>getPageEnv</code> and <code>setPageEnv</code>, along with the functions above, to manipulate each page’s environment to your liking. These are the functions that <code>Pencil.Internal.Blog</code> uses to build up the default blogging functionality.</p>
+    </div>
+  </div>
+</body>
+
+</html>
