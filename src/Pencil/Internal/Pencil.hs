@@ -231,6 +231,13 @@ run app config = do
     Left (CollectionFirstInStructure name) ->
       putStrLn ("Collections cannot be first in a Structure. But the collection named " ++
                T.unpack name ++ " first in the Structure.")
+    Left (NotTextFile fp) ->
+      putStrLn ("Tried to load " ++ maybe "UNKNOWNFILE" id fp ++ " as text file, but either it's not a text file or the file is corrupted.")
+    _ -> return ()
+
+  case e of
+    -- Force program to exit with error state
+    Left _ -> fail "Exception when running program!"
     _ -> return ()
 
 -- | Print the list of Strings, one line at a time, prefixed with "-".
@@ -255,7 +262,7 @@ mostSimilarFiles fp = do
 -- | Known Pencil errors that we know how to either recover from or quit
 -- gracefully.
 data PencilException
-  = NotTextFile IOError
+  = NotTextFile (Maybe FilePath)
   -- ^ Failed to read a file as a text file.
   | FileNotFound (Maybe FilePath)
   -- ^ File not found. We may or may not know the file we were looking for.
@@ -589,7 +596,7 @@ loadTextFile fp = do
 --
 toPencilException :: IOError -> Maybe PencilException
 toPencilException e
-  | isInvalidByteSequence e = Just (NotTextFile e)
+  | isInvalidByteSequence e = Just (NotTextFile (ioe_filename e))
   | isNoSuchFile e = Just (FileNotFound (ioe_filename e))
   | otherwise = Nothing
 
