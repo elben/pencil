@@ -210,7 +210,7 @@ cabal upload path/to/pencil-blah.tar.gz.
 # our own docs. See https://hackage.haskell.org/upload for more info.
 
 cabal haddock --for-hackage --hyperlink-source
-cabal upload -d ./dist/pencil-x.x.x-docs.tar.gz
+cabal upload --documentation ./dist/pencil-x.x.x-docs.tar.gz
 ```
 
 Once a candidate is published, you can test the candidate package on another project

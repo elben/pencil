@@ -901,7 +901,7 @@ toTextRss :: Value -> T.Text
 toTextRss (VDateTime dt) = T.pack $ TF.formatTime TF.defaultTimeLocale rfc822DateFormat dt
 toTextRss v = toText v
 
--- RFC 822 date format.
+-- | RFC 822 date format.
 --
 -- Helps to pass https://validator.w3.org/feed/check.cgi.
 --
@@ -1052,7 +1052,7 @@ load fp = rename toExpected <$> load' fp
 --
 -- @
 -- -- Will be rendered as about/index.html.
--- 'rename' 'toDir' <$> load' "about/index.markdown"
+-- 'rename' 'toDir' \<$\> load' "about/index.markdown"
 -- @
 --
 load' :: FilePath -> PencilApp Page
@@ -1063,12 +1063,28 @@ load' fp = do
   let env' = H.insert "this.nodes" (VNodes (filter (not . isPreamble) nodes)) (findEnv nodes)
   return $ Page env' fp False False
 
+-- | A version of @load@ for directories. Loads the files in the specified
+-- directory as pages. Pages that are converted to a different format are
+-- renamed to the output format. If you don't want the file renamed, use
+-- @loadDir'@.
+--
+-- @
+-- tutorials <- loadDir False "tutorials/"
+-- render $ fmap ((layout <||) . rename toDir) pages
+-- @
 loadDir :: Bool
         -- ^ Recursive if true
         -> FilePath
         -> PencilApp [Page]
 loadDir = loadDirWith load
 
+-- | A version of @load'@ for directories. Loads the files in the specified
+-- directory as pages. Keeps the original file path.
+--
+-- @
+-- tutorials <- loadDir' False "tutorials/"
+-- render $ fmap ((layout <||) . rename toDir) pages
+-- @
 loadDir' :: Bool
          -- ^ Recursive if true
          -> FilePath

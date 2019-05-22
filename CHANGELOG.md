@@ -14,13 +14,21 @@ easy. Please email me if you are having problems!
 - Added GHC 8.4 and 8.6 support.
 - Added `(<<|)` and `coll` to add collection values into structrues.
 - Added `useFilePath`, `escapeXml`, `rename`, `move` to manipulate loaded `Page`s.
-- Added `loadAndRender` convenience method. Supports individual files and directories.
+- Added `loadAndRender` convenience method. Supports individual files and
+  directories. You'll want to use this one to move over static assets quickly
+  and easily: `loadAndRender "images/"`.
 - Added `toTextRss` and `rfc822DateFormat` to render content ready for an RSS
   template. See the Blog example for details.
 
 ### Changed
-- Changed `load` to "magically" figure out the desired final FilePath. Use
-  `load'` to manually specify the FilePath transform.
+- `Pencil.Blog` moved to `Pencil.Internal.Blog`. All of the blog functions are
+  now re-exported in `Pencil`. So you only need to `import Pencil` now, and you
+  get everything!
+- `load` now automatically figures out the desired final FilePath, so it doesn't
+  take a `(FilePath -> FilePath)` as the first argument anymore. You can change
+  your code from `load toHtml "foo.markdown"` to `load "foo.markdown"`, for the
+  most part. Use `load'` to manually specify the FilePath transform. See
+  examples in the Hackage docs for `load'`, `move` and `rename`.
 - Renamed `structure` to `struct`. It's shorter.
 - `passthrough` now works with directories too.
 - Changed how structures work internally to allow collection values into structures.
@@ -34,6 +42,7 @@ easy. Please email me if you are having problems!
 
 ### Removed
 - `renderCss`. Use `loadAndRender` instead. As in: `loadAndRender "style.scss"`
+- Removed `VarNotInEnv` error type, since Pencil no longer throws that.
 
 ## [0.1.3]
 
