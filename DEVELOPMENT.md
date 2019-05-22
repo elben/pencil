@@ -191,23 +191,17 @@ Commit the changes.
 git commit -m "Release version 0.x.x"
 ```
 
-Tag the release:
-
-```
-git tag v0.1.0
-git push --tags
-```
-
 Make sure the [Circle build is green](https://circleci.com/gh/elben/pencil).
 
 Push to Hackage:
 
 ```
-[nix-shell]$ cabal check
-[nix-shell]$ cabal sdist
-[nix-shell]$ cabal upload path/to/pencil-blah.tar.gz.
+[nix-shell]$
+cabal check
+cabal sdist
+cabal upload path/to/pencil-blah.tar.gz.
 
-# Uploading dist-newstyle/sdist/pencil-0.1.3.tar.gz...
+# Uploading dist/sdist/pencil-0.1.3.tar.gz...
 # Package successfully uploaded as candidate. You can now preview the result at
 # 'https://hackage.haskell.org/package/pencil-0.1.3/candidate'. To publish the
 # candidate, use 'cabal upload --publish'.
@@ -215,8 +209,8 @@ Push to Hackage:
 # If the documentation build failed in the candidate page, we may need to upload
 # our own docs. See https://hackage.haskell.org/upload for more info.
 
-[nix-shell]$ cabal haddock --haddock-for-hackage --haddock-hyperlink-source
-[nix-shell]$ cabal upload -d ./dist-newstyle/pencil-x.x.x-docs.tar.gz
+cabal haddock --for-hackage --hyperlink-source
+cabal upload -d ./dist/pencil-x.x.x-docs.tar.gz
 ```
 
 Once a candidate is published, you can test the candidate package on another project
@@ -233,8 +227,17 @@ nix-shell -p zlib libiconv ghc
 
 Finally, to publish a new version:
 
+Tag the release:
+
 ```
-[nix-shell]$ cabal upload --publish
+git tag v0.1.0
+git push --tags
+```
+
+```
+[nix-shell]$
+cabal sdist
+cabal upload --publish pencil.tar.gz
 ```
 
 ## Testing against other GHC
