@@ -50,7 +50,9 @@
             </a>
           </li>
           <li>
-              Environments
+            <a href="/pencil/guides/environment/">
+              The Environment
+            </a>
           </li>
         </ul>
       </div>
@@ -74,7 +76,9 @@
 <p>Here, we combine two pages, <code>layout</code> and <code>index</code>, into a single structure via <code>layout &lt;|| index</code>. As described in the tutorials, underneath the hood a <code>Structure</code> is a non-empty linked list.</p>
 <p>Here’s a diagram of a longer example:</p>
 <pre><code>render $ layout &lt;|| a &lt;| b &lt;| c</code></pre>
-<p><img src="../images/structure.png" alt="Diagram describing the structure code above." />.</p>
+<figure>
+<img src="../images/structure.png" alt="Diagram describing the structure code above." /><figcaption>Diagram describing the structure code above.</figcaption>
+</figure>
 <p>Each page’s content is accessible to the page above through <code>body</code>.</p>
 <p>So when <code>render</code> is called on this structure, Pencil does the following:</p>
 <ul>
@@ -130,9 +134,11 @@
 <p><strong>The Collection Rule</strong> states that a collection (1) must be the last element in the structure and (2) not the first.</p>
 <p>So you can’t have a structure with just a collection, for example. This rule is there to keep things simple, and it makes sense too. For most use-cases, the collection is the “most important thing” for the page we’re trying to build and does not need inner-pages.</p>
 <p>Here is a diagram describing the collection structure above:</p>
-<p><img src="../images/structure-collection.png" alt="Diagram describing a collection structure." />.</p>
+<figure>
+<img src="../images/structure-collection.png" alt="Diagram describing a collection structure." /><figcaption>Diagram describing a collection structure.</figcaption>
+</figure>
 <h2 id="commonly-used-functions">Commonly Used Functions</h2>
-<p>Check out the Hackage links for detailed information and examples.</p>
+<p>Check out the <a href="http://hackage.haskell.org/package/pencil/docs/Pencil.html">Hackage docs</a> for detailed information and examples.</p>
 <h3 id="page">Page</h3>
 <ul>
 <li><code>load</code> and <code>load'</code></li>
