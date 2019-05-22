@@ -28,7 +28,7 @@ Here’s a diagram of a longer example:
 render $ layout <|| a <| b <| c
 ```
 
-![Diagram describing the structure code above.](../images/structure.png).
+![Diagram describing the structure code above.](../images/structure.png)
 
 Each page's content is accessible to the page above through `body`.
 
@@ -114,11 +114,11 @@ So you can't have a structure with just a collection, for example. This rule is 
 
 Here is a diagram describing the collection structure above:
 
-![Diagram describing a collection structure.](../images/structure-collection.png).
+![Diagram describing a collection structure.](../images/structure-collection.png)
 
 ## Commonly Used Functions
 
-Check out the Hackage links for detailed information and examples.
+Check out the [Hackage docs](http://hackage.haskell.org/package/pencil/docs/Pencil.html) for detailed information and examples.
 
 ### Page
 

@@ -1084,12 +1084,12 @@ loadDirWith loadF recur fp = do
   fps <- listDir recur fp
   foldM
     (\acc fp -> do
-      ps <- (loadF fp >>= \p -> return [p]) `catchError` handle
-      return (acc ++ ps))
+      mp <- (loadF fp >>= return . Just) `catchError` handle
+      return (maybe acc (\p -> p : acc) mp))
     []
-    fps
+    (reverse fps)
   where handle e = case e of
-                    NotTextFile _ -> return []
+                    NotTextFile _ -> return Nothing
                     _ -> throwError e
 
 -- | Find preamble node, and load as an Env. If no preamble is found, return a

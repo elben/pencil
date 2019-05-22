@@ -13,9 +13,12 @@ haddock:
 tags:
 	@hasktags --ctags .
 
+# Make as .PHONY so that make doesn't interpret the docs/ folder as the build
+# result of this `docs` target.
 docs:
 	rm -rf docs/*
 	cabal test pencil-docs
+.PHONY: docs
 
 test:
 	cabal test
