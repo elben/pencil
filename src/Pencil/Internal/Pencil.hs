@@ -404,6 +404,24 @@ escapeXml p = p { pageEscapeXml = True }
 rename :: HasFilePath a => (FilePath -> FilePath) -> a -> a
 rename f a = setFilePath (f (getFilePath a)) a
 
+-- | Sets the target file path to the specified FilePath. If the given FilePath
+-- is a directory, the file name set to @index.html@. If the FilePath is a file
+-- name, then the file is renamed.
+--
+-- > -- Move stuff/about.html to about/blah.html on render.
+-- > about <- to "about/blah.html" <$> load "stuff/about.htm"
+-- >
+-- > -- File is generated at about/index.html.
+-- > about <- to "about/" <$> load "stuff/about.htm"
+-- > render about
+-- >
+-- > -- Alternatively:
+-- > about <- load "stuff/about.htm"
+-- > render $ to "about/" about
+--
+to :: HasFilePath a => FilePath -> a -> a
+to = move' "index.html"
+
 -- | Moves the target file path to the specified FilePath. If the given FilePath
 -- is a directory, the file name is kept the same. If the FilePath is a file
 -- name, then the file is renamed.
@@ -415,7 +433,15 @@ rename f a = setFilePath (f (getFilePath a)) a
 -- > move "stylesheets/base.css" <$> load "assets/style.css"
 --
 move :: HasFilePath a => FilePath -> a -> a
-move fp a =
+move fp a = move' (FP.takeFileName (getFilePath a)) fp a
+
+-- | Internal implemenation for 'move' and 'to'.
+--
+-- Moves the target file path to the specified FilePath. If the given FilePath
+-- is a directory, the file name is kept the same. If the FilePath is a file
+-- name, then @fromFileName@ is used as the file name.
+move' :: HasFilePath a => FilePath -> FilePath -> a -> a
+move' fromFileName fp a =
   let fromFileName = FP.takeFileName (getFilePath a)
       toDir = FP.takeDirectory fp
       toFileName = FP.takeFileName fp
@@ -843,12 +869,12 @@ insertText :: T.Text
            -> Env
 insertText var val = H.insert var (VText val)
 
--- | Insert @Page@s into the given @Env@.
+-- | Insert @Page@s into the given @Env@. The given pages are evaluated and applied before insertion.
 --
 -- @
 -- posts <- 'Pencil.Blog.loadBlogPosts' "blog/"
 -- env <- asks 'getEnv'
--- insertPages "posts" posts env
+-- env' <- insertPages "posts" posts env
 -- @
 insertPages :: T.Text
             -- ^ Environment variable name.

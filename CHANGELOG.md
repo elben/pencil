@@ -13,7 +13,7 @@ easy. Please email me if you are having problems!
 ### Added
 - Added GHC 8.4 and 8.6 support.
 - Added `(<<|)` and `coll` to add collection values into structrues.
-- Added `useFilePath`, `escapeXml`, `rename`, `move` to manipulate loaded `Page`s.
+- Added `useFilePath`, `escapeXml`, `rename`, `to`, `move` to manipulate loaded `Page`s.
 - Added `loadAndRender` convenience method. Supports individual files and
   directories. You'll want to use this one to move over static assets quickly
   and easily: `loadAndRender "images/"`.
@@ -24,13 +24,21 @@ easy. Please email me if you are having problems!
 - `Pencil.Blog` moved to `Pencil.Internal.Blog`. All of the blog functions are
   now re-exported in `Pencil`. So you only need to `import Pencil` now, and you
   get everything!
-- `load` now automatically figures out the desired final FilePath, so it doesn't
-  take a `(FilePath -> FilePath)` as the first argument anymore. You can change
-  your code from `load toHtml "foo.markdown"` to `load "foo.markdown"`, for the
-  most part. Use `load'` to manually specify the FilePath transform. See
-  examples in the Hackage docs for `load'`, `move` and `rename`.
+- `load` now automatically figures out the desired final FilePath, so it
+  doesn't take a `(FilePath -> FilePath)` as the first argument anymore. You
+  can change your code from `load toHtml "foo.markdown"` to `load
+  "foo.markdown"`, for the most part. Use `load'` to manually specify the
+  FilePath transform. See examples in the Hackage docs for `load'`, `to`,
+  `move` and `rename`.
+- `loadResources`, like `load`, no longers takes a file path transformer. Use
+  `to`, `move` or `rename` to change the file path. But really, you probably can
+  use `loadDir` or `loadDir'` or `loadAndRender` instead of `loadResources.`
 - Renamed `structure` to `struct`. It's shorter.
 - `passthrough` now works with directories too.
+- `insertPages` return type changed from `Env` to `PencilApp Env`. We now
+  evaluate the given pages (e.g. replace variables) before inserting into
+  env. So you'll need to change from `let env' = insertPages "posts" posts env`
+  to `env <- insertPages "posts" posts env`.
 - Changed how structures work internally to allow collection values into structures.
 - Examples now match the tutorials. This is the start of merging the tutorials into the pencil
   repo itself, instead of living somewhere else.
