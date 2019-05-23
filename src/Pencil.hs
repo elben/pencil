@@ -23,6 +23,7 @@ module Pencil
   , useFilePath
   , escapeXml
   , rename
+  , to
   , move
 
   , Structure
