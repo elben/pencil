@@ -444,10 +444,9 @@ move' :: HasFilePath a => FilePath -> FilePath -> a -> a
 move' fromFileName fp a =
   let fromFileName = FP.takeFileName (getFilePath a)
       toDir = FP.takeDirectory fp
-      toFileName = FP.takeFileName fp
-      fp' = if null toFileName
+      fp' = if isDir fp
               then toDir ++ "/" ++ fromFileName
-              else toDir ++ "/" ++ toFileName
+              else toDir ++ "/" ++ FP.takeFileName fp
   in setFilePath fp' a
 
 -- | Applies the environment variables on the given pages.
@@ -971,7 +970,7 @@ copyFile fpIn fpOut = do
   outPrefix <- asks getOutputDir
   liftIO $ D.createDirectoryIfMissing True (FP.takeDirectory (outPrefix ++ fpOut))
 
-  if null (FP.takeFileName fpIn) && null (FP.takeFileName fpOut)
+  if isDir fpIn && isDir fpOut
     -- Copying directories
     then do
       fps <- listDir True fpIn
