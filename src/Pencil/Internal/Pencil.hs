@@ -1089,7 +1089,7 @@ load' fp = do
   let env' = H.insert "this.nodes" (VNodes (filter (not . isPreamble) nodes)) (findEnv nodes)
   return $ Page env' fp False False
 
--- | A version of @load@ for directories. Loads the files in the specified
+-- | A version of 'load' for directories. Loads the files in the specified
 -- directory as pages. Pages that are converted to a different format are
 -- renamed to the output format. If you don't want the file renamed, use
 -- @loadDir'@.
@@ -1104,7 +1104,7 @@ loadDir :: Bool
         -> PencilApp [Page]
 loadDir = loadDirWith load
 
--- | A version of @load'@ for directories. Loads the files in the specified
+-- | A version of 'load'' for directories. Loads the files in the specified
 -- directory as pages. Keeps the original file path.
 --
 -- @

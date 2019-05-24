@@ -39,7 +39,7 @@ Though page preambles and variable scoping provide a common pattern for most pag
 
 As seen in the first tutorial, you can define “global” variables in the config.
 
-```
+```haskell
 config :: Config
 config =
   (updateEnv (insertText "title" "My Awesome Website")
@@ -51,3 +51,21 @@ These variables follow the same rule as page-defined variables. Think of them as
 You can use `updateEnv` with methods like `insertEnv`, `insertText`, `insertPages`, `updateEnvVal`.
 
 You can also use `getPageEnv` and `setPageEnv`, along with the functions above, to manipulate each page’s environment to your liking. These are the functions that `Pencil.Internal.Blog` uses to build up the default blogging functionality.
+
+## Running inside a modified environment
+
+If you modify an environment, you’ll want to run code _inside_ that environment. Pencil provides `withEnv`, which is one way to do it:
+
+```haskell
+postsEnv <- (insertPages "posts" posts env >>= insertPages "recommendedPosts" recommendedPosts)
+
+withEnv postsEnv (render (layoutPage <|| indexPage))
+```
+
+You can also use `Control.Monad.Reader`’s `local`. The example below modifies the display value function to `toTextRss`, so that the RSS content is HTML-escaped.
+
+```haskell
+import Control.Monad.Reader (local)
+
+local (setDisplayValue toTextRss) (render rssFeedStruct)
+```

@@ -116,6 +116,14 @@ Here is a diagram describing the collection structure above:
 
 ![Diagram describing a collection structure.](../images/structure-collection.png)
 
+But what if you need more than one collection? Say you want to list your *top* blog posts, and the rest of them below. You can do this “manually”:
+
+```haskell
+indexEnv <- (insertPages "posts" posts env >>= insertPages "recommendedPosts" recommendedPosts)
+indexPage <- load "index.html"
+withEnv indexEnv (render (layoutPage <|| indexPage))
+```
+
 ## Commonly Used Functions
 
 Check out the [Hackage docs](http://hackage.haskell.org/package/pencil/docs/Pencil.html) for detailed information and examples.
