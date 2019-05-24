@@ -89,6 +89,7 @@ module Pencil
 
   -- Re-exports
   , Reader.asks
+  , Reader.local
 
   -- * Running and Error Handling
 

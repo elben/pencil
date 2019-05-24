@@ -62,10 +62,8 @@ postsEnv <- (insertPages "posts" posts env >>= insertPages "recommendedPosts" re
 withEnv postsEnv (render (layoutPage <|| indexPage))
 ```
 
-You can also use `Control.Monad.Reader`’s `local`. The example below modifies the display value function to `toTextRss`, so that the RSS content is HTML-escaped.
+You can also use `Control.Monad.Reader`’s `local` (which is re-exported by the Pencil module, so you don’t need to import any new modules). The example below modifies the display value function to `toTextRss`, so that the RSS content is HTML-escaped.
 
 ```haskell
-import Control.Monad.Reader (local)
-
 local (setDisplayValue toTextRss) (render rssFeedStruct)
 ```

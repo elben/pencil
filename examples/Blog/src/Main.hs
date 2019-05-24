@@ -6,8 +6,6 @@ import Pencil
 import qualified Data.HashMap.Strict as H
 import qualified Data.Text as T
 
-import Control.Monad.Reader (local)
-
 websiteTitle :: T.Text
 websiteTitle = "My Blog"
 
