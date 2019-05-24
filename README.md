@@ -14,35 +14,38 @@ docs](https://hackage.haskell.org/package/pencil).
 > marble topped tables, the smell of early morning... and luck were all you
 > needed. — Ernest Hemingway, A Moveable Feast
 
-# Setup
-
-First, make sure you have `nix` installed:
-
-```bash
-curl https://nixos.org/nix/install | sh
-nix-channel --add https://nixos.org/channels/nixos-18.09 nixpkgs
-nix-channel --update
-```
-
 # Examples
 
-Checkout the [examples provided](https://github.com/elben/pencil/tree/master/examples). To run the [Simple](https://github.com/elben/pencil/tree/master/examples/Simple) example:
+Here's an example that shows a personal website with a blog and an RSS feed.
+Based off the [this
+example](https://github.com/elben/pencil/tree/master/examples/Simple).
 
-```
-nix-shell --attr env
-[nix-shell]$ cabal new-run pencil-example-simple
+```haskell
+{-# LANGUAGE OverloadedStrings #-}
+
+module Main where
+
+import Pencil
+
+config :: Config
+config =
+  updateEnv (insertText "title" "My Awesome Website") defaultConfig
+
+website :: PencilApp ()
+website = do
+  layout <- load "layout.html"
+  index <- load "index.markdown"
+  render (layout <|| index)
+
+  loadAndRender "stylesheet.scss"
+
+main :: IO ()
+main = run website config
 ```
 
-Open the `examples/Simple/out/` folder to see the rendered web pages. To serve
-the web pages (so that relative URLs work), using `python`'s built in web server
-is easiest:
+You can check out other [examples](https://github.com/elben/pencil/tree/master/examples). The [Blog](https://github.com/elben/pencil/tree/master/examples/Blog) is a good one.
 
-```
-cd examples/Simple/out/
-python -m SimpleHTTPServer 8000
-```
-
-And go to [localhost:8000](http://localhost:8000).
+My personal website (http://elbenshira.com) uses Pencil ([source here](https://github.com/elben/elben.github.io)). And so does Pencil's website at (http://elbenshira.com/pencil) ([source here](https://github.com/elben/pencil/tree/master/examples/Docs)).
 
 # Development
 
