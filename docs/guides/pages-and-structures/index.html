@@ -137,6 +137,10 @@
 <figure>
 <img src="../images/structure-collection.png" alt="Diagram describing a collection structure." /><figcaption>Diagram describing a collection structure.</figcaption>
 </figure>
+<p>But what if you need more than one collection? Say you want to list your <em>top</em> blog posts, and the rest of them below. You can do this “manually”:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb8-1" title="1">indexEnv <span class="ot">&lt;-</span> (insertPages <span class="st">&quot;posts&quot;</span> posts env <span class="op">&gt;&gt;=</span> insertPages <span class="st">&quot;recommendedPosts&quot;</span> recommendedPosts)</a>
+<a class="sourceLine" id="cb8-2" title="2">indexPage <span class="ot">&lt;-</span> load <span class="st">&quot;index.html&quot;</span></a>
+<a class="sourceLine" id="cb8-3" title="3">withEnv indexEnv (render (layoutPage <span class="op">&lt;||</span> indexPage))</a></code></pre></div>
 <h2 id="commonly-used-functions">Commonly Used Functions</h2>
 <p>Check out the <a href="http://hackage.haskell.org/package/pencil/docs/Pencil.html">Hackage docs</a> for detailed information and examples.</p>
 <h3 id="page">Page</h3>
