@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>Pencil Documentation</title>
+  <link rel="stylesheet" href="/pencil/default.css" />
+  <link href="https://fonts.googleapis.com/css?family=Fira+Sans:300,400,400i,700" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Fira+Mono:400,700" rel="stylesheet">
+</head>
+
+<body>
+  <div id="structure">
+    <div id="header">
+      <h1><a href="/pencil">Pencil</a></h1>
+
+      <div class="nav-section">
+        <h2>Tutorials</h2>
+
+        <ul class="nav">
+          <li>
+            <a href="/pencil/tutorials/01-getting-started/">
+              Tutorial 1: Getting Started
+            </a>
+          </li>
+          <li>
+            <a href="/pencil/tutorials/02-deploying-to-github-pages-using-circle/">
+              Tutorial 2: Deploying to GitHub Pages using Circle
+            </a>
+          </li>
+          <li>
+            <a href="/pencil/tutorials/03-blogging/">
+              Tutorial 3: Blogging
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="nav-section">
+        <h2>Guides</h2>
+        <ul class="nav">
+          <li>
+            <a href="/pencil/guides/pages-and-structures/">
+              Pages and Structures
+            </a>
+          </li>
+          <li>
+            <a href="/pencil/guides/templates/">
+              Templates
+            </a>
+          </li>
+          <li>
+            <a href="/pencil/guides/environment/">
+              The Environment
+            </a>
+          </li>
+          <li>
+            <a href="/pencil/guides/static-assets/">
+              Dealing with Static Assets
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div id="content">
+      <h1 id="templates">Templates</h1>
+<p>Pencil comes with a simple templating engine. Templates allow us to build web pages dynamically using Haskell code. Every blog post, for example, can share a common HTML template.</p>
+<p>Pencil templates are regular HTML and Markdown (and other formats that Pencil supports) files that contain a <strong>preamble</strong> or <strong>directives</strong>.</p>
+<h2 id="preamble">Preamble</h2>
+<p>Preambles are environment variable declarations inside your source files. A file may only have one preamble, and they must be declared at the top of the file. A preamble is YAML wrapped in an HTML comment. An example Markdown file with a preamble:</p>
+<pre><code>&lt;!--PREAMBLE
+postTitle: &quot;Why I Love Python&quot;
+date: 2010-01-30
+tags:
+  - python
+--&gt;
+
+I learned Java first. So when I found out about Python,
+it was *love at first sight*.</code></pre>
+<p>In the above example, Pencil will intelligently parse the <code>date</code> value as a <a href="https://hackage.haskell.org/package/pencil/docs/Pencil-Internal-Env.html#v:VDateTime"><code>VDateTime</code></a>. See <a href="https://hackage.haskell.org/package/pencil/docs/Pencil-Internal-Env.html#v:toDateTime"><code>toDateTime</code></a>, which describes the date formats that Pencil will try to coerce into a <code>VDateTime</code>.</p>
+<h2 id="directives">Directives</h2>
+<p>Directives allow you to render variables. They are surrounded by <code>${...}</code>.</p>
+<h3 id="variables">Variables</h3>
+<p>The simplest directive is the variable directive.</p>
+<pre><code>Hello ${name}!</code></pre>
+<p>The above template will render the value of the variable <code>name</code>, which is expected to be in the environment at <code>render</code>. If the variable is not found, the final render will literally include <code>${name}</code>.</p>
+<h3 id="if-block">If block</h3>
+<p>The <code>if</code> directive allows us to render content based off the existence of a variable in the current environment.</p>
+<pre><code>${if(name)}
+  Hello ${name}!
+${end}</code></pre>
+<p>In this case, we now make sure that <code>name</code> is available before rendering.</p>
+<h3 id="for-loop">For loop</h3>
+<p>The <code>for</code> directive allows for looping over arrays. This is useful for things like rendering a list of blog post titles, linking each line to the actual blog post.</p>
+<pre><code>&lt;ul&gt;
+${for(posts)}
+  &lt;li&gt;&lt;a href=&quot;${this.url}&quot;&gt;${postTitle}&lt;/a&gt; - ${date}&lt;/li&gt;
+${end}
+&lt;/ul&gt;</code></pre>
+<p><code>posts</code> must either be a collection node in the Structure, or a <a href="https://hackage.haskell.org/package/pencil/docs/Pencil-Internal-Env.html#v:VEnvList"><code>VEnvList</code></a> variable. The example will render each post’s title, publish date, and will link it to <code>this.url</code>. Note that inside the <code>for</code> block, the scope changes to each post’s environment. So <code>${postTitle}</code> will render each post’s title.</p>
+<p><code>this.url</code> is a special variable that is automatically inserted for you inside a loaded <code>Page</code>. It points to the page’s destination file path.</p>
+<h3 id="partials">Partials</h3>
+<p>The <code>partial</code> directive injects another template file into the current file. The directives inside the partial are rendered in the same environmental context as the <code>partial</code> directive.</p>
+<p>Think of partials as just copy-and-pasting snippet from one file to another. Unlike Structures, partials cannot define environment variables.</p>
+<p>In the example below, the first <code>partial</code> is rendered with the current environment. The <code>partial</code> inside the <code>for</code> loop receives the same environment as any other snippet inside the loop, and thus has access to the environment inside each post.</p>
+<pre><code>${partial(&quot;partials/nav-bar.html&quot;)}
+
+</code></pre>
+<h3 id="escaping">Escaping</h3>
+<p>If you want a literal “${name}” to be rendered, you need to <em>escape</em> the dollar sign by doubling it. So in the example below, Pencil will not parse it as a directive, but will render “${name}” instead:</p>
+<pre><code>$${name}</code></pre>
+<p><a href="https://github.com/elben/pencil/blob/master/examples/Docs/site/guides/templates.markdown">This very source file</a> uses escapes.</p>
+    </div>
+  </div>
+</body>
+
+</html>
