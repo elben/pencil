@@ -58,6 +58,8 @@ module Pencil
   , injectTagsEnv
 
   -- * Environment Manipulation
+  --
+  -- $environment
 
   , merge
   , insertEnv
@@ -108,7 +110,7 @@ import Control.Monad.Reader as Reader
 
 -- $gettingstarted
 --
--- The best way to get started is to follow the tutorials found on
+-- The best way to get started is to follow the tutorials and guides found on
 -- [elbenshira.com/pencil](https://elbenshira.com/pencil).
 --
 -- [Here](https://github.com/elben/pencil/blob/master/examples/Simple/src/Main.hs)
@@ -138,54 +140,12 @@ import Control.Monad.Reader as Reader
 -- > main :: IO ()
 -- > main = run website config
 --
---
--- First, we need to set up a 'Config'. We start with 'defaultConfig', and
--- modify it to specify where the source and output files go. We also add a
--- @title@ variable with the value @"My Awesome Website"@ into the environment.
---
--- An 'Pencil.Internal.Env.Env', or environment, is a mapping of variables to
--- its values. A variable can hold a string, number, boolean, date, and so on.
--- We can use variables in our web pages via a variable directive like
--- @${title}@.
---
--- Let's look at the @website@ function. Note that its type is @PencilApp ()@.
--- 'PencilApp' is the monad transformer that web pages are built under. Don't
--- worry if you aren't familiar with monad transformers; in simple terms,
--- @PencilApp@ is a function that takes a @Config@, and does all the source file
--- loading and web page rendering under the @IO@ monad. So @website@ is a
--- function that is waiting for a @Config@. So to actually run our app, we need
--- to "give" @website@ a @Config@:
---
--- @
--- run website config
--- @
---
--- Now let's dissect the @website@ function itself. The first thing we do is
--- @'load' "layout.html"@, which loads our layout file into something called a
--- 'Page'. In short, a 'Page' holds the contents of the file, plus the
--- environment of that file, plus the destination file path.
---
--- 'load' looks at the file extension to figure out that @layout.html@ is an
--- HTML file, and @index.markdown@ is a Markdown file. Both files will
--- eventually be rendered with a @.html@ extension.
---
--- Now, what about @render (layout <|| index)@. What the heck is going on here?
--- In plain language, you can think of @(layout <|| index)@ as "pushing" the
--- contents of @index@ into @layout@. When @index@ is rendered, the
--- Markdown is converted to HTML, and variables are replaced with their values.
--- The final rendered content is then stuffed into a special @body@ variable in
--- @layout@'s environment. This means that when @layout@ is rendered, the
--- @${body}@ in @layout@ is replaced with the contents of @index@.
---
--- @(layout <|| index)@ describes what /will/ happen. @(<||)@ combines the two
--- pages together into something called a 'Structure'. Passing this structure
--- into 'render' is what actually generates the web page.
---
--- Finally, we have @'loadAndRender' "style.scss"@, which is a helper method to load
--- and render files in one step, automatically converting and renaming files.
---
--- And that's it! If you run this code, it will spit out an @index.html@ file
--- and a @style.css@ file in the @examples\/Simple\/out\/@ folder.
+-- The example above shows that Pencil allows you to easily load and process
+-- Markdown files. You can then combine them with HTML layouts. Pencil also
+-- supports processing SCSS files out-of-the-box. You can of course add new
+-- functionality as required. If you run this code, it will spit out an
+-- @index.html@ file and a @style.css@ file in the @examples\/Simple\/out\/@
+-- folder.
 --
 -- To learn more, dig into the tutorials and guides found on
 -- [elbenshira.com/pencil](elbenshira.com/pencil).
@@ -195,95 +155,21 @@ import Control.Monad.Reader as Reader
 -- $templates
 --
 -- Pencil comes with a simple templating engine. Templates allow us to build web
--- pages dynamically using Haskell code. Your blog posts, for example, can share
--- a single HTML template.
+-- pages dynamically using Haskell code. Blog posts, for example, can share a
+-- common HTML template.
 --
--- Pencil templates are regular text files that can contain a /preamble/ and
--- /directives/.
+-- Pencil's templating engine comes with variables, if blocks, for loops, and
+-- partials. Read the
+-- [Templates](https://elbenshira.com/pencil/guides/templates/) guide for a
+-- thorough walk-through.
 --
--- == Preamble
---
--- Preambles are environment variable declarations inside your source files.
--- They should be declared at the top of the file, and a file may only have one
--- preamble. They're YAML wrapped in an HTML Comment. Example preamble, in the
--- first part of @my-blog-post.markdown@:
---
--- > <!--PREAMBLE
--- > postTitle: "Behind Python's unittest.main()"
--- > date: 2010-01-30
--- > tags:
--- >   - python
--- > -->
---
--- In the above example, Pencil will intelligently parse the @date@ value as a
--- `Pencil.Internal.Env.VDateTime`.
---
--- == Directives
---
--- Directives are rendering /commands/. They are surrounded by @${...}@.
---
--- === Variables
---
--- The simplest directive is the variable directive.
---
--- @
--- Hello ${name}!
--- @
---
--- The above template will render the value of the variable @name@, which is
--- expected to be in the environment at 'render'. If the variable is not found,
--- the final render will include the directive (e.g. "@${name}@").
---
--- === If block
---
--- The @if@ directive allows us to render content based off the existence of a
--- variable in the current environment.
---
--- > ${if(name)}
--- >   Hello ${name}!
--- > ${end}
---
--- In this case, we now make sure that @name@ is available before rendering.
---
--- === For loop
---
--- The @for@ directive allows us to loop over arrays. This is useful for things
--- like rendering a list of blog post titles, linking each line to the actual
--- blog post.
+-- Example:
 --
 -- > <ul>
 -- > ${for(posts)}
 -- >   <li><a href="${this.url}">${postTitle}</a> - ${date}</li>
 -- > ${end}
 -- > </ul>
---
--- Assuming that @posts@ was added as a collection in the Structure, this will
--- render each post's title, publish date, and will link it to @this.url@. Note
--- that inside the @for@ block, the scope changes to each post's environment.
--- So @${postTitle}@ will render each post's title.
---
--- @this.url@ is a special variable that is automatically inserted for you
--- inside a loaded @Page@. It points to the page's destination file path.
---
--- === Partials
---
--- The @partial@ directive injects another template file into the current file.
--- The directives inside the partial are rendered in the same environmental
--- context as the @partial@ directive.
---
--- Think of partials as just copy-and-pasting snippet from one file to another.
--- Unlike 'Structure's, partials cannot define environment variables.
---
--- In the example below, the first @partial@ is rendered with the current
--- environment. The @partial@ inside the @for@ loop receives the same
--- environemnt as any other snippet inside the loop, and thus has access to
--- the environment inside each post.
---
--- > ${partial("partials/nav-bar.html")}
--- >
--- > ${for(posts)}
--- >   ${partial("partials/post-item.html")}
--- > ${end}
 
 ----------------------------------------------------------------------
 
@@ -291,6 +177,11 @@ import Control.Monad.Reader as Reader
 --
 -- 'Page', 'Structure' and 'Resource' are the "big three" data types you need to
 -- know to effectively use Pencil.
+--
+-- The [Pages and
+-- Structures](https://elbenshira.com/pencil/guides/pages-and-structures/) guide
+-- is the best starting point about these data types and their importance in
+-- Pencil.
 
 ----------------------------------------------------------------------
 
@@ -298,7 +189,9 @@ import Control.Monad.Reader as Reader
 --
 -- This module provides a standard way of building and generating blog posts.
 -- Check out the Blog example
--- <https://github.com/elben/pencil/blob/master/examples/Blog/ here>.
+-- <https://github.com/elben/pencil/blob/master/examples/Blog/ here>. You can
+-- also follow the [blogging tutorial
+-- here](https://elbenshira.com/pencil/tutorials/03-blogging/).
 --
 -- To generate a blog for your website, first create a @blog/@ directory in
 -- your web page source directory.
@@ -339,5 +232,16 @@ import Control.Monad.Reader as Reader
 -- posts <- 'loadBlogPosts' "blog/"
 -- render (fmap (layout <|| postLayout <|) posts)
 -- @
+
+----------------------------------------------------------------------
+
+-- $environment
+--
+-- The environment is where variables live. Composing web pages together
+-- implies composing environments. This is where Pencil's power lies: in helping
+-- you easily build the proper environment to render your web pages.
+--
+-- To get started, read the [environment
+-- guide](https://elbenshira.com/pencil/guides/environment/).
 
 ----------------------------------------------------------------------
