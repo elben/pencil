@@ -332,6 +332,10 @@ fileType fp =
   -- takeExtension returns ".markdown", so drop the "."
   M.fromMaybe Other (H.lookup (map toLower (drop 1 (FP.takeExtension fp))) fileTypeMap)
 
+----------------------------------------------------------------------
+-- Page
+----------------------------------------------------------------------
+
 -- | The @Page@ is an important data type in Pencil.
 --
 -- Source files like Markdown and HTML are loaded (e.g. via 'load') as a @Page@.
@@ -412,64 +416,7 @@ useFilePath p = p { pageUseFilePath = True }
 escapeXml :: Page -> Page
 escapeXml p = p { pageEscapeXml = True }
 
--- | Transforms the file path.
---
--- @
--- about <- load "about.htm"
--- render $ struct (rename 'toHtml' about)
--- @
-rename :: HasFilePath a => (FilePath -> FilePath) -> a -> a
-rename f a = setFilePath (f (getFilePath a)) a
 
--- | Sets the target file path to the specified file path. If the given file path
--- is a directory, the file name set to @index.html@. If the file path is a file
--- name, then the file is renamed.
---
--- Move @stuff/about.html@ to @about/blah.html@ on render:
---
--- > about <- to "about/blah.html" <$> load "stuff/about.htm"
---
--- Convert the destination file path to @about/index.html@:
---
--- > about <- to "about/" <$> load "stuff/about.htm"
--- > render about
---
--- Equivalent to the above example:
---
--- > about <- load "stuff/about.htm"
--- > render $ to "about/" about
---
-to :: HasFilePath a => FilePath -> a -> a
-to = move' "index.html"
-
--- | Moves the target file path to the specified file path. Behaves similar to
--- the UNIX @mv@ command: if the given file path is a directory, the file name
--- is kept the same. If the file path is a file name, then the file is renamed.
---
--- Move @assets/style.css@ to @stylesheets/style.css@:
---
--- > move "stylesheets/" <$> load "assets/style.css"
---
--- Move @assets/style.css@ to @stylesheets/base.css@.
---
--- > move "stylesheets/base.css" <$> load "assets/style.css"
---
-move :: HasFilePath a => FilePath -> a -> a
-move fp a = move' (FP.takeFileName (getFilePath a)) fp a
-
--- | Internal implemenation for 'move' and 'to'.
---
--- Moves the target file path to the specified FilePath. If the given FilePath
--- is a directory, the file name is kept the same. If the FilePath is a file
--- name, then @fromFileName@ is used as the file name.
-move' :: HasFilePath a => FilePath -> FilePath -> a -> a
-move' fromFileName fp a =
-  let fromFileName = FP.takeFileName (getFilePath a)
-      toDir = FP.takeDirectory fp
-      fp' = if isDir fp
-              then toDir ++ "/" ++ fromFileName
-              else toDir ++ "/" ++ FP.takeFileName fp
-  in setFilePath fp' a
 
 -- | Applies the environment variables on the given pages.
 --
@@ -845,107 +792,7 @@ listDir_ recursive dir = do
 isDir :: FilePath -> Bool
 isDir fp = null (FP.takeBaseName fp)
 
-----------------------------------------------------------------------
--- Environment modifications
-----------------------------------------------------------------------
 
--- | Merges two @Env@s together, biased towards the left-hand @Env@ on duplicates.
-merge :: Env -> Env -> Env
-merge = H.union
-
--- | Inserts text into the given @Env@.
---
--- @
--- env <- asks getEnv
--- insertText "title" "My Awesome Website" env
--- @
-insertText :: T.Text
-           -- ^ Environment variable name.
-           -> T.Text
-           -- ^ Text to insert.
-           -> Env
-           -- ^ Environment to modify.
-           -> Env
-insertText var val = H.insert var (VText val)
-
--- | Inserts pages into the environment. The pages are evaluated and applied before insertion.
---
--- @
--- posts <- 'Pencil.Blog.loadBlogPosts' "blog/"
--- env <- asks 'getEnv'
--- env' <- insertPages "posts" posts env
--- @
-insertPages :: T.Text
-            -- ^ Environment variable name.
-            -> [Page]
-            -- ^ @Page@s to insert.
-            -> Env
-            -- ^ Environment to modify.
-            -> PencilApp Env
-insertPages var pages env = do
-  envs <- mapM
-               (\p -> do
-                 p' <- apply (struct p)
-                 let text = renderNodes (getNodes (getPageEnv p'))
-                 let penv = insertText "this.content" text (getPageEnv p')
-                 return penv)
-               pages
-  return $ H.insert var (VEnvList envs) env
-
--- | Modifies a variable in the given environment.
-updateEnvVal :: (Value -> Value)
-          -> T.Text
-          -- ^ Environment variable name.
-          -> Env
-          -> Env
-updateEnvVal = H.adjust
-
--- | Inserts @Value@ into the given @Env@.
-insertEnv :: T.Text
-          -- ^ Environment variable name.
-          -> Value
-          -- ^ @Value@ to insert.
-          -> Env
-          -- ^ Environment to modify.
-          -> Env
-insertEnv = H.insert
-
--- | Convert known Aeson types into known Env types.
-maybeInsertIntoEnv :: Env -> T.Text -> A.Value -> Env
-maybeInsertIntoEnv env k v =
-  case toValue v of
-    Nothing -> env
-    Just d -> H.insert k d env
-
--- | Converts an Aeson Object to an Env.
-aesonToEnv :: A.Object -> Env
-aesonToEnv = H.foldlWithKey' maybeInsertIntoEnv H.empty
-
--- | A version of 'toText' that renders 'Value' acceptable for an RSS feed.
---
--- * Dates are rendered in the RFC 822 format.
--- * Everything else defaults to the 'toText' implementation.
---
--- You'll probably want to also use 'escapeXml' to render an RSS feed.
---
-toTextRss :: Value -> T.Text
-toTextRss (VDateTime dt) = T.pack $ TF.formatTime TF.defaultTimeLocale rfc822DateFormat dt
-toTextRss v = toText v
-
--- | RFC 822 date format.
---
--- Helps to pass https://validator.w3.org/feed/check.cgi.
---
--- Same as https://hackage.haskell.org/package/time/docs/Data-Time-Format.html#v:rfc822DateFormat
--- but no padding for the day section, so that single-digit days only has one space preceeding it.
---
--- Also changed to spit out the offset timezone (+0000) because the default was spitting out "UTC"
--- which is not valid RFC 822. Weird, since the defaultTimeLocal source and docs show that it won't
--- use "UTC":
--- https://hackage.haskell.org/package/time/docs/Data-Time-Format.html#v:defaultTimeLocale
---
-rfc822DateFormat :: String
-rfc822DateFormat = "%a, %d %b %Y %H:%M:%S %z"
 
 -- | @Resource@ is used to copy static binary files to the destination, and to
 -- load and render files that just needs conversion without template directives
@@ -1342,6 +1189,10 @@ struct p = Structure
 withEnv :: Env -> PencilApp a -> PencilApp a
 withEnv env = local (setEnv env)
 
+----------------------------------------------------------------------
+-- HasFilePath class
+----------------------------------------------------------------------
+
 -- | Class for types that has a final file path for rendering.
 --
 -- This allows file-path-changing methods to be re-used across 'Page',
@@ -1364,6 +1215,69 @@ instance HasFilePath Resource where
 instance HasFilePath Structure where
   getFilePath = structureFilePath
   setFilePath fp s = s { structureFilePath = fp }
+
+-- | Transforms the file path.
+--
+-- @
+-- about <- load "about.htm"
+-- render $ struct (rename 'toHtml' about)
+-- @
+rename :: HasFilePath a => (FilePath -> FilePath) -> a -> a
+rename f a = setFilePath (f (getFilePath a)) a
+
+-- | Sets the target file path to the specified file path. If the given file path
+-- is a directory, the file name set to @index.html@. If the file path is a file
+-- name, then the file is renamed.
+--
+-- Move @stuff/about.html@ to @about/blah.html@ on render:
+--
+-- > about <- to "about/blah.html" <$> load "stuff/about.htm"
+--
+-- Convert the destination file path to @about/index.html@:
+--
+-- > about <- to "about/" <$> load "stuff/about.htm"
+-- > render about
+--
+-- Equivalent to the above example:
+--
+-- > about <- load "stuff/about.htm"
+-- > render $ to "about/" about
+--
+to :: HasFilePath a => FilePath -> a -> a
+to = move' "index.html"
+
+-- | Moves the target file path to the specified file path. Behaves similar to
+-- the UNIX @mv@ command: if the given file path is a directory, the file name
+-- is kept the same. If the file path is a file name, then the file is renamed.
+--
+-- Move @assets/style.css@ to @stylesheets/style.css@:
+--
+-- > move "stylesheets/" <$> load "assets/style.css"
+--
+-- Move @assets/style.css@ to @stylesheets/base.css@.
+--
+-- > move "stylesheets/base.css" <$> load "assets/style.css"
+--
+move :: HasFilePath a => FilePath -> a -> a
+move fp a = move' (FP.takeFileName (getFilePath a)) fp a
+
+-- | Internal implemenation for 'move' and 'to'.
+--
+-- Moves the target file path to the specified FilePath. If the given FilePath
+-- is a directory, the file name is kept the same. If the FilePath is a file
+-- name, then @fromFileName@ is used as the file name.
+move' :: HasFilePath a => FilePath -> FilePath -> a -> a
+move' fromFileName fp a =
+  let fromFileName = FP.takeFileName (getFilePath a)
+      toDir = FP.takeDirectory fp
+      fp' = if isDir fp
+              then toDir ++ "/" ++ fromFileName
+              else toDir ++ "/" ++ FP.takeFileName fp
+  in setFilePath fp' a
+
+----------------------------------------------------------------------
+-- Render class
+----------------------------------------------------------------------
 
 -- | To render something is to create the output web pages, evaluating template
 -- directives into their final form using the current environment.
@@ -1390,3 +1304,105 @@ instance Render Page where
 -- This requires FlexibleInstances.
 instance Render r => Render [r] where
   render rs = forM_ rs render
+
+----------------------------------------------------------------------
+-- Environment modifications
+----------------------------------------------------------------------
+
+-- | Merges two @Env@s together, biased towards the left-hand @Env@ on duplicates.
+merge :: Env -> Env -> Env
+merge = H.union
+
+-- | Inserts text into the given @Env@.
+--
+-- @
+-- env <- asks getEnv
+-- insertText "title" "My Awesome Website" env
+-- @
+insertText :: T.Text
+           -- ^ Environment variable name.
+           -> T.Text
+           -- ^ Text to insert.
+           -> Env
+           -- ^ Environment to modify.
+           -> Env
+insertText var val = H.insert var (VText val)
+
+-- | Inserts pages into the environment. The pages are evaluated and applied before insertion.
+--
+-- @
+-- posts <- 'Pencil.Blog.loadBlogPosts' "blog/"
+-- env <- asks 'getEnv'
+-- env' <- insertPages "posts" posts env
+-- @
+insertPages :: T.Text
+            -- ^ Environment variable name.
+            -> [Page]
+            -- ^ @Page@s to insert.
+            -> Env
+            -- ^ Environment to modify.
+            -> PencilApp Env
+insertPages var pages env = do
+  envs <- mapM
+               (\p -> do
+                 p' <- apply (struct p)
+                 let text = renderNodes (getNodes (getPageEnv p'))
+                 let penv = insertText "this.content" text (getPageEnv p')
+                 return penv)
+               pages
+  return $ H.insert var (VEnvList envs) env
+
+-- | Modifies a variable in the given environment.
+updateEnvVal :: (Value -> Value)
+          -> T.Text
+          -- ^ Environment variable name.
+          -> Env
+          -> Env
+updateEnvVal = H.adjust
+
+-- | Inserts @Value@ into the given @Env@.
+insertEnv :: T.Text
+          -- ^ Environment variable name.
+          -> Value
+          -- ^ @Value@ to insert.
+          -> Env
+          -- ^ Environment to modify.
+          -> Env
+insertEnv = H.insert
+
+-- | Convert known Aeson types into known Env types.
+maybeInsertIntoEnv :: Env -> T.Text -> A.Value -> Env
+maybeInsertIntoEnv env k v =
+  case toValue v of
+    Nothing -> env
+    Just d -> H.insert k d env
+
+-- | Converts an Aeson Object to an Env.
+aesonToEnv :: A.Object -> Env
+aesonToEnv = H.foldlWithKey' maybeInsertIntoEnv H.empty
+
+-- | A version of 'toText' that renders 'Value' acceptable for an RSS feed.
+--
+-- * Dates are rendered in the RFC 822 format.
+-- * Everything else defaults to the 'toText' implementation.
+--
+-- You'll probably want to also use 'escapeXml' to render an RSS feed.
+--
+toTextRss :: Value -> T.Text
+toTextRss (VDateTime dt) = T.pack $ TF.formatTime TF.defaultTimeLocale rfc822DateFormat dt
+toTextRss v = toText v
+
+-- | RFC 822 date format.
+--
+-- Helps to pass https://validator.w3.org/feed/check.cgi.
+--
+-- Same as https://hackage.haskell.org/package/time/docs/Data-Time-Format.html#v:rfc822DateFormat
+-- but no padding for the day section, so that single-digit days only has one space preceeding it.
+--
+-- Also changed to spit out the offset timezone (+0000) because the default was spitting out "UTC"
+-- which is not valid RFC 822. Weird, since the defaultTimeLocal source and docs show that it won't
+-- use "UTC":
+-- https://hackage.haskell.org/package/time/docs/Data-Time-Format.html#v:defaultTimeLocale
+--
+rfc822DateFormat :: String
+rfc822DateFormat = "%a, %d %b %Y %H:%M:%S %z"
