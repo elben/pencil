@@ -94,8 +94,7 @@ instance Default Config where
 --
 -- @Ext_tex_math_dollars@ is disabled because it messes with parsing template
 -- variable directives. If you want TeX math, the better option is drop in a
--- JavaScript library like KaTeX (https://katex.org) or MathJax
--- (https://www.mathjax.org).
+-- JavaScript library like KaTeX (https://katex.org).
 --
 defaultConfig :: Config
 defaultConfig = Config
@@ -120,7 +119,7 @@ defaultConfig = Config
   , configDisplayValue = toText
   }
 
--- | The directory path of your web page source files.
+-- | Gets the source directory of your web page source files.
 getSourceDir :: Config -> FilePath
 getSourceDir = configSourceDir
 
@@ -128,7 +127,7 @@ getSourceDir = configSourceDir
 setSourceDir :: FilePath -> Config -> Config
 setSourceDir fp c = c { configSourceDir = fp }
 
--- | The directory path of your rendered web pages.
+-- | Gets the output directory of your rendered web pages.
 getOutputDir :: Config -> FilePath
 getOutputDir = configOutputDir
 
@@ -136,7 +135,7 @@ getOutputDir = configOutputDir
 setOutputDir :: FilePath -> Config -> Config
 setOutputDir fp c = c { configOutputDir = fp }
 
--- | The environment of the @Config@, which is what the @PencilApp@ monad
+-- | Gets environment of the @Config@, which is what the @PencilApp@ monad
 -- transformer uses. This is where variables are set for rendering template
 -- directives.
 getEnv :: Config -> Env
@@ -147,20 +146,24 @@ getEnv = configEnv
 setEnv :: Env -> Config -> Config
 setEnv env c = c { configEnv = env }
 
--- | Update the Env inside the 'Config'.
+-- | Updates the Env inside the 'Config'.
 updateEnv :: (Env -> Env) -> Config -> Config
 updateEnv f c = c { configEnv = f (getEnv c) }
 
--- | The 'Sass.SassOptions' for rendering Sass/Scss files.
+-- | Gets the 'Sass.SassOptions' for rendering Sass/Scss files.
 getSassOptions :: Config -> Sass.SassOptions
 getSassOptions = configSassOptions
 
--- | Sets the 'Sass.SassOptions'.
+-- | Sets the 'Sass.SassOptions' for rendering Sass/Scss files.
 setSassOptions :: Sass.SassOptions -> Config -> Config
 setSassOptions env c = c { configSassOptions = env }
 
--- | The 'Text.Pandoc.ReaderOptions' for reading files that use Pandoc.
--- Supported formats by Pencil are: Markdown.
+-- | Gets the 'Text.Pandoc.ReaderOptions' for reading files that use Pandoc.
+-- Supported formats:
+--
+-- * Markdown
+-- * Open a GitHub issue if you'd like to see more options!
+--
 getPandocReaderOptions :: Config -> P.ReaderOptions
 getPandocReaderOptions = configPandocReaderOptions
 
@@ -175,8 +178,7 @@ getPandocReaderOptions = configPandocReaderOptions
 setPandocReaderOptions :: P.ReaderOptions -> Config -> Config
 setPandocReaderOptions o c = c { configPandocReaderOptions = o }
 
--- | The 'Text.Pandoc.WriterOptions' for rendering files that use Pandoc.
--- Supported formats by Pencil are: Markdown.
+-- | Gets the 'Text.Pandoc.WriterOptions' for rendering files that use Pandoc.
 getPandocWriterOptions :: Config -> P.WriterOptions
 getPandocWriterOptions = configPandocWriterOptions
 
@@ -184,7 +186,7 @@ getPandocWriterOptions = configPandocWriterOptions
 setPandocWriterOptions :: P.WriterOptions -> Config -> Config
 setPandocWriterOptions o c = c { configPandocWriterOptions = o }
 
--- | The function that renders 'Value' to text.
+-- | Gets the function that renders 'Value' to text.
 getDisplayValue :: Config -> Value -> T.Text
 getDisplayValue = configDisplayValue
 
@@ -330,11 +332,22 @@ fileType fp =
   -- takeExtension returns ".markdown", so drop the "."
   M.fromMaybe Other (H.lookup (map toLower (drop 1 (FP.takeExtension fp))) fileTypeMap)
 
--- | The Page is an important data type in Pencil. It contains the parsed
--- template of a file (e.g. of Markdown or HTML files). It may have template
--- directives (e.g. @${body}@) that has not yet been rendered, and an
--- environment loaded from the preamble section of the file. A Page also
--- contains 'pageFilePath', which is the output file path.
+-- | The @Page@ is an important data type in Pencil.
+--
+-- Source files like Markdown and HTML are loaded (e.g. via 'load') as a @Page@.
+-- A page contains the contents of the file, their un-evaluated [template
+-- directives](https://elbenshira.com/pencil/guides/templates/) (e.g.
+-- @${body}@), the variables defined in the preamble, and the destination file
+-- path.
+--
+-- The contents /may/ be in its converted form. 'load' will convert Markdown to
+-- HTML, for example.
+--
+-- Pages can be /combined/ together into a 'Structure', or inserted into the
+-- environment (see 'insertPages'). But at the end of the day, even a structure
+-- is converted back into a page on 'render'. This is because it is the page
+-- that is finally rendered into an actual web page when you run your program.
+--
 data Page = Page
   { pageEnv        :: Env
 
@@ -351,18 +364,23 @@ data Page = Page
   -- ^ Whether or not XML/HTML tags should be escaped when rendered.
   } deriving (Eq, Show)
 
--- | Returns the Env from a 'Page'.
+-- | Gets the Env of a 'Page'.
 getPageEnv :: Page -> Env
 getPageEnv = pageEnv
 
--- | Sets the Env in a 'Page'.
+-- | Sets the Env of a 'Page'.
 setPageEnv :: Env -> Page -> Page
 setPageEnv env p = p { pageEnv = env }
 
 -- | Sets this 'Page' as the designated final 'FilePath'.
 --
 -- This is useful when you are building a 'Structure' but don't want the file
--- path of the last 'Page' in the structure to be the file path of the render.
+-- path of the last 'Page' in the structure to be the destination file path on
+-- render.
+--
+-- The [Pages and
+-- Structures](https://elbenshira.com/pencil/guides/pages-and-structures/) guide
+-- describes this in detail.
 --
 -- @
 -- a <- load "a.html"
@@ -397,39 +415,43 @@ escapeXml p = p { pageEscapeXml = True }
 -- | Transforms the file path.
 --
 -- @
--- a <- load "a.htm"
---
--- render $ struct (rename 'toHtml' a)
+-- about <- load "about.htm"
+-- render $ struct (rename 'toHtml' about)
 -- @
 rename :: HasFilePath a => (FilePath -> FilePath) -> a -> a
 rename f a = setFilePath (f (getFilePath a)) a
 
--- | Sets the target file path to the specified FilePath. If the given FilePath
--- is a directory, the file name set to @index.html@. If the FilePath is a file
+-- | Sets the target file path to the specified file path. If the given file path
+-- is a directory, the file name set to @index.html@. If the file path is a file
 -- name, then the file is renamed.
 --
--- > -- Move stuff/about.html to about/blah.html on render.
+-- Move @stuff/about.html@ to @about/blah.html@ on render:
+--
 -- > about <- to "about/blah.html" <$> load "stuff/about.htm"
--- >
--- > -- File is generated at about/index.html.
+--
+-- Convert the destination file path to @about/index.html@:
+--
 -- > about <- to "about/" <$> load "stuff/about.htm"
 -- > render about
--- >
--- > -- Alternatively:
+--
+-- Equivalent to the above example:
+--
 -- > about <- load "stuff/about.htm"
 -- > render $ to "about/" about
 --
 to :: HasFilePath a => FilePath -> a -> a
 to = move' "index.html"
 
--- | Moves the target file path to the specified FilePath. If the given FilePath
--- is a directory, the file name is kept the same. If the FilePath is a file
--- name, then the file is renamed.
+-- | Moves the target file path to the specified file path. Behaves similar to
+-- the UNIX @mv@ command: if the given file path is a directory, the file name
+-- is kept the same. If the file path is a file name, then the file is renamed.
 --
--- > -- Move assets/style.css to stylesheets/style.css on render.
+-- Move @assets/style.css@ to @stylesheets/style.css@:
+--
 -- > move "stylesheets/" <$> load "assets/style.css"
--- > 
--- > -- Move assets/style.css to stylesheets/base.css on render.
+--
+-- Move @assets/style.css@ to @stylesheets/base.css@.
+--
 -- > move "stylesheets/base.css" <$> load "assets/style.css"
 --
 move :: HasFilePath a => FilePath -> a -> a
@@ -720,7 +742,7 @@ evalNodes env (n : rest) = do
   rest' <- evalNodes env rest
   return $ n : rest'
 
--- | Sort given @Page@s by the specified ordering function.
+-- | Sorts given @Page@s by the specified ordering function.
 sortByVar :: T.Text
           -- ^ Environment variable name.
           -> (Value -> Value -> Ordering)
@@ -733,7 +755,7 @@ sortByVar var ordering =
     (\a b ->
       maybeOrdering ordering (H.lookup var (getPageEnv a)) (H.lookup var (getPageEnv b)))
 
--- | Filter by a variable's value in the environment.
+-- | Filters by a variable's value in the environment.
 filterByVar :: Bool
             -- ^ If true, include pages without the specified variable.
             -> T.Text
@@ -746,7 +768,7 @@ filterByVar includeMissing var f =
    (\p -> M.fromMaybe includeMissing (H.lookup var (getPageEnv p) >>= (Just . f)))
 
 -- | Given a variable (whose value is assumed to be an array of VText) and list
--- of pages, group the pages by the VText found in the variable.
+-- of pages, groups the pages by the VText found in the variable.
 --
 -- For example, say each Page has a variable "tags" that is a list of tags. The
 -- first Page has a "tags" variable that is an @VArray [VText "a"]@, and the
@@ -783,28 +805,6 @@ groupByElements var pages =
     -- Reverse to keep ordering consistent inside hash map, since the fold
     -- prepends into accumulated list.
     (reverse pages)
-
--- | Loads file in given directory as 'Resource's.
---
--- Generally, you can just use `loadAndRender` instead of this method.
---
--- @
--- -- Load everything inside the "assets/" folder, renaming converted files as
--- -- expected (e.g. SCSS to CSS), and leaving everything else alone.
--- 'loadResources' True True "assets/"
--- @
---
-loadResources :: Bool
-              -- ^ Recursive if @True@.
-              -> Bool
-              -- ^ Handle as pass-throughs (file copy) if @True@.
-              -> FilePath
-              -> PencilApp [Resource]
-loadResources recursive pass dir = do
-  fps <- listDir recursive dir
-  if pass
-    then return $ map (\fp -> Passthrough fp fp) fps
-    else mapM loadResource fps
 
 -- | Lists files in given directory. The file paths returned is prefixed with the
 -- given directory.
@@ -853,7 +853,7 @@ isDir fp = null (FP.takeBaseName fp)
 merge :: Env -> Env -> Env
 merge = H.union
 
--- | Insert text into the given @Env@.
+-- | Inserts text into the given @Env@.
 --
 -- @
 -- env <- asks getEnv
@@ -868,7 +868,7 @@ insertText :: T.Text
            -> Env
 insertText var val = H.insert var (VText val)
 
--- | Insert @Page@s into the given @Env@. The given pages are evaluated and applied before insertion.
+-- | Inserts pages into the environment. The pages are evaluated and applied before insertion.
 --
 -- @
 -- posts <- 'Pencil.Blog.loadBlogPosts' "blog/"
@@ -892,7 +892,7 @@ insertPages var pages env = do
                pages
   return $ H.insert var (VEnvList envs) env
 
--- | Modify a variable in the given environment.
+-- | Modifies a variable in the given environment.
 updateEnvVal :: (Value -> Value)
           -> T.Text
           -- ^ Environment variable name.
@@ -900,7 +900,7 @@ updateEnvVal :: (Value -> Value)
           -> Env
 updateEnvVal = H.adjust
 
--- | Insert @Value@ into the given @Env@.
+-- | Inserts @Value@ into the given @Env@.
 insertEnv :: T.Text
           -- ^ Environment variable name.
           -> Value
@@ -921,7 +921,13 @@ maybeInsertIntoEnv env k v =
 aesonToEnv :: A.Object -> Env
 aesonToEnv = H.foldlWithKey' maybeInsertIntoEnv H.empty
 
--- | Render dates in the RFC 822 format, per the RSS specification.
+-- | A version of 'toText' that renders 'Value' acceptable for an RSS feed.
+--
+-- * Dates are rendered in the RFC 822 format.
+-- * Everything else defaults to the 'toText' implementation.
+--
+-- You'll probably want to also use 'escapeXml' to render an RSS feed.
+--
 toTextRss :: Value -> T.Text
 toTextRss (VDateTime dt) = T.pack $ TF.formatTime TF.defaultTimeLocale rfc822DateFormat dt
 toTextRss v = toText v
@@ -941,10 +947,12 @@ toTextRss v = toText v
 rfc822DateFormat :: String
 rfc822DateFormat = "%a, %d %b %Y %H:%M:%S %z"
 
--- | @Resource@ is used to load and render files that just needs conversion
--- without template directives or structures, or for static files that you want
--- to copy as-is (e.g. binary files like images, or text files that require no
--- other processing).
+-- | @Resource@ is used to copy static binary files to the destination, and to
+-- load and render files that just needs conversion without template directives
+-- or structures.
+--
+-- This is how Pencil handles files like images, compiled JavaScript, or text
+-- files that require only a straight-forward conversion.
 --
 -- Use 'passthrough', 'loadResource' and 'loadResources' to build a @Resource@
 -- from a file.
@@ -981,17 +989,28 @@ copyFile fpIn fpOut = do
 -- | Replaces the file path's extension with @.html@.
 --
 -- @
--- rename toHtml <$> 'load' "about.htm"
+-- rename toHtml \<$\> 'load' "about.htm"
 -- @
 --
 toHtml :: FilePath -> FilePath
 toHtml fp = FP.dropExtension fp ++ ".html"
 
 -- | Converts a file path into a directory name, dropping the extension.
--- Pages with a directory as its FilePath is rendered as an index file in that
--- directory. For example, the @pages/about.html@ is transformed into
--- @pages\/about\/@, which 'render' would render the 'Page' to the file path
--- @pages\/about\/index.html@.
+-- Pages with a directory as its file path is rendered as an index file in that
+-- directory.
+--
+-- For example, @pages/about.html@ is transformed into @pages\/about\/@, which
+-- upon 'render' results in the destination file path @pages\/about\/index.html@:
+--
+-- @
+-- toDir "pages/about.html"
+-- @
+--
+-- Load and render as @pages\/about\/@:
+--
+-- @
+-- render $ 'rename' toDir \<$\> 'load' "pages/about.html"
+-- @
 --
 toDir :: FilePath -> FilePath
 toDir fp = FP.replaceFileName fp (FP.takeBaseName fp) ++ "/"
@@ -999,7 +1018,7 @@ toDir fp = FP.replaceFileName fp (FP.takeBaseName fp) ++ "/"
 -- | Replaces the file path's extension with @.css@.
 --
 -- @
--- rename toCss <$> 'load' "style.sass"
+-- rename toCss \<$\> 'load' "style.sass"
 -- @
 --
 toCss :: FilePath -> FilePath
@@ -1017,14 +1036,14 @@ toExpected fp = maybe fp ((FP.dropExtension fp ++ ".") ++) (toExtension (fileTyp
 --
 -- Generally, you can just use `loadAndRender` instead of this method.
 --
--- @
--- -- Loads and renders the image as-is. Underneath the hood
--- -- this is just a file copy.
--- loadResource "images/profile.jpg" >>= render
+-- Loads and renders the image as-is. Underneath the hood this is just a file
+-- copy:
 --
--- -- Loads and renders to about.html.
--- loadResource "about.markdown" >>= render
--- @
+-- > loadResource "images/profile.jpg" >>= render
+--
+-- Loads and renders to @about.html@:
+--
+-- > loadResource "about.markdown" >>= render
 --
 loadResource :: FilePath -> PencilApp Resource
 loadResource fp =
@@ -1039,13 +1058,34 @@ loadResource fp =
                      NotTextFile _ -> return (Passthrough fp fp)
                      _ -> throwError e
 
+-- | Loads file in given directory as 'Resource's.
+--
+-- Generally, you can just use `loadAndRender` instead of this method.
+--
+-- Load everything inside the @assets/@ folder, renaming converted files as
+-- expected (e.g. SCSS to CSS):
+--
+-- > loadResources True True "assets/"
+--
+loadResources :: Bool
+              -- ^ Recursive if @True@.
+              -> Bool
+              -- ^ Handle as pass-throughs (file copy) if @True@.
+              -> FilePath
+              -> PencilApp [Resource]
+loadResources recursive pass dir = do
+  fps <- listDir recursive dir
+  if pass
+    then return $ map (\fp -> Passthrough fp fp) fps
+    else mapM loadResource fps
+
 -- | Loads file as a pass-through. There is no content conversion, and template
 -- directives are ignored. In essence this is a file copy.
 --
 -- @
 -- passthrough "robots.txt" >>= render
 --
--- render (move "images/profile.jpg" <$> passthrough "images/myProfile.jpg")
+-- render (move "images\/profile.jpg" \<$\> passthrough "images\/myProfile.jpg")
 -- @
 --
 passthrough :: FilePath -> PencilApp Resource
@@ -1056,29 +1096,25 @@ passthrough fp = return $ Passthrough fp fp
 -- HTML, SCSS to CSS). Parses the template directives and preamble variables
 -- into its environment.
 --
--- Examples:
+-- This loads @index.markdown@ with the destination file path set to @index.html@:
+--
+-- > load "index.markdown"
+--
+-- Because this is already an HTML file, the file path is kept as @about.html@:
+--
+-- > load "about.html"
+--
+-- Using 'rename' and 'toDir', the destination file path becomes @pages\/about\/index.html@:
 --
 -- @
--- -- Loads index.markdown with the designated file path automatically
--- -- calculated to be index.html.
--- load "index.markdown"
---
--- load "about.html"
+-- 'rename' 'toDir' <$> load "pages/about.markdown"
 -- @
 --
 load :: FilePath -> PencilApp Page
 load fp = rename toExpected <$> load' fp
 
--- | Like 'load', loads a file into a Page. Unlike 'load', the original FilePath
--- is kept for the output format. This allows you supply your own file path
--- transformer.
---
--- Examples:
---
--- @
--- -- Will be rendered as about/index.html.
--- 'rename' 'toDir' \<$\> load' "about/index.markdown"
--- @
+-- | Like 'load', loads a file into a Page. Unlike 'load', the source file path
+-- is used as the destination file path (i.e. the extension name is not changed).
 --
 load' :: FilePath -> PencilApp Page
 load' fp = do
@@ -1088,17 +1124,15 @@ load' fp = do
   let env' = H.insert "this.nodes" (VNodes (filter (not . isPreamble) nodes)) (findEnv nodes)
   return $ Page env' fp False False
 
--- | A version of 'load' for directories. Loads the files in the specified
--- directory as pages. Pages that are converted to a different format are
--- renamed to the output format. If you don't want the file renamed, use
--- @loadDir'@.
+-- | A version of 'load' for directories.
 --
 -- @
+-- layout <- load "layout.html"
 -- tutorials <- loadDir False "tutorials/"
--- render $ fmap ((layout <||) . rename toDir) pages
+-- render $ fmap ((layout '<||') . 'rename' 'toDir') tutorials
 -- @
 loadDir :: Bool
-        -- ^ Recursive if true
+        -- ^ If True, recursively load files in the directory
         -> FilePath
         -> PencilApp [Page]
 loadDir = loadDirWith load
@@ -1144,14 +1178,15 @@ findEnv nodes =
 -- knows how to convert the file (e.g. .markdown to .html). Otherwise, the same
 -- file name is kept (e.g. .txt).
 --
--- @
--- -- Load, convert and render as style.css.
--- loadAndRender "style.sass"
+-- Load @style.sass@, convert to CSS, and render as @style.css@:
 --
--- -- Load, convert and render everything in the assets/ folder. Binary files
--- -- are copied as-is without any further processing.
--- loadAndRender "assets/"
--- @
+-- > loadAndRender "style.sass"
+--
+-- Load, convert and render everything in the @assets/@ folder. Binary files are
+-- copied as-is without any further processing:
+--
+-- > loadAndRender "assets/"
+--
 loadAndRender :: FilePath -> PencilApp ()
 loadAndRender fp =
   if isDir fp
@@ -1163,7 +1198,7 @@ loadAndRender fp =
 -- The first element defines the outer-most container, and subsequent elements
 -- are /inside/ the previous element.
 --
--- You commonly use @Structure@s to insert a @Page@ containing content (e.g. a blog
+-- You commonly use @Structure@s to insert a page containing content (e.g. a blog
 -- post) into a container (e.g. a layout shared across all your web pages).
 --
 -- Build structures using 'struct', '<||' and '<|'.
@@ -1176,26 +1211,36 @@ loadAndRender fp =
 -- render (layout <|| about)
 -- @
 --
--- In the example above we load a layout @Page@, which can be an HTML page
--- defining the outer structures like @\<html\>\<\/html\>@. Assuming @layout.html@
--- has the template directive @${body}@ (note that @body@ is a special variable
--- generated during structure-building), @layout <|| index@
--- tells 'render' that you want the rendered body of @index@ to be injected into
--- the @${body}@ directive inside of @layout@.
+-- In the example above we load a layout page, which defines the outer HTML
+-- structure like @\<html\>\<\/html\>@. We then "push" the index page and the
+-- about page into the layout.
 --
--- @Structure@s also control the closure of variables. Variables defined in a
--- @Page@s are accessible both by @Page@s above and below. This allows inner
--- @Page@s to define variables like the blog post title, which may be used in
--- the outer @Page@ to set the @\<title\>@ tag.
+-- When we 'render' @layout <|| index@, the contents of the index (and about)
+-- page is injected into the layout page through the variable @${body}@. So
+-- @layout.html@ must use @${body}@ somewhere in its own body.
 --
--- In this way, @Structure@ allows efficient @Page@ reuse. See the private
--- function 'apply' to learn more about how @Structure@s are
--- evaluated.
+-- Structures also control the closure of variables. Variables defined in a
+-- page are accessible both by pages above and below. This allows inner
+-- pages to define variables like the blog post title, which may be used in
+-- the outer page to, say, set the @\<title\>@ tag.
 --
--- Note that this differs from the @${partial(...)}@ directive, which has no
+-- In this way, structures allows efficient page reuse. See the private function
+-- 'apply' to learn more about how structures are evaluated.
+--
+-- /The Default File Path Rule/. When a structure is rendered, the /last/
+-- non-collection page in the structure is used as the destination file path.
+-- You can select a different page via 'useFilePath'.
+--
+-- The [Pages and
+-- Structures](https://elbenshira.com/pencil/guides/pages-and-structures/) guide
+-- also describes structures in detail.
+--
+-- Note that structures differ from the @${partial(...)}@ directive, which has no
 -- such variable closures. The partial directive is much simpler—think of them
 -- as copy-and-pasting snippets from one file to another. A partial has
--- the same environment as the parent context.
+-- the same environment as the context in which the partial directive appears.
+--
+--
 data Structure = Structure
   { structureNodes :: NonEmpty Node
   , structureFilePath :: FilePath
@@ -1221,7 +1266,7 @@ nodeName :: Node -> T.Text
 nodeName (Node n _) = n
 nodeName (Nodes n _) = n
 
--- | Creates a new @Structure@ from two @Page@s. Pronounced "smash".
+-- | Creates a new structure from two pages. Pronounced "smash".
 --
 -- @
 -- layout <- load "layout.html"
@@ -1253,7 +1298,7 @@ nodeName (Nodes n _) = n
 --
 -- @
 -- blogLayout <- load "blog-layout.html"
--- blogPosts <- Pencil.Blog.loadBlogPosts "posts/"
+-- blogPosts <- 'Pencil.Blog.loadBlogPosts' "posts/"
 -- render (struct blogLayout <<| coll "posts" blogPosts)
 -- @
 (<<|) :: Structure -> Node -> Structure
@@ -1273,11 +1318,11 @@ nodeName (Nodes n _) = n
        , structureFilePathFrozen = frozen
        }
 
--- | Creates a collection 'Node'. Usually used in conjunction with '(<<|)`.
+-- | Creates a collection 'Node'. Usually used in conjunction with '<<|'.
 coll :: T.Text -> [Page] -> Node
 coll = Nodes
 
--- | Converts a @Page@ into a @Structure@.
+-- | Converts a @Page@ into a @Structure@. This is a "singleton" structure.
 struct :: Page -> Structure
 struct p = Structure
   { structureNodes = Node "body" p :| []
@@ -1291,6 +1336,8 @@ struct p = Structure
 -- @
 -- withEnv ('insertText' "newvar" "newval" env) ('render' page)
 -- @
+--
+-- Alternatively, use 'Reader.local', which is re-exported in the Pencil module.
 --
 withEnv :: Env -> PencilApp a -> PencilApp a
 withEnv env = local (setEnv env)
@@ -1318,10 +1365,10 @@ instance HasFilePath Structure where
   getFilePath = structureFilePath
   setFilePath fp s = s { structureFilePath = fp }
 
--- | To render something is to create the output web pages, rendering template
+-- | To render something is to create the output web pages, evaluating template
 -- directives into their final form using the current environment.
 class Render a where
-  -- | Renders a as web page(s).
+  -- | Renders @a@ as web page(s).
   render :: a -> PencilApp ()
 
 instance Render Resource where

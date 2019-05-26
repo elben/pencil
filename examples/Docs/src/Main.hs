@@ -22,10 +22,10 @@ website = do
   index <- load "index.markdown"
   render (layout <|| index)
 
-  tuts <- loadDir' False "tutorials/"
+  tuts <- loadDir False "tutorials/"
   renderDir layout tuts
 
-  guides <- loadDir' False "guides/"
+  guides <- loadDir False "guides/"
   renderDir layout guides
 
   where

@@ -12,19 +12,22 @@ module Pencil
   --
   -- $pagesStructuresResources
 
-    Page
-  , getPageEnv, setPageEnv
+    Render(..)
+
+  -- ** Page
+
+  , Page
   , load
-  , load'
   , loadDir
-  , loadDir'
-  , withEnv
   , loadAndRender
-  , useFilePath
-  , escapeXml
   , rename
   , to
   , move
+  , useFilePath
+  , escapeXml
+  , getPageEnv, setPageEnv
+
+  -- ** Structure
 
   , Structure
   , struct
@@ -33,13 +36,16 @@ module Pencil
   , (<<|)
   , coll
 
+  -- ** Resource
+
   , Resource
   , passthrough
   , loadResource
   , loadResources
-  , listDir
 
-  , Render(..)
+  -- ** Utilities
+
+  , listDir
   , toExpected
   , toHtml
   , toCss
@@ -70,6 +76,7 @@ module Pencil
   , filterByVar
   , groupByElements
   , toTextRss
+  , withEnv
 
   -- * Configuration
 
@@ -83,7 +90,7 @@ module Pencil
   , getPandocReaderOptions, setPandocReaderOptions
   , getPandocWriterOptions, setPandocWriterOptions
 
-  -- * Utils and Re-exports
+  -- * Utilities and Re-exports
 
   , FileType
   , fileType
@@ -110,24 +117,20 @@ import Control.Monad.Reader as Reader
 
 -- $gettingstarted
 --
--- The best way to get started is to follow the tutorials and guides found on
+-- Pencil helps you build static websites in Haskell. Write your website's
+-- content in HTML or Markdown, and use the power of Pencil to compose
+-- components together into HTML pages.
+--
+-- The best way to get started is to follow the tutorials and guides found at
 -- [elbenshira.com/pencil](https://elbenshira.com/pencil).
 --
--- [Here](https://github.com/elben/pencil/blob/master/examples/Simple/src/Main.hs)
--- is an example Pencil app, which is a very simple website with only a couple
--- of pages. @Main.hs@ looks like this:
---
+-- Here is a simple website of a couple of pages, based off
+-- [this](https://github.com/elben/pencil/blob/master/examples/Simple/src/Main.hs)
+-- example:
 --
 -- > module Main where
 -- > 
 -- > import Pencil
--- > 
--- > config :: Config
--- > config =
--- >   (updateEnv (insertText "title" "My Awesome Website") .
--- >    setSourceDir "examples/Simple/site/" .
--- >    setOutputDir "examples/Simple/out/")
--- >    defaultConfig
 -- > 
 -- > website :: PencilApp ()
 -- > website = do
@@ -138,14 +141,7 @@ import Control.Monad.Reader as Reader
 -- >   loadAndRender "stylesheet.scss"
 -- > 
 -- > main :: IO ()
--- > main = run website config
---
--- The example above shows that Pencil allows you to easily load and process
--- Markdown files. You can then combine them with HTML layouts. Pencil also
--- supports processing SCSS files out-of-the-box. You can of course add new
--- functionality as required. If you run this code, it will spit out an
--- @index.html@ file and a @style.css@ file in the @examples\/Simple\/out\/@
--- folder.
+-- > main = run website defaultConfig
 --
 -- To learn more, dig into the tutorials and guides found on
 -- [elbenshira.com/pencil](elbenshira.com/pencil).
@@ -180,8 +176,8 @@ import Control.Monad.Reader as Reader
 --
 -- The [Pages and
 -- Structures](https://elbenshira.com/pencil/guides/pages-and-structures/) guide
--- is the best starting point about these data types and their importance in
--- Pencil.
+-- introduces these important data types. The documentation found here goes into
+-- further detail.
 
 ----------------------------------------------------------------------
 

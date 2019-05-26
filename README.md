@@ -2,9 +2,10 @@
 
 # Pencil
 
-Pencil is a static site generator. Use it to generate your personal website!
-Pencil comes pre-loaded with goodies such as blogging, tagging, templating,
-and Markdown Sass/Scss support. Flexible enough to extend for your own needs.
+Pencil is a static site generator. Use Pencil to build a personal website, a
+blog, and more. Pencil comes pre-loaded with goodies such as Markdown and
+Sass/Scss support, templating, blogging, and tagging. Designed with the
+Haskell beginner in mind, but flexible enough to extend for your own needs.
 
 The easiest way to get started is to read the tutorials at
 [elbenshira.com/pencil](http://elbenshira.com/pencil) and reference the [Haddock

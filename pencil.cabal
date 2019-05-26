@@ -2,9 +2,10 @@ name:                pencil
 version:             1.0.0
 synopsis: Static site generator
 description:
-  Pencil is a static site generator. Use it to generate your personal website!
-  Pencil comes pre-loaded blogging, tagging, templating, and Markdown and
-  Sass/Scss support. Flexible enough to extend for your own needs.
+  Pencil is a static site generator. Use Pencil to build a personal website, a
+  blog, and more. Pencil comes pre-loaded with goodies such as Markdown and
+  Sass/Scss support, templating, blogging, and tagging. Designed with the
+  Haskell beginner in mind, but flexible enough to extend for your own needs.
 homepage:            https://github.com/elben/pencil
 license:             BSD3
 license-file:        LICENSE

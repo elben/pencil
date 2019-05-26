@@ -130,8 +130,7 @@ Check out the [Hackage docs](http://hackage.haskell.org/package/pencil/docs/Penc
 
 ### Page
 
-- `load` and `load'`
-- `loadDir` and `loadDir'`
+- `load` and `loadDir`
 - `loadAndRender`
 - `rename`
 - `move`
