@@ -39,7 +39,7 @@ library
   hs-source-dirs:      src
   exposed-modules:     Pencil
                      , Pencil.Internal.Pencil
-                     , Pencil.Internal.Blog
+                     , Pencil.Blog
                      , Pencil.Config
                      , Pencil.Internal.Env
                      , Pencil.Internal.Parser

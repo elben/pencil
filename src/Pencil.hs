@@ -110,7 +110,7 @@ module Pencil
 
 import Pencil.Config
 import Pencil.Internal.Pencil
-import Pencil.Internal.Blog
+import Pencil.Blog
 
 import Control.Monad.Reader as Reader
 

@@ -21,9 +21,8 @@ easy. Please email me if you are having problems!
   template. See the Blog example for details.
 
 ### Changed
-- `Pencil.Blog` moved to `Pencil.Internal.Blog`. All of the blog functions are
-  now re-exported in `Pencil`. So you only need to `import Pencil` now, and you
-  get everything!
+- All of the `Pencil.Blog` functions are now re-exported in `Pencil`. So you
+  only need to `import Pencil` now.
 - `load` now automatically figures out the desired final FilePath, so it
   doesn't take a `(FilePath -> FilePath)` as the first argument anymore. You
   can change your code from `load toHtml "foo.markdown"` to `load

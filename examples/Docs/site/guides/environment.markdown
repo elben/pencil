@@ -50,7 +50,7 @@ These variables follow the same rule as page-defined variables. Think of them as
 
 You can use `updateEnv` with methods like `insertEnv`, `insertText`, `insertPages`, `updateEnvVal`.
 
-You can also use `getPageEnv` and `setPageEnv`, along with the functions above, to manipulate each page’s environment to your liking. These are the functions that `Pencil.Internal.Blog` uses to build up the default blogging functionality.
+You can also use `getPageEnv` and `setPageEnv`, along with the functions above, to manipulate each page’s environment to your liking. These are the functions that `Pencil.Blog` uses to build up the default blogging functionality.
 
 ## Running inside a modified environment
 

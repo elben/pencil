@@ -3,7 +3,7 @@
 {-|
 Useful functionality to make blogging easy.
 -}
-module Pencil.Internal.Blog where
+module Pencil.Blog where
 
 import Pencil.Config
 import Pencil.Internal.Env
