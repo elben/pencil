@@ -491,31 +491,6 @@ groupByElements var pages =
 isDir :: FilePath -> Bool
 isDir fp = null (FP.takeBaseName fp)
 
-
-
--- | @Resource@ is used to copy static binary files to the destination, and to
--- load and render files that just needs conversion without template directives
--- or structures.
---
--- This is how Pencil handles files like images, compiled JavaScript, or text
--- files that require only a straight-forward conversion.
---
--- Use 'passthrough', 'loadResource' and 'loadResources' to build a @Resource@
--- from a file.
---
--- In the example below, @robots.txt@ and everything in the @images/@ directory
--- will be rendered as-is.
---
--- @
--- passthrough "robots.txt" >>= render
--- passthrough "images/" >>= render
--- @
---
-data Resource
-  = Single Page
-  | Passthrough FilePath FilePath
-  -- ^ in and out file paths (can be dir or files)
-
 -- | Copy file from source to output dir. If both the input and output file
 -- paths are directories, recursively copy the contents from one to the other.
 copyFile :: FilePath -> FilePath -> PencilApp ()
@@ -962,29 +937,3 @@ insertPages var pages env = do
                  return penv)
                pages
   return $ H.insert var (VEnvList envs) env
-
--- | A version of 'toText' that renders 'Value' acceptable for an RSS feed.
---
--- * Dates are rendered in the RFC 822 format.
--- * Everything else defaults to the 'toText' implementation.
---
--- You'll probably want to also use 'escapeXml' to render an RSS feed.
---
-toTextRss :: Value -> T.Text
-toTextRss (VDateTime dt) = T.pack $ TF.formatTime TF.defaultTimeLocale rfc822DateFormat dt
-toTextRss v = toText v
-
--- | RFC 822 date format.
---
--- Helps to pass https://validator.w3.org/feed/check.cgi.
---
--- Same as https://hackage.haskell.org/package/time/docs/Data-Time-Format.html#v:rfc822DateFormat
--- but no padding for the day section, so that single-digit days only has one space preceeding it.
---
--- Also changed to spit out the offset timezone (+0000) because the default was spitting out "UTC"
--- which is not valid RFC 822. Weird, since the defaultTimeLocal source and docs show that it won't
--- use "UTC":
--- https://hackage.haskell.org/package/time/docs/Data-Time-Format.html#v:defaultTimeLocale
---
-rfc822DateFormat :: String
-rfc822DateFormat = "%a, %d %b %Y %H:%M:%S %z"

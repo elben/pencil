@@ -46,19 +46,6 @@ toValue (A.Array arr) =
   Just $ VArray (V.toList (V.mapMaybe toValue arr))
 toValue _ = Nothing
 
--- | Render for human consumption. This is the default one. Pass into Config as
--- part of the Reader?
-toText :: Value -> T.Text
-toText VNull = "null"
-toText (VText t) = t
-toText (VArray arr) = T.unwords $ map toText arr
-toText (VBool b) = if b then "true" else "false"
-toText (VEnvList envs) = T.unwords $ map (T.unwords . map toText . H.elems) envs
-toText (VDateTime dt) =
-  -- December 30, 2017
-  T.pack $ TF.formatTime TF.defaultTimeLocale "%B %e, %Y" dt
-toText (VNodes nodes) = P.renderNodes nodes
-
 -- | Accepted format is ISO 8601 (YYYY-MM-DD), optionally with an appended "THH:MM:SS".
 -- Example: 2010-01-30, 2010-01-30T09:08:00
 toDateTime :: String -> Maybe TC.UTCTime
@@ -114,3 +101,41 @@ getContent env =
   case H.lookup "this.content" env of
     Just (VText content) -> return content
     _ -> Nothing
+
+-- | Render environment value for human consumption. This is the default one.
+toText :: Value -> T.Text
+toText VNull = "null"
+toText (VText t) = t
+toText (VArray arr) = T.unwords $ map toText arr
+toText (VBool b) = if b then "true" else "false"
+toText (VEnvList envs) = T.unwords $ map (T.unwords . map toText . H.elems) envs
+toText (VDateTime dt) =
+  -- December 30, 2017
+  T.pack $ TF.formatTime TF.defaultTimeLocale "%B %e, %Y" dt
+toText (VNodes nodes) = P.renderNodes nodes
+
+-- | A version of 'toText' that renders 'Value' acceptable for an RSS feed.
+--
+-- * Dates are rendered in the RFC 822 format.
+-- * Everything else defaults to the 'toText' implementation.
+--
+-- You'll probably want to also use 'escapeXml' to render an RSS feed.
+--
+toTextRss :: Value -> T.Text
+toTextRss (VDateTime dt) = T.pack $ TF.formatTime TF.defaultTimeLocale rfc822DateFormat dt
+toTextRss v = toText v
+
+-- | RFC 822 date format.
+--
+-- Helps to pass https://validator.w3.org/feed/check.cgi.
+--
+-- Same as https://hackage.haskell.org/package/time/docs/Data-Time-Format.html#v:rfc822DateFormat
+-- but no padding for the day section, so that single-digit days only has one space preceeding it.
+--
+-- Also changed to spit out the offset timezone (+0000) because the default was spitting out "UTC"
+-- which is not valid RFC 822. Weird, since the defaultTimeLocal source and docs show that it won't
+-- use "UTC":
+-- https://hackage.haskell.org/package/time/docs/Data-Time-Format.html#v:defaultTimeLocale
+--
+rfc822DateFormat :: String
+rfc822DateFormat = "%a, %d %b %Y %H:%M:%S %z"

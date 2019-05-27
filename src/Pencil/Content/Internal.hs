@@ -98,3 +98,26 @@ data Structure = Structure
 data Node =
     Node T.Text Page
   | Nodes T.Text [Page]
+
+-- | @Resource@ is used to copy static binary files to the destination, and to
+-- load and render files that just needs conversion without template directives
+-- or structures.
+--
+-- This is how Pencil handles files like images, compiled JavaScript, or text
+-- files that require only a straight-forward conversion.
+--
+-- Use 'passthrough', 'loadResource' and 'loadResources' to build a @Resource@
+-- from a file.
+--
+-- In the example below, @robots.txt@ and everything in the @images/@ directory
+-- will be rendered as-is.
+--
+-- @
+-- passthrough "robots.txt" >>= render
+-- passthrough "images/" >>= render
+-- @
+--
+data Resource
+  = Single Page
+  | Passthrough FilePath FilePath
+  -- ^ in and out file paths (can be dir or files)
