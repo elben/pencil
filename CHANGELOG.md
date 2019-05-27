@@ -53,6 +53,7 @@ easy. Please email me if you are having problems!
 ### Removed
 - `renderCss`. Use `loadAndRender` instead. As in: `loadAndRender "style.scss"`
 - Removed `VarNotInEnv` error type, since Pencil no longer throws that.
+- Removed `arrayContainsString`.
 
 ## [0.1.3]
 

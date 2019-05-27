@@ -80,7 +80,7 @@ dateOrdering :: Value -> Value -> Ordering
 dateOrdering (VDateTime a) (VDateTime b) = compare b a
 dateOrdering _ _ = EQ
 
--- | Get the nodes from the env, from the @this.nodes@ variable. Returns empty
+-- | Gets the nodes from the env, from the @this.nodes@ variable. Returns empty
 -- list if this variable is missing.
 getNodes :: Env -> [P.PNode]
 getNodes env =
@@ -88,15 +88,15 @@ getNodes env =
     Just (VNodes nodes) -> nodes
     _ -> []
 
--- | Get the render's content from the env, from the @this.content@ variable.
--- Returns Nothing is the variable is missing (e.g. has not been rendered)
+-- | Gets the rendered content from the env, from the @this.content@ variable.
+-- Returns empty is the variable is missing (e.g. has not been rendered).
 getContent :: Env -> Maybe T.Text
 getContent env =
   case H.lookup "this.content" env of
     Just (VText content) -> return content
     _ -> Nothing
 
--- | Render environment value for human consumption. This is the default one.
+-- | Renders environment value for human consumption. This is the default one.
 toText :: Value -> T.Text
 toText VNull = "null"
 toText (VText t) = t
