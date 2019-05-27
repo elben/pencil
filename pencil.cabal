@@ -43,7 +43,7 @@ library
                      , Pencil.Config
                      , Pencil.Env
                      , Pencil.Env.Internal
-                     , Pencil.Internal.Parser
+                     , Pencil.Parser.Internal
   build-depends:       base >= 4.8 && < 5
                      , data-default >= 0.7 && < 1
                      , directory >= 1.2.5.0 && < 1.4

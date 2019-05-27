@@ -5,7 +5,7 @@ Internal implementation of Pencil's environment.
 -}
 module Pencil.Env.Internal where
 
-import qualified Pencil.Internal.Parser as P
+import qualified Pencil.Parser.Internal as P
 
 import qualified Data.HashMap.Strict as H
 import qualified Data.Maybe as M

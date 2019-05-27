@@ -3,7 +3,7 @@
 {-|
 Internal implementation of Pencil's template directive parser.
 -}
-module Pencil.Internal.Parser where
+module Pencil.Parser.Internal where
 
 import Text.ParserCombinators.Parsec
 import qualified Data.List as DL

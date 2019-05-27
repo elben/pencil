@@ -8,7 +8,7 @@ module Pencil.Blog where
 import Pencil.Config
 import Pencil.Env
 import Pencil.Internal.Pencil
-import Pencil.Internal.Parser as Parser
+import Pencil.Parser.Internal as Parser
 import Control.Monad (liftM, foldM)
 import Control.Monad.Reader (asks)
 import qualified Data.HashMap.Strict as H
