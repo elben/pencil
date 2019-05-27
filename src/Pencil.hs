@@ -69,7 +69,7 @@ module Pencil
 
   , merge
   , adjust
-  , insertEnv
+  , insert
   , insertText
   , insertPages
   , sortByVar
@@ -114,7 +114,6 @@ import Pencil.Config
 import Pencil.Content
 import Pencil.Env
 import Pencil.Files
-import Pencil.Internal.Pencil
 
 import Control.Monad.Reader as Reader
 

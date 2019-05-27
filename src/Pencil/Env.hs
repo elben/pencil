@@ -2,9 +2,9 @@ module Pencil.Env
   ( module Pencil.Env.Internal
 
   , merge
+  , insert
   , adjust
   , insertText
-  , insertEnv
 
   , findEnv
   , aesonToEnv
@@ -52,14 +52,14 @@ adjust :: (Value -> Value)
 adjust = H.adjust
 
 -- | Inserts @Value@ into the given @Env@.
-insertEnv :: T.Text
+insert :: T.Text
           -- ^ Environment variable name.
           -> Value
           -- ^ @Value@ to insert.
           -> Env
           -- ^ Environment to modify.
           -> Env
-insertEnv = H.insert
+insert = H.insert
 
 -- | Find preamble node, and load as an Env. If no preamble is found, return a
 -- blank Env.

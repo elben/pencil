@@ -78,54 +78,6 @@ listDir_ recursive dir = do
 -- Page
 ----------------------------------------------------------------------
 
--- | Gets the Env of a 'Page'.
-getPageEnv :: Page -> Env
-getPageEnv = pageEnv
-
--- | Sets the Env of a 'Page'.
-setPageEnv :: Env -> Page -> Page
-setPageEnv env p = p { pageEnv = env }
-
--- | Sets this 'Page' as the designated final 'FilePath'.
---
--- This is useful when you are building a 'Structure' but don't want the file
--- path of the last 'Page' in the structure to be the destination file path on
--- render.
---
--- The [Pages and
--- Structures](https://elbenshira.com/pencil/guides/pages-and-structures/) guide
--- describes this in detail.
---
--- @
--- a <- load "a.html"
--- b <- load "b.html"
--- c <- load "c.html"
---
--- -- Rendered file path is "c.html"
--- render $ a <|| b <| c
---
--- -- Rendered file path is "b.html"
--- render $ a <|| useFilePath b <| c
--- @
---
-useFilePath :: Page -> Page
-useFilePath p = p { pageUseFilePath = True }
-
--- | Sets this 'Page' to render with escaped XML/HTML tags.
---
--- This is useful when you are building an RSS feed, and you need the /contents/
--- of each item in the feed to HTML-escaped.
---
--- @
--- rss <- load "rss.xml"
--- item1 <- load "item1.html"
---
--- render $ rss <|| escapeXml item1
--- @
---
-escapeXml :: Page -> Page
-escapeXml p = p { pageEscapeXml = True }
-
 -- | Applies the environment variables on the given pages.
 --
 -- The 'Structure' is expected to be ordered by inner-most content first (such
@@ -252,7 +204,7 @@ applyPage env page = do
   -- Generate this Page's final file path.
   -- Insert the nodes and rendered content into the env.
   let env'' = (insertText "this.url" (T.pack ("/" ++ pageFilePath page)) .
-               insertEnv "this.nodes" (VNodes nodes) .
+               insert "this.nodes" (VNodes nodes) .
                insertText "this.content" (nodesToText (pageEscapeXml page) nodes))
               env'
 

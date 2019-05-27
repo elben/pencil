@@ -10,7 +10,6 @@ import Pencil.Env
 import Pencil.App
 import Pencil.Content
 import Pencil.Files
-import Pencil.Internal.Pencil
 import Pencil.Parser.Internal as Parser
 import Control.Monad (liftM, foldM)
 import Control.Monad.Reader (asks)
@@ -154,5 +153,5 @@ injectTagsEnv tagMap page =
       -- have access to the URL of the Tag index.
       env' = if null envs
                then getPageEnv page
-               else insertEnv "tags" (VEnvList envs) (getPageEnv page)
+               else insert "tags" (VEnvList envs) (getPageEnv page)
   in setPageEnv env' page

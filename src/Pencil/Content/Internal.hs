@@ -38,6 +38,55 @@ data Page = Page
   -- ^ Whether or not XML/HTML tags should be escaped when rendered.
   } deriving (Eq, Show)
 
+-- | Gets the Env of a 'Page'.
+getPageEnv :: Page -> Env
+getPageEnv = pageEnv
+
+-- | Sets the Env of a 'Page'.
+setPageEnv :: Env -> Page -> Page
+setPageEnv env p = p { pageEnv = env }
+
+-- | Sets this 'Page' as the designated final 'FilePath'.
+--
+-- This is useful when you are building a 'Structure' but don't want the file
+-- path of the last 'Page' in the structure to be the destination file path on
+-- render.
+--
+-- The [Pages and
+-- Structures](https://elbenshira.com/pencil/guides/pages-and-structures/) guide
+-- describes this in detail.
+--
+-- @
+-- a <- load "a.html"
+-- b <- load "b.html"
+-- c <- load "c.html"
+--
+-- -- Rendered file path is "c.html"
+-- render $ a <|| b <| c
+--
+-- -- Rendered file path is "b.html"
+-- render $ a <|| useFilePath b <| c
+-- @
+--
+useFilePath :: Page -> Page
+useFilePath p = p { pageUseFilePath = True }
+
+-- | Sets this 'Page' to render with escaped XML/HTML tags.
+--
+-- This is useful when you are building an RSS feed, and you need the /contents/
+-- of each item in the feed to HTML-escaped.
+--
+-- @
+-- rss <- load "rss.xml"
+-- item1 <- load "item1.html"
+--
+-- render $ rss <|| escapeXml item1
+-- @
+--
+escapeXml :: Page -> Page
+escapeXml p = p { pageEscapeXml = True }
+
+
 -- | A @Structure@ is a list of 'Page's, defining a nesting order. Think of them
 -- like <https://en.wikipedia.org/wiki/Matryoshka_doll Russian nesting dolls>.
 -- The first element defines the outer-most container, and subsequent elements
