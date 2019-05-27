@@ -5,7 +5,7 @@ module Pencil.Config where
 
 
 import Data.Default (Default)
-import Pencil.Internal.Env
+import Pencil.Env
 import Text.Pandoc.Extensions (disableExtension, Extension(..))
 import Text.Sass.Options (defaultSassOptions)
 import qualified Data.HashMap.Strict as H
@@ -154,7 +154,7 @@ getDisplayValue = configDisplayValue
 
 -- | Sets the function that renders 'Value' to text. Overwrite this with your
 -- own function if you would like to change how certain 'Value's are rendered
--- (e.g. 'Pencil.Internal.Env.VDateTime').
+-- (e.g. 'Pencil.Env.Internal.VDateTime').
 --
 -- @
 -- myRender :: Value -> T.Text

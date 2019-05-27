@@ -6,7 +6,7 @@ Useful functionality to make blogging easy.
 module Pencil.Blog where
 
 import Pencil.Config
-import Pencil.Internal.Env
+import Pencil.Env
 import Pencil.Internal.Pencil
 import Pencil.Internal.Parser as Parser
 import Control.Monad (liftM, foldM)

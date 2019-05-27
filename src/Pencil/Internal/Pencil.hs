@@ -8,7 +8,7 @@ Internal implementation of Pencil's functionality.
 -}
 module Pencil.Internal.Pencil where
 
-import Pencil.Internal.Env
+import Pencil.Env
 import Pencil.Internal.Parser
 import Pencil.Config
 

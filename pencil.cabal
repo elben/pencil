@@ -41,7 +41,8 @@ library
                      , Pencil.Internal.Pencil
                      , Pencil.Blog
                      , Pencil.Config
-                     , Pencil.Internal.Env
+                     , Pencil.Env
+                     , Pencil.Env.Internal
                      , Pencil.Internal.Parser
   build-depends:       base >= 4.8 && < 5
                      , data-default >= 0.7 && < 1

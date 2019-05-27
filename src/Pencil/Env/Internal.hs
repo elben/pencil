@@ -3,7 +3,7 @@
 {-|
 Internal implementation of Pencil's environment.
 -}
-module Pencil.Internal.Env where
+module Pencil.Env.Internal where
 
 import qualified Pencil.Internal.Parser as P
 
