@@ -393,7 +393,7 @@ isPreamble :: PNode -> Bool
 isPreamble (PPreamble _) = True
 isPreamble _ = False
 
--- | Gets the content of the @PPreamble@
+-- | Gets the content of the @PPreamble@.
 preambleText :: PNode -> Maybe T.Text
 preambleText (PPreamble t) = Just t
 preambleText _ = Nothing
