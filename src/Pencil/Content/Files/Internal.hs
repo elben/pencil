@@ -1,6 +1,6 @@
 {-# LANGUAGE DeriveGeneric #-}
 
-module Pencil.Files.Internal where
+module Pencil.Content.Files.Internal where
 
 import Data.Hashable (Hashable)
 import GHC.Generics (Generic)

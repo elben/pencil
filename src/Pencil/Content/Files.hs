@@ -1,5 +1,5 @@
-module Pencil.Files
-  ( module Pencil.Files.Internal
+module Pencil.Content.Files
+  ( module Pencil.Content.Files.Internal
   , toExtension
   , fileType
   , isDir
@@ -14,7 +14,7 @@ module Pencil.Files
   , move
   ) where
 
-import Pencil.Files.Internal
+import Pencil.Content.Files.Internal
 
 import qualified Data.HashMap.Strict as H
 import qualified Data.Maybe as M

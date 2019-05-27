@@ -12,8 +12,8 @@ import Pencil.Config
 import Pencil.Content.Internal
 import Pencil.Content.Nodes
 import Pencil.Env
-import Pencil.Files
-import Pencil.Files.Internal
+import Pencil.Content.Files
+import Pencil.Content.Files.Internal
 import Pencil.Parser.Internal
 
 import Control.Exception (tryJust)
