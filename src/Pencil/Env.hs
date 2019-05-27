@@ -1,5 +1,6 @@
 module Pencil.Env
   ( module Pencil.Env.Internal
+
   , merge
   , adjust
   , insertText
@@ -14,6 +15,7 @@ import Pencil.Env.Internal
 import Pencil.Parser.Internal
 import Pencil.Content.Internal
 import Pencil.App.Internal
+import Pencil.Config
 
 import Data.Text.Encoding (encodeUtf8)
 
@@ -69,9 +71,12 @@ findEnv nodes =
 aesonToEnv :: A.Object -> Env
 aesonToEnv = H.foldlWithKey' maybeInsertIntoEnv H.empty
 
--- | Convert known Aeson types into known Env types.
+-- | Convert known Aeson 'Aeson.Value' into a Pencil
+-- 'Pencil.Env.Internal.Value', and insert into the env. If there is no
+-- conversion possible, the env is not modified.
 maybeInsertIntoEnv :: Env -> T.Text -> A.Value -> Env
 maybeInsertIntoEnv env k v =
   case toValue v of
     Nothing -> env
     Just d -> H.insert k d env
+

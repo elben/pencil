@@ -742,18 +742,6 @@ struct p = Structure
   , structureFilePathFrozen = pageUseFilePath p
   }
 
--- | Runs the computation with the given environment. This is useful when you
--- want to render a 'Page' or 'Structure' with a modified environment.
---
--- @
--- withEnv ('insertText' "newvar" "newval" env) ('render' page)
--- @
---
--- Alternatively, use 'Reader.local', which is re-exported in the Pencil module.
---
-withEnv :: Env -> PencilApp a -> PencilApp a
-withEnv env = local (setEnv env)
-
 ----------------------------------------------------------------------
 -- HasFilePath class
 ----------------------------------------------------------------------

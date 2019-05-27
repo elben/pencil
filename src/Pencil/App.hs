@@ -2,18 +2,19 @@ module Pencil.App
   ( PencilApp
   , PencilException(..)
   , run
-  , listDir
+  , withEnv
   ) where
 
 import Pencil.App.Internal
+import Pencil.Env.Internal
+import Pencil.Content
 import Pencil.Config
+
 import Control.Monad.Except
 import Control.Monad.Reader
 
 import qualified Data.List as L
 import qualified Data.Text as T
-import qualified System.Directory as D
-import qualified System.FilePath as FP
 import qualified Text.EditDistance as EditDistance
 
 -- | Run the Pencil app.
@@ -48,38 +49,17 @@ run app config = do
     Left _ -> fail "Exception when running program!"
     _ -> return ()
 
--- | Lists files in given directory. The file paths returned is prefixed with the
--- given directory.
-listDir :: Bool
-        -- ^ Recursive if @True@.
-        -> FilePath
-        -> PencilApp [FilePath]
-listDir recursive dir = do
-  let dir' = if null dir then dir else FP.addTrailingPathSeparator dir
-  fps <- listDir_ recursive dir'
-  return $ map (dir' ++) fps
-
--- | 'listDir' helper.
-listDir_ :: Bool -> FilePath -> PencilApp [FilePath]
-listDir_ recursive dir = do
-  sitePrefix <- asks getSourceDir
-  -- List files (just the filename, without the fp directory prefix)
-  listing <- liftIO $ D.listDirectory (sitePrefix ++ dir)
-  -- Filter only for files (we have to add the right directory prefixes to the
-  -- file check)
-  files <- liftIO $ filterM (\f -> D.doesFileExist (sitePrefix ++ dir ++ f)) listing
-  dirs <- liftIO $ filterM (\f -> D.doesDirectoryExist (sitePrefix ++ dir ++ f)) listing
-
-  innerFiles <- if recursive
-                  then mapM
-                         (\d -> do
-                           ff <- listDir_ recursive (dir ++ d ++ "/")
-                           -- Add the inner directory as a prefix
-                           return (map (\f -> d ++ "/" ++ f) ff))
-                         dirs
-                  else return []
-
-  return $ files ++ concat innerFiles
+-- | Runs the computation with the given environment. This is useful when you
+-- want to render a 'Page' or 'Structure' with a modified environment.
+--
+-- @
+-- withEnv ('insertText' "newvar" "newval" env) ('render' page)
+-- @
+--
+-- Alternatively, use 'Reader.local', which is re-exported in the Pencil module.
+--
+withEnv :: Env -> PencilApp a -> PencilApp a
+withEnv env = local (setEnv env)
 
 -- | Given a file path, look at all file paths and find the one that seems most
 -- similar.
