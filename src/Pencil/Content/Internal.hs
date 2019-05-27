@@ -1,8 +1,53 @@
+{-# LANGUAGE DeriveGeneric #-}
+
 module Pencil.Content.Internal where
 
 import Pencil.Env.Internal
 import Data.List.NonEmpty (NonEmpty(..)) -- Import the NonEmpty data constructor, (:|)
+import Data.Hashable (Hashable)
+import GHC.Generics (Generic)
 import qualified Data.Text as T
+import qualified Data.HashMap.Strict as H
+
+-- | Enum for file types that can be parsed and converted by Pencil.
+data FileType = Html
+              | Markdown
+              | Css
+              | Sass
+              | Other
+  deriving (Eq, Generic)
+
+-- | 'Hashable' instance of @FileType@.
+instance Hashable FileType
+
+-- | A 'H.HashMap' of file extensions (e.g. @markdown@) to 'FileType'.
+--
+-- * 'Html': @html, htm@
+-- * 'Markdown': @markdown, md@
+-- * 'Css': @css@
+-- * 'Sass': @sass, scss@
+--
+fileTypeMap :: H.HashMap String FileType
+fileTypeMap = H.fromList
+  [ ("html", Html)
+  , ("htm", Html)
+  , ("markdown", Markdown)
+  , ("md", Markdown)
+  , ("css", Css)
+  , ("sass", Sass)
+  , ("scss", Sass)
+  ]
+
+-- | Mapping of 'FileType' to the final converted format. Only contains
+-- 'FileType's that Pencil will convert.
+--
+-- * 'Markdown': @html@
+-- * 'Sass': @css@
+--
+extensionMap :: H.HashMap FileType String
+extensionMap = H.fromList
+  [ (Markdown, "html")
+  , (Sass, "css")]
 
 -- | The @Page@ is an important data type in Pencil.
 --
