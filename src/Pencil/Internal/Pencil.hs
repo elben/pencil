@@ -10,7 +10,7 @@ module Pencil.Internal.Pencil where
 
 import Pencil.Internal.Env
 import Pencil.Internal.Parser
-import Pencil.Internal.Config
+import Pencil.Config
 
 import Control.Exception (tryJust)
 import Control.Monad (forM_, foldM, filterM)

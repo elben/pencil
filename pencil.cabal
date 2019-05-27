@@ -40,7 +40,7 @@ library
   exposed-modules:     Pencil
                      , Pencil.Internal.Pencil
                      , Pencil.Internal.Blog
-                     , Pencil.Internal.Config
+                     , Pencil.Config
                      , Pencil.Internal.Env
                      , Pencil.Internal.Parser
   build-depends:       base >= 4.8 && < 5

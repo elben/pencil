@@ -1,7 +1,7 @@
 {-|
 Pencil Config.
 -}
-module Pencil.Internal.Config where
+module Pencil.Config where
 
 
 import Data.Default (Default)

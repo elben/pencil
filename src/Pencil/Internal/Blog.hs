@@ -5,7 +5,7 @@ Useful functionality to make blogging easy.
 -}
 module Pencil.Internal.Blog where
 
-import Pencil.Internal.Config
+import Pencil.Config
 import Pencil.Internal.Env
 import Pencil.Internal.Pencil
 import Pencil.Internal.Parser as Parser

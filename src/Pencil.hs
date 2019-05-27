@@ -108,7 +108,7 @@ module Pencil
 
   ) where
 
-import Pencil.Internal.Config
+import Pencil.Config
 import Pencil.Internal.Pencil
 import Pencil.Internal.Blog
 
