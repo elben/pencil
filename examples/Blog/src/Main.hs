@@ -36,7 +36,7 @@ website = do
   -- - injectTitle - This generates a `title` variable in our env that has the
   --   format of "post title - My Blog"
   --
-  -- - injectTagsEnv - This injects some environment variables so that our blog
+  -- - injectTags - This injects some environment variables so that our blog
   --   post page knows what tags it has (via `tags` variable), AND a reference to
   --   the tag index page that we built above (via `this.url`). Look through
   --   post-layout.html to see how to use these tag variables.
@@ -46,7 +46,7 @@ website = do
   --
   -- - render - Finally we render all of our blog posts into files.
   --
-  render $ fmap ((layout <|| postLayout <|) . injectTagsEnv tagPages . injectTitle websiteTitle)
+  render $ fmap ((layout <|| postLayout <|) . injectTags tagPages . injectTitle websiteTitle)
                 posts
 
   -- Load our index page.

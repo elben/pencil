@@ -61,7 +61,7 @@ module Pencil
   , Tag
   , buildTagPages
   , buildTagPagesWith
-  , injectTagsEnv
+  , injectTags
 
   -- * Environment Manipulation
   --

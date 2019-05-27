@@ -195,12 +195,12 @@ We actually can now page for each tag, listing out all the posts tagged with the
 
 Re-build your website, and check out [localhost:8000/blog/tags/awesome/](http://localhost:8000/blog/tags/awesome/).
 
-OK that's pretty sweet. But we also want to list out the tags on each of the blog post page that we rendered. And not only that, but we want to link each tag to the tag listing page. This is common-enough and confusing-enough to warrant a built-in method. We can use `injectTagsEnv` during the blog post render, like this:
+OK that's pretty sweet. But we also want to list out the tags on each of the blog post page that we rendered. And not only that, but we want to link each tag to the tag listing page. This is common-enough and confusing-enough to warrant a built-in method. We can use `injectTags` during the blog post render, like this:
 
 ```
 render $
   fmap ((layout <|| postLayout <|)
-        . injectTagsEnv tagPages
+        . injectTags tagPages
         . injectTitle websiteTitle)
     posts
 ```
@@ -213,7 +213,7 @@ ${if(tags)}
 ${end}
 ```
 
-`injectTagsEnv` filters out the `tagPages` you passed in only to the tags found in the current page. Thus we can loop through `tags` and link to the tag listing page, just like that.
+`injectTags` filters out the `tagPages` you passed in only to the tags found in the current page. Thus we can loop through `tags` and link to the tag listing page, just like that.
 
 There ya go. Tags. It's complicated underneath the hood, but at least the method are easy to use, right? As always, if you're interested in learning more, the source code is always available. If you want a more interesting tagging system (sub-tags?), the existing implementation would serve as a good starting point.
 
