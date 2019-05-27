@@ -9,6 +9,7 @@ Internal implementation of Pencil's functionality.
 module Pencil.Internal.Pencil where
 
 import Pencil.Env
+import Pencil.App
 import Pencil.Parser.Internal
 import Pencil.Config
 
@@ -19,7 +20,7 @@ import Control.Monad.Reader
 import Data.Char (toLower)
 import Data.Hashable (Hashable)
 import Data.List.NonEmpty (NonEmpty(..)) -- Import the NonEmpty data constructor, (:|)
-import Data.Text.Encoding (encodeUtf8, decodeUtf8)
+import Data.Text.Encoding (decodeUtf8)
 import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
 import GHC.IO.Exception (IOException(ioe_description, ioe_filename, ioe_type), IOErrorType(NoSuchThing))
@@ -37,85 +38,6 @@ import qualified System.FilePath as FP
 import qualified Text.Pandoc as P
 import qualified Text.Pandoc.XML as XML
 import qualified Text.Sass as Sass
-
--- | The main monad transformer stack for a Pencil application.
---
--- This unrolls to:
---
--- > PencilApp a = Config -> IO (Except PencilException a)
---
--- The @ExceptT@ monad allows us to catch "checked" exceptions; errors that we
--- know how to handle, in PencilException. Note that Unknown "unchecked"
--- exceptions can still go through IO.
---
-type PencilApp = ReaderT Config (ExceptT PencilException IO)
-
--- | Known Pencil errors that we know how to either recover from or quit
--- gracefully.
-data PencilException
-  = NotTextFile (Maybe FilePath)
-  -- ^ Failed to read a file as a text file.
-  | FileNotFound (Maybe FilePath)
-  -- ^ File not found. We may or may not know the file we were looking for.
-  | CollectionNotLastInStructure T.Text
-  -- ^ The collection in the structure was not the last element in the
-  -- structure.
-  | CollectionFirstInStructure T.Text
-  -- ^ A collection cannot be the first element in the structure (it's useless
-  -- there, as nothing can reference the pages in the collection).
-  deriving (Typeable, Show)
-
-
--- | Run the Pencil app.
---
--- Note that this can throw a fatal exception.
-run :: PencilApp a -> Config -> IO ()
-run app config = do
-  e <- runExceptT $ runReaderT app config
-  case e of
-    Left (FileNotFound (Just fp)) -> do
-      e2 <- runExceptT $ runReaderT (mostSimilarFiles fp) config
-      case e2 of
-        Right closestFiles ->
-          if not (null closestFiles)
-          then do
-            putStrLn ("File " ++ fp ++ " not found. Maybe you meant: ")
-            printAsList (take 3 closestFiles)
-          else putStrLn ("File " ++ fp ++ " not found.")
-        _ -> return ()
-    Left (CollectionNotLastInStructure name) ->
-      putStrLn ("Collections must be last in a Structure. But the collection named " ++
-               T.unpack name ++ " was not the last in the Structure.")
-    Left (CollectionFirstInStructure name) ->
-      putStrLn ("Collections cannot be first in a Structure. But the collection named " ++
-               T.unpack name ++ " first in the Structure.")
-    Left (NotTextFile fp) ->
-      putStrLn ("Tried to load " ++ maybe "UNKNOWNFILE" id fp ++ " as text file, but either it's not a text file or the file is corrupted.")
-    _ -> return ()
-
-  case e of
-    -- Force program to exit with error state
-    Left _ -> fail "Exception when running program!"
-    _ -> return ()
-
--- | Print the list of Strings, one line at a time, prefixed with "-".
-printAsList :: [String] -> IO ()
-printAsList [] = return ()
-printAsList (a:as) = do
-  putStr "- "
-  putStrLn a
-  printAsList as
-
--- | Given a file path, look at all file paths and find the one that seems most
--- similar.
-mostSimilarFiles :: FilePath -> PencilApp [FilePath]
-mostSimilarFiles fp = do
-  sitePrefix <- asks getSourceDir
-  fps <- listDir True ""
-  let fps' = map (sitePrefix ++) fps -- add site prefix for distance search
-  let costs = map (\f -> (f, levenshteinDistance defaultEditCosts fp f)) fps'
-  let sorted = L.sortBy (\(_, d1) (_, d2) -> compare d1 d2) costs
-  return $ map fst sorted
 
 -- | Enum for file types that can be parsed and converted by Pencil.
 data FileType = Html
@@ -594,39 +516,6 @@ groupByElements var pages =
     -- prepends into accumulated list.
     (reverse pages)
 
--- | Lists files in given directory. The file paths returned is prefixed with the
--- given directory.
-listDir :: Bool
-        -- ^ Recursive if @True@.
-        -> FilePath
-        -> PencilApp [FilePath]
-listDir recursive dir = do
-  let dir' = if null dir then dir else FP.addTrailingPathSeparator dir
-  fps <- listDir_ recursive dir'
-  return $ map (dir' ++) fps
-
--- | 'listDir' helper.
-listDir_ :: Bool -> FilePath -> PencilApp [FilePath]
-listDir_ recursive dir = do
-  sitePrefix <- asks getSourceDir
-  -- List files (just the filename, without the fp directory prefix)
-  listing <- liftIO $ D.listDirectory (sitePrefix ++ dir)
-  -- Filter only for files (we have to add the right directory prefixes to the
-  -- file check)
-  files <- liftIO $ filterM (\f -> D.doesFileExist (sitePrefix ++ dir ++ f)) listing
-  dirs <- liftIO $ filterM (\f -> D.doesDirectoryExist (sitePrefix ++ dir ++ f)) listing
-
-  innerFiles <- if recursive
-                  then mapM
-                         (\d -> do
-                           ff <- listDir_ recursive (dir ++ d ++ "/")
-                           -- Add the inner directory as a prefix
-                           return (map (\f -> d ++ "/" ++ f) ff))
-                         dirs
-                  else return []
-
-  return $ files ++ concat innerFiles
-
 -- | Returns True if the file path is a directory.
 -- Examples: foo/bar/
 -- Examples of not directories: /foo, foo/bar, foo/bar.baz
@@ -854,12 +743,6 @@ loadDirWith loadF recur fp = do
   where handle e = case e of
                     NotTextFile _ -> return Nothing
                     _ -> throwError e
-
--- | Find preamble node, and load as an Env. If no preamble is found, return a
--- blank Env.
-findEnv :: [PNode] -> Env
-findEnv nodes =
-  aesonToEnv $ M.fromMaybe H.empty (findPreambleText nodes >>= (A.decodeThrow . encodeUtf8 . T.strip))
 
 -- | Loads and renders file, converting content if it's convertible (e.g.
 -- Markdown to HTML). The final file path is the "default conversion", if Pencil
@@ -1210,17 +1093,6 @@ insertEnv :: T.Text
           -- ^ Environment to modify.
           -> Env
 insertEnv = H.insert
-
--- | Convert known Aeson types into known Env types.
-maybeInsertIntoEnv :: Env -> T.Text -> A.Value -> Env
-maybeInsertIntoEnv env k v =
-  case toValue v of
-    Nothing -> env
-    Just d -> H.insert k d env
-
--- | Converts an Aeson Object to an Env.
-aesonToEnv :: A.Object -> Env
-aesonToEnv = H.foldlWithKey' maybeInsertIntoEnv H.empty
 
 -- | A version of 'toText' that renders 'Value' acceptable for an RSS feed.
 --

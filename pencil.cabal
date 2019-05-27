@@ -40,6 +40,8 @@ library
   exposed-modules:     Pencil
                      , Pencil.Internal.Pencil
                      , Pencil.Blog
+                     , Pencil.App
+                     , Pencil.App.Internal
                      , Pencil.Config
                      , Pencil.Env
                      , Pencil.Env.Internal

@@ -111,6 +111,7 @@ module Pencil
 import Pencil.Config
 import Pencil.Internal.Pencil
 import Pencil.Blog
+import Pencil.App
 
 import Control.Monad.Reader as Reader
 

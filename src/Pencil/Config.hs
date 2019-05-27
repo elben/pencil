@@ -3,9 +3,8 @@ Pencil Config.
 -}
 module Pencil.Config where
 
-
 import Data.Default (Default)
-import Pencil.Env
+import Pencil.Env.Internal
 import Text.Pandoc.Extensions (disableExtension, Extension(..))
 import Text.Sass.Options (defaultSassOptions)
 import qualified Data.HashMap.Strict as H
