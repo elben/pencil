@@ -39,7 +39,7 @@ website = do
 
   -- Load all our blog posts into `posts`, which is of type [Page]
   postLayout <- load "post-layout.html"
-  posts <- loadBlogPosts "blog/"
+  posts <- loadPosts "blog/"
 
   -- Build tag index pages. This is a map of a Tag (which is just text)
   -- to a Page which has the environment stuffed with blog posts that has that

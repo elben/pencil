@@ -23,22 +23,22 @@ import qualified System.FilePath as FP
 -- preamble environment variable. Posts with @draft: true@ are filtered out.
 --
 -- @
--- posts <- loadBlogPosts "blog/"
+-- posts <- loadPosts "blog/"
 -- @
-loadBlogPosts :: FilePath -> PencilApp [Page]
-loadBlogPosts fp = do
+loadPosts :: FilePath -> PencilApp [Page]
+loadPosts fp = do
   posts <- loadDir False fp
   return $
     (filterByVar True "draft" (VBool True /=) . sortByVar "date" dateOrdering)
-    (fmap (rename blogPostUrl) posts)
+    (fmap (rename postUrl) posts)
 
 -- | Rewrites file path for blog posts.
 --
--- > blogPostUrl "/blog/2011-01-01-post-title.html"
+-- > postUrl "/blog/2011-01-01-post-title.html"
 -- > -- "/blog/1-post-title.html/"
 --
-blogPostUrl :: FilePath -> FilePath
-blogPostUrl fp = FP.replaceFileName fp (drop 11 (FP.takeBaseName fp)) ++ "/"
+postUrl :: FilePath -> FilePath
+postUrl fp = FP.replaceFileName fp (drop 11 (FP.takeBaseName fp)) ++ "/"
 
 -- | Given that the current @Page@ has a @postTitle@ in the environment, inject
 -- the post title into the @title@ environment variable, prefixed with the given

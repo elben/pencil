@@ -55,8 +55,8 @@ module Pencil
   --
   -- $blogging
 
-  , loadBlogPosts
-  , blogPostUrl
+  , loadPosts
+  , postUrl
   , injectTitle
   , Tag
   , buildTagPages
@@ -217,8 +217,8 @@ import Control.Monad.Reader as Reader
 -- > -->
 --
 -- You can mark a post as a draft via the @draft@ variable, so that it won't be
--- loaded when you call 'loadBlogPosts'. You can also set the post's tags using,
--- as seen above in @tags@. Then, use 'loadBlogPosts' to load the entire @blog/@
+-- loaded when you call 'loadPosts'. You can also set the post's tags using,
+-- as seen above in @tags@. Then, use 'loadPosts' to load the entire @blog/@
 -- directory.
 --
 -- In the example below, @layout.html@ defines the outer HTML structure (with
@@ -229,7 +229,7 @@ import Control.Monad.Reader as Reader
 -- @
 -- layout <- 'load' "layout.html"
 -- postLayout <- 'load' "blog-post.html"
--- posts <- 'loadBlogPosts' "blog/"
+-- posts <- 'loadPosts' "blog/"
 -- render (fmap (layout <|| postLayout <|) posts)
 -- @
 

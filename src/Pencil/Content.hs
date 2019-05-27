@@ -505,7 +505,7 @@ nodeName (Nodes n _) = n
 --
 -- @
 -- blogLayout <- load "blog-layout.html"
--- blogPosts <- 'Pencil.Blog.loadBlogPosts' "posts/"
+-- blogPosts <- 'Pencil.Blog.loadPosts' "posts/"
 -- render (struct blogLayout <<| coll "posts" blogPosts)
 -- @
 (<<|) :: Structure -> Node -> Structure
@@ -593,7 +593,7 @@ instance Render r => Render [r] where
 -- | Inserts pages into the environment. The pages are evaluated and applied before insertion.
 --
 -- @
--- posts <- 'Pencil.Blog.loadBlogPosts' "blog/"
+-- posts <- 'Pencil.Blog.loadPosts' "blog/"
 -- env <- asks 'getEnv'
 -- env' <- insertPages "posts" posts env
 -- @

@@ -67,7 +67,7 @@ website = do
   layout <- load "layout.html"
   postLayout <- load "post-layout.html"
 
-  posts <- loadBlogPosts "blog/"
+  posts <- loadPosts "blog/"
   
   render $ fmap ((layout <|| postLayout <|)) posts
   
@@ -84,14 +84,14 @@ cd out && python -m SimpleHTTPServer 8000
 
 And you should see our blog posts rendered! For example: [http://localhost:8000/blog/code-related-stuff/](http://localhost:8000/blog/code-related-stuff/). Of course it's not listing any tags yet, and we don't have a blog index or anything. But it's a start.
 
-Now, you should be familiar with the `load` function by now. But here we see `loadBlogPosts`. This is a helper function provided by Pencil to do the following:
+Now, you should be familiar with the `load` function by now. But here we see `loadPosts`. This is a helper function provided by Pencil to do the following:
 
 - Load all pages found in the `blog/` folder.
 - Rename the file path from `blog/2018-01-31-ramblings.markdown` to `blog/ramblings/`.
 - Sort by the date specified in each page's `date` variable found in the preamble.
 - And return the list of `Page`s.
 
-Don't be shy about reading the source code. You'll find that I sent more characters explaining it above than the actual source of `loadBlogPosts`.
+Don't be shy about reading the source code. You'll find that I sent more characters explaining it above than the actual source of `loadPosts`.
 
 To render each post, we had this:
 
