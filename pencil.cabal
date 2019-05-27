@@ -43,6 +43,7 @@ library
                      , Pencil.Blog
                      , Pencil.Config
                      , Pencil.Content
+                     , Pencil.Content.Nodes
                      , Pencil.Content.Internal
                      , Pencil.Env
                      , Pencil.Env.Internal
