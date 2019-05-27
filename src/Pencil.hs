@@ -68,10 +68,10 @@ module Pencil
   -- $environment
 
   , merge
+  , adjust
   , insertEnv
   , insertText
   , insertPages
-  , updateEnvVal
   , sortByVar
   , filterByVar
   , groupByElements
@@ -108,10 +108,12 @@ module Pencil
 
   ) where
 
-import Pencil.Config
-import Pencil.Internal.Pencil
-import Pencil.Blog
 import Pencil.App
+import Pencil.Blog
+import Pencil.Config
+import Pencil.Content
+import Pencil.Env
+import Pencil.Internal.Pencil
 
 import Control.Monad.Reader as Reader
 

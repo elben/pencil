@@ -38,6 +38,7 @@ easy. Please email me if you are having problems!
   evaluate the given pages (e.g. replace variables) before inserting into
   env. So you'll need to change from `let env' = insertPages "posts" posts env`
   to `env <- insertPages "posts" posts env`.
+- Renamed `updateEnvVal` to `adjust`.
 - Changed how structures work internally to allow collection values into structures.
 - Examples now match the tutorials. This is the start of merging the tutorials into the pencil
   repo itself, instead of living somewhere else.

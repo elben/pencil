@@ -38,13 +38,15 @@ tested-with:         GHC == 8.0.2,
 library
   hs-source-dirs:      src
   exposed-modules:     Pencil
-                     , Pencil.Internal.Pencil
-                     , Pencil.Blog
                      , Pencil.App
                      , Pencil.App.Internal
+                     , Pencil.Blog
                      , Pencil.Config
+                     , Pencil.Content
+                     , Pencil.Content.Internal
                      , Pencil.Env
                      , Pencil.Env.Internal
+                     , Pencil.Internal.Pencil
                      , Pencil.Parser.Internal
   build-depends:       base >= 4.8 && < 5
                      , data-default >= 0.7 && < 1

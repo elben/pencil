@@ -12,6 +12,7 @@ import Pencil.Env
 import Pencil.App
 import Pencil.Parser.Internal
 import Pencil.Config
+import Pencil.Content
 
 import Control.Exception (tryJust)
 import Control.Monad (forM_, foldM, filterM)
@@ -98,38 +99,6 @@ fileType fp =
 ----------------------------------------------------------------------
 -- Page
 ----------------------------------------------------------------------
-
--- | The @Page@ is an important data type in Pencil.
---
--- Source files like Markdown and HTML are loaded (e.g. via 'load') as a @Page@.
--- A page contains the contents of the file, their un-evaluated [template
--- directives](https://elbenshira.com/pencil/guides/templates/) (e.g.
--- @${body}@), the variables defined in the preamble, and the destination file
--- path.
---
--- The contents /may/ be in its converted form. 'load' will convert Markdown to
--- HTML, for example.
---
--- Pages can be /combined/ together into a 'Structure', or inserted into the
--- environment (see 'insertPages'). But at the end of the day, even a structure
--- is converted back into a page on 'render'. This is because it is the page
--- that is finally rendered into an actual web page when you run your program.
---
-data Page = Page
-  { pageEnv        :: Env
-
-  , pageFilePath :: FilePath
-  -- ^ The rendered output path of this page. Defaults to the input file path.
-  -- This file path is used to generate the self URL that is injected into the
-  -- environment.
-
-  , pageUseFilePath :: Bool
-  -- ^ Whether or not this Page's URL should be used as the final URL in the
-  -- render.
-
-  , pageEscapeXml :: Bool
-  -- ^ Whether or not XML/HTML tags should be escaped when rendered.
-  } deriving (Eq, Show)
 
 -- | Gets the Env of a 'Page'.
 getPageEnv :: Page -> Env
@@ -764,69 +733,6 @@ loadAndRender fp =
     then loadResources True False fp >>= render
     else loadResource fp >>= render
 
--- | A @Structure@ is a list of 'Page's, defining a nesting order. Think of them
--- like <https://en.wikipedia.org/wiki/Matryoshka_doll Russian nesting dolls>.
--- The first element defines the outer-most container, and subsequent elements
--- are /inside/ the previous element.
---
--- You commonly use @Structure@s to insert a page containing content (e.g. a blog
--- post) into a container (e.g. a layout shared across all your web pages).
---
--- Build structures using 'struct', '<||' and '<|'.
---
--- @
--- layout <- load "layout.html"
--- index <- load "index.markdown"
--- about <- load "about.markdown"
--- render (layout <|| index)
--- render (layout <|| about)
--- @
---
--- In the example above we load a layout page, which defines the outer HTML
--- structure like @\<html\>\<\/html\>@. We then "push" the index page and the
--- about page into the layout.
---
--- When we 'render' @layout <|| index@, the contents of the index (and about)
--- page is injected into the layout page through the variable @${body}@. So
--- @layout.html@ must use @${body}@ somewhere in its own body.
---
--- Structures also control the closure of variables. Variables defined in a
--- page are accessible both by pages above and below. This allows inner
--- pages to define variables like the blog post title, which may be used in
--- the outer page to, say, set the @\<title\>@ tag.
---
--- In this way, structures allows efficient page reuse. See the private function
--- 'apply' to learn more about how structures are evaluated.
---
--- /The Default File Path Rule/. When a structure is rendered, the /last/
--- non-collection page in the structure is used as the destination file path.
--- You can select a different page via 'useFilePath'.
---
--- The [Pages and
--- Structures](https://elbenshira.com/pencil/guides/pages-and-structures/) guide
--- also describes structures in detail.
---
--- Note that structures differ from the @${partial(...)}@ directive, which has no
--- such variable closures. The partial directive is much simpler—think of them
--- as copy-and-pasting snippets from one file to another. A partial has
--- the same environment as the context in which the partial directive appears.
---
---
-data Structure = Structure
-  { structureNodes :: NonEmpty Node
-  , structureFilePath :: FilePath
-  , structureFilePathFrozen :: Bool
-  -- ^ True if the file path should no longer be changed. This happens when a
-  -- page with `useFilePath = True` was pushed into the structure.
-  }
-
--- | An inner element in the Structure. Either a singular Page, or a collection
--- of Pages. The Text element is the variable name that the inner page's content
--- is injected as. Defaults to @"body"@.
-data Node =
-    Node T.Text Page
-  | Nodes T.Text [Page]
-
 -- | Returns True if the given Node is a collection node.
 isColl :: Node -> Bool
 isColl (Nodes _ _) = True
@@ -1033,25 +939,6 @@ instance Render r => Render [r] where
 -- Environment modifications
 ----------------------------------------------------------------------
 
--- | Merges two @Env@s together, biased towards the left-hand @Env@ on duplicates.
-merge :: Env -> Env -> Env
-merge = H.union
-
--- | Inserts text into the given @Env@.
---
--- @
--- env <- asks getEnv
--- insertText "title" "My Awesome Website" env
--- @
-insertText :: T.Text
-           -- ^ Environment variable name.
-           -> T.Text
-           -- ^ Text to insert.
-           -> Env
-           -- ^ Environment to modify.
-           -> Env
-insertText var val = H.insert var (VText val)
-
 -- | Inserts pages into the environment. The pages are evaluated and applied before insertion.
 --
 -- @
@@ -1075,24 +962,6 @@ insertPages var pages env = do
                  return penv)
                pages
   return $ H.insert var (VEnvList envs) env
-
--- | Modifies a variable in the given environment.
-updateEnvVal :: (Value -> Value)
-          -> T.Text
-          -- ^ Environment variable name.
-          -> Env
-          -> Env
-updateEnvVal = H.adjust
-
--- | Inserts @Value@ into the given @Env@.
-insertEnv :: T.Text
-          -- ^ Environment variable name.
-          -> Value
-          -- ^ @Value@ to insert.
-          -> Env
-          -- ^ Environment to modify.
-          -> Env
-insertEnv = H.insert
 
 -- | A version of 'toText' that renders 'Value' acceptable for an RSS feed.
 --
