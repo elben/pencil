@@ -9,6 +9,7 @@ import Pencil.Config
 import Pencil.Env
 import Pencil.App
 import Pencil.Content
+import Pencil.Files
 import Pencil.Internal.Pencil
 import Pencil.Parser.Internal as Parser
 import Control.Monad (liftM, foldM)
