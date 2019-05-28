@@ -2,4 +2,4 @@ import Test.DocTest
 
 main :: IO ()
 main =
-  doctest ["-isrc", "src/Pencil/Parser/Internal.hs"]
+  doctest ["-isrc", "src/Pencil/Parser.hs"]
