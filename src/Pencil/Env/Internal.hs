@@ -80,6 +80,16 @@ dateOrdering :: Value -> Value -> Ordering
 dateOrdering (VDateTime a) (VDateTime b) = compare b a
 dateOrdering _ _ = EQ
 
+-- | Returns true if the given @Value@ is a @VArray@ that contains the given
+-- string.
+arrayContainsString :: T.Text -> Value -> Bool
+arrayContainsString t (VArray arr) =
+  any (\d -> case d of
+               VText t' -> t == t'
+               _ -> False)
+      arr
+arrayContainsString _ _ = False
+
 -- | Gets the nodes from the env, from the @this.nodes@ variable. Returns empty
 -- list if this variable is missing.
 getNodes :: Env -> [P.PNode]
