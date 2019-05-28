@@ -115,7 +115,6 @@ import Pencil.App
 import Pencil.Blog
 import Pencil.Config
 import Pencil.Content
-import Pencil.Content.Files
 import Pencil.Env
 
 import Control.Monad.Reader as Reader

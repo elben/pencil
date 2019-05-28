@@ -51,11 +51,13 @@ module Pencil.Content
   , insertPages
   , listDir
   , copyFile
+
+  , HasFilePath(..)
+  , FileType(..)
   ) where
 
 import Pencil.App.Internal
 import Pencil.Config
-import Pencil.Content.Files
 import Pencil.Content.Internal
 import Pencil.Content.Nodes
 import Pencil.Env

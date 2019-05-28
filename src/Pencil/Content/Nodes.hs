@@ -6,7 +6,7 @@ module Pencil.Content.Nodes where
 import Pencil.App.Internal
 import Pencil.Env.Internal
 import Pencil.Parser.Internal
-import Pencil.Content.Files
+import Pencil.Content.Internal
 import Pencil.Config
 
 import Control.Monad.Reader

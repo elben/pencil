@@ -47,8 +47,6 @@ library
                      , Pencil.Content.Internal
                      , Pencil.Env
                      , Pencil.Env.Internal
-                     , Pencil.Content.Files
-                     , Pencil.Content.Files.Internal
                      , Pencil.Parser.Internal
   build-depends:       base >= 4.8 && < 5
                      , data-default >= 0.7 && < 1
