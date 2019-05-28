@@ -1,3 +1,7 @@
+
+{-|
+Pencil's run and error types.
+-}
 module Pencil.App
   ( PencilApp
   , PencilException(..)
@@ -50,10 +54,10 @@ run app config = do
     _ -> return ()
 
 -- | Runs the computation with the given environment. This is useful when you
--- want to render a 'Page' or 'Structure' with a modified environment.
+-- want to render a 'Pencil.Content.Internal.Page' or 'Pencil.Content.Internal.Structure' with a modified environment.
 --
 -- @
--- withEnv ('insertText' "newvar" "newval" env) ('render' page)
+-- withEnv ('Pencil.Env.insertText' "newvar" "newval" env) ('render' page)
 -- @
 --
 -- Alternatively, use 'Reader.local', which is re-exported in the Pencil module.

@@ -1,3 +1,6 @@
+{-|
+Main Pencil module. This module re-exports most functions, so you should only need to import this one.
+-}
 module Pencil
   (
     -- * Getting started
@@ -112,8 +115,8 @@ import Pencil.App
 import Pencil.Blog
 import Pencil.Config
 import Pencil.Content
-import Pencil.Env
 import Pencil.Content.Files
+import Pencil.Env
 
 import Control.Monad.Reader as Reader
 

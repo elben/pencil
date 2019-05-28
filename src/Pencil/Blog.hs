@@ -120,9 +120,9 @@ buildTagPagesWith tagPageFp pagesVar fpf pages = do
 
   foldM
     (\acc (tag, taggedPosts) -> do
-      tagPage <- rename (fpf tag) <$> load' tagPageFp
+      tagPage <- rename (fpf tag) <$> load tagPageFp
       -- Generate the URL that this tag page will use.
-      let url = T.pack $ "/" ++ pageFilePath tagPage
+      let url = T.pack $ "/" ++ getFilePath tagPage
       tagEnv <- (insertPages pagesVar taggedPosts . insertText "tag" tag . insertText "this.url" url . merge (getPageEnv tagPage)) env
       return $ H.insert tag (setPageEnv tagEnv tagPage) acc
     )

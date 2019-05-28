@@ -113,7 +113,7 @@ toText (VNodes nodes) = P.renderNodes nodes
 -- * Dates are rendered in the RFC 822 format.
 -- * Everything else defaults to the 'toText' implementation.
 --
--- You'll probably want to also use 'escapeXml' to render an RSS feed.
+-- You'll probably want to also use 'Pencil.Content.Internal.escapeXml' to render an RSS feed.
 --
 toTextRss :: Value -> T.Text
 toTextRss (VDateTime dt) = T.pack $ TF.formatTime TF.defaultTimeLocale rfc822DateFormat dt

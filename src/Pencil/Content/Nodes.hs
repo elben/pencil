@@ -1,3 +1,6 @@
+{-|
+Internal functions that deal with nodes.
+-}
 module Pencil.Content.Nodes where
 
 import Pencil.App.Internal

@@ -1,5 +1,8 @@
 {-# LANGUAGE DeriveGeneric #-}
 
+{-|
+Internal implementation for functions that handle files, file types and file paths.
+-}
 module Pencil.Content.Files.Internal where
 
 import Data.Hashable (Hashable)
@@ -48,8 +51,8 @@ extensionMap = H.fromList
 
 -- | Class for types that has a final file path for rendering.
 --
--- This allows file-path-changing methods to be re-used across 'Page',
--- 'Structure' and 'Resource' types.
+-- This allows file-path-changing methods to be re-used across 'Pencil.Content.Internal.Page',
+-- 'Pencil.Content.Internal.Structure' and 'Pencil.Content.Internal.Resource' types.
 class HasFilePath a where
   getFilePath :: a -> FilePath
   setFilePath :: FilePath -> a -> a

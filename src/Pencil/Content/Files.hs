@@ -1,3 +1,7 @@
+
+{-|
+Functions that handle files, file types and file paths.
+-}
 module Pencil.Content.Files
   ( module Pencil.Content.Files.Internal
   , toExtension
@@ -46,7 +50,7 @@ isDir fp = null (FP.takeBaseName fp)
 -- | Replaces the file path's extension with @.html@.
 --
 -- @
--- rename toHtml \<$\> 'load' "about.htm"
+-- rename toHtml \<$\> 'Pencil.Content.load' "about.htm"
 -- @
 --
 toHtml :: FilePath -> FilePath
@@ -57,7 +61,7 @@ toHtml fp = FP.dropExtension fp ++ ".html"
 -- directory.
 --
 -- For example, @pages/about.html@ is transformed into @pages\/about\/@, which
--- upon 'render' results in the destination file path @pages\/about\/index.html@:
+-- upon 'Pencil.Content.render' results in the destination file path @pages\/about\/index.html@:
 --
 -- @
 -- toDir "pages/about.html"
@@ -66,7 +70,7 @@ toHtml fp = FP.dropExtension fp ++ ".html"
 -- Load and render as @pages\/about\/@:
 --
 -- @
--- render $ 'rename' toDir \<$\> 'load' "pages/about.html"
+-- render $ 'rename' toDir \<$\> 'Pencil.Content.load' "pages/about.html"
 -- @
 --
 toDir :: FilePath -> FilePath
@@ -75,7 +79,7 @@ toDir fp = FP.replaceFileName fp (FP.takeBaseName fp) ++ "/"
 -- | Replaces the file path's extension with @.css@.
 --
 -- @
--- rename toCss \<$\> 'load' "style.sass"
+-- rename toCss \<$\> 'Pencil.Content.load' "style.sass"
 -- @
 --
 toCss :: FilePath -> FilePath

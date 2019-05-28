@@ -1,5 +1,8 @@
 {-# LANGUAGE DeriveGeneric #-}
 
+{-|
+Internal implementation for functions that content.
+-}
 module Pencil.Content.Internal where
 
 import Pencil.Env.Internal
@@ -8,18 +11,18 @@ import qualified Data.Text as T
 
 -- | The @Page@ is an important data type in Pencil.
 --
--- Source files like Markdown and HTML are loaded (e.g. via 'load') as a @Page@.
+-- Source files like Markdown and HTML are loaded (e.g. via 'Pencil.Content.load') as a @Page@.
 -- A page contains the contents of the file, their un-evaluated [template
 -- directives](https://elbenshira.com/pencil/guides/templates/) (e.g.
 -- @${body}@), the variables defined in the preamble, and the destination file
 -- path.
 --
--- The contents /may/ be in its converted form. 'load' will convert Markdown to
+-- The contents /may/ be in its converted form. 'Pencil.Content.load' will convert Markdown to
 -- HTML, for example.
 --
 -- Pages can be /combined/ together into a 'Structure', or inserted into the
--- environment (see 'insertPages'). But at the end of the day, even a structure
--- is converted back into a page on 'render'. This is because it is the page
+-- environment (see 'Pencil.Content.insertPages'). But at the end of the day, even a structure
+-- is converted back into a page on 'Pencil.Content.render'. This is because it is the page
 -- that is finally rendered into an actual web page when you run your program.
 --
 data Page = Page
@@ -95,7 +98,7 @@ escapeXml p = p { pageEscapeXml = True }
 -- You commonly use @Structure@s to insert a page containing content (e.g. a blog
 -- post) into a container (e.g. a layout shared across all your web pages).
 --
--- Build structures using 'struct', '<||' and '<|'.
+-- Build structures using 'Pencil.Content.struct', 'Pencil.Content.<||' and 'Pencil.Content.<|'.
 --
 -- @
 -- layout <- load "layout.html"
@@ -109,7 +112,7 @@ escapeXml p = p { pageEscapeXml = True }
 -- structure like @\<html\>\<\/html\>@. We then "push" the index page and the
 -- about page into the layout.
 --
--- When we 'render' @layout <|| index@, the contents of the index (and about)
+-- When we 'Pencil.Content.render' @layout <|| index@, the contents of the index (and about)
 -- page is injected into the layout page through the variable @${body}@. So
 -- @layout.html@ must use @${body}@ somewhere in its own body.
 --
@@ -119,7 +122,7 @@ escapeXml p = p { pageEscapeXml = True }
 -- the outer page to, say, set the @\<title\>@ tag.
 --
 -- In this way, structures allows efficient page reuse. See the private function
--- 'apply' to learn more about how structures are evaluated.
+-- 'Pencil.Content.Internal.apply' to learn more about how structures are evaluated.
 --
 -- /The Default File Path Rule/. When a structure is rendered, the /last/
 -- non-collection page in the structure is used as the destination file path.
@@ -157,8 +160,8 @@ data Node =
 -- This is how Pencil handles files like images, compiled JavaScript, or text
 -- files that require only a straight-forward conversion.
 --
--- Use 'passthrough', 'loadResource' and 'loadResources' to build a @Resource@
--- from a file.
+-- Use 'Pencil.Content.passthrough', 'Pencil.Content.loadResource' and
+-- 'Pencil.Content.loadResources' to build a @Resource@ from a file.
 --
 -- In the example below, @robots.txt@ and everything in the @images/@ directory
 -- will be rendered as-is.

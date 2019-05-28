@@ -15,7 +15,7 @@ import qualified Text.Sass as Sass
 import qualified Text.Sass as Sass
 
 -- | The main @Config@ needed to build your website. Your app's @Config@ is
--- passed into the 'PencilApp' monad transformer.
+-- passed into the 'Pencil.App.PencilApp' monad transformer.
 --
 -- Use 'defaultConfig' as a starting point, along with the config-modification
 -- helpers such as 'setSourceDir'.
@@ -102,8 +102,8 @@ setOutputDir fp c = c { configOutputDir = fp }
 getEnv :: Config -> Env
 getEnv = configEnv
 
--- | Sets the current environment. You may also want to look at 'withEnv' if you
--- want to 'render' things in a modified environment.
+-- | Sets the current environment. You may also want to look at 'Pencil.App.withEnv' if you
+-- want to 'Pencil.Content.render' things in a modified environment.
 setEnv :: Env -> Config -> Config
 setEnv env c = c { configEnv = env }
 

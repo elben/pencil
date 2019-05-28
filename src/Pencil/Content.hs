@@ -2,18 +2,64 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 
+{-|
+Load, manipulate and render content.
+-}
 module Pencil.Content
-  ( module Pencil.Content.Internal
-  , module Pencil.Content
+  ( Page
+  , getPageEnv
+  , setPageEnv
+  , useFilePath
+  , escapeXml
+  , load
+  , load'
+  , loadDir
+  , loadDir'
+  , loadAndRender
+
+  , Structure
+  , (<||)
+  , (<|)
+  , (<<|)
+  , coll
+  , struct
+
+  , Resource
+  , loadResource
+  , loadResources
+  , passthrough
+
+  , toExtension
+  , fileType
+  , isDir
+
+  , toHtml
+  , toDir
+  , toCss
+  , toExpected
+
+  , rename
+  , to
+  , move
+
+  , Render(..)
+
+  , sortByVar
+  , filterByVar
+  , groupByElements
+
+  , insertPages
+  , listDir
+  , copyFile
   ) where
 
 import Pencil.App.Internal
 import Pencil.Config
+import Pencil.Content.Files
 import Pencil.Content.Internal
 import Pencil.Content.Nodes
 import Pencil.Env
-import Pencil.Content.Files
-import Pencil.Content.Files.Internal
+import Pencil.Env.Internal (getNodes)
 import Pencil.Parser.Internal
 
 import Control.Exception (tryJust)

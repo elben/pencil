@@ -1,5 +1,13 @@
+{-|
+Functions that manipulate the environment.
+-}
 module Pencil.Env
-  ( module Pencil.Env.Internal
+  ( Env
+  , Value(..)
+  , toText
+  , toTextRss
+
+  , getContent
 
   , merge
   , insert
@@ -9,6 +17,9 @@ module Pencil.Env
   , findEnv
   , aesonToEnv
   , maybeInsertIntoEnv
+  , maybeOrdering
+  , dateOrdering
+  , rfc822DateFormat
   ) where
 
 import Pencil.Env.Internal
