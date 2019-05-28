@@ -43,11 +43,11 @@ library
                      , Pencil.Blog
                      , Pencil.Config
                      , Pencil.Content
-                     , Pencil.Content.Nodes
                      , Pencil.Content.Internal
+                     , Pencil.Content.Nodes
                      , Pencil.Env
                      , Pencil.Env.Internal
-                     , Pencil.Parser.Internal
+                     , Pencil.Parser
   build-depends:       base >= 4.8 && < 5
                      , data-default >= 0.7 && < 1
                      , directory >= 1.2.5.0 && < 1.4

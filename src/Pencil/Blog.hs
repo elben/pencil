@@ -9,7 +9,7 @@ import Pencil.Config
 import Pencil.Env
 import Pencil.App
 import Pencil.Content
-import Pencil.Parser.Internal as Parser
+import Pencil.Parser as Parser
 import Control.Monad (liftM, foldM)
 import Control.Monad.Reader (asks)
 import qualified Data.HashMap.Strict as H

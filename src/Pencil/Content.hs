@@ -6,54 +6,10 @@
 Load, manipulate and render content.
 -}
 module Pencil.Content
-  ( Page
-  , getPageEnv
-  , setPageEnv
-  , useFilePath
-  , escapeXml
-  , load
-  , load'
-  , loadDir
-  , loadDir'
-  , loadAndRender
-
-  , Structure
-  , (<||)
-  , (<|)
-  , (<<|)
-  , coll
-  , struct
-
-  , Resource
-  , loadResource
-  , loadResources
-  , passthrough
-
-  , toExtension
-  , fileType
-  , isDir
-
-  , toHtml
-  , toDir
-  , toCss
-  , toExpected
-
-  , rename
-  , to
-  , move
-
-  , Render(..)
-
-  , sortByVar
-  , filterByVar
-  , groupByElements
-
-  , insertPages
-  , listDir
-  , copyFile
-
-  , HasFilePath(..)
-  , FileType(..)
+  ( 
+  -- | Re-exports the internal module.
+    module Pencil.Content.Internal
+  , module Pencil.Content
   ) where
 
 import Pencil.App.Internal
@@ -62,7 +18,7 @@ import Pencil.Content.Internal
 import Pencil.Content.Nodes
 import Pencil.Env
 import Pencil.Env.Internal (getNodes)
-import Pencil.Parser.Internal
+import Pencil.Parser
 
 import Control.Exception (tryJust)
 import Control.Monad (forM_, foldM, filterM)

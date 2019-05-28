@@ -5,7 +5,7 @@ module Pencil.Content.Nodes where
 
 import Pencil.App.Internal
 import Pencil.Env.Internal
-import Pencil.Parser.Internal
+import Pencil.Parser
 import Pencil.Content.Internal
 import Pencil.Config
 

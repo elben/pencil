@@ -2,28 +2,14 @@
 Functions that manipulate the environment.
 -}
 module Pencil.Env
-  ( Env
-  , Value(..)
-  , toText
-  , toTextRss
-
-  , getContent
-
-  , merge
-  , insert
-  , adjust
-  , insertText
-
-  , findEnv
-  , aesonToEnv
-  , maybeInsertIntoEnv
-  , maybeOrdering
-  , dateOrdering
-  , rfc822DateFormat
+  (
+  -- | Re-exports the internal module.
+    module Pencil.Env.Internal
+  , module Pencil.Env
   ) where
 
 import Pencil.Env.Internal
-import Pencil.Parser.Internal
+import Pencil.Parser
 import Pencil.Content.Internal
 import Pencil.App.Internal
 import Pencil.Config
@@ -34,6 +20,24 @@ import qualified Data.Maybe as M
 import qualified Data.HashMap.Strict as H
 import qualified Data.Yaml as A
 import qualified Data.Text as T
+
+-- | Inserts @Value@ into the given @Env@.
+insert :: T.Text
+          -- ^ Environment variable name.
+          -> Value
+          -- ^ @Value@ to insert.
+          -> Env
+          -- ^ Environment to modify.
+          -> Env
+insert = H.insert
+
+-- | Modifies a variable in the given environment.
+adjust :: (Value -> Value)
+       -> T.Text
+       -- ^ Environment variable name.
+       -> Env
+       -> Env
+adjust = H.adjust
 
 -- | Merges two @Env@s together, biased towards the left-hand @Env@ on duplicates.
 merge :: Env -> Env -> Env
@@ -53,24 +57,6 @@ insertText :: T.Text
            -- ^ Environment to modify.
            -> Env
 insertText var val = H.insert var (VText val)
-
--- | Modifies a variable in the given environment.
-adjust :: (Value -> Value)
-       -> T.Text
-       -- ^ Environment variable name.
-       -> Env
-       -> Env
-adjust = H.adjust
-
--- | Inserts @Value@ into the given @Env@.
-insert :: T.Text
-          -- ^ Environment variable name.
-          -> Value
-          -- ^ @Value@ to insert.
-          -> Env
-          -- ^ Environment to modify.
-          -> Env
-insert = H.insert
 
 -- | Find preamble node, and load as an Env. If no preamble is found, return a
 -- blank Env.

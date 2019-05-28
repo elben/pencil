@@ -3,10 +3,10 @@
 Pencil's run and error types.
 -}
 module Pencil.App
-  ( PencilApp
-  , PencilException(..)
-  , run
-  , withEnv
+  (
+  -- | Re-exports the internal module.
+    module Pencil.App.Internal
+  , module Pencil.App
   ) where
 
 import Pencil.App.Internal
