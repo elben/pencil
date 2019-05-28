@@ -19,9 +19,8 @@ import qualified Data.Yaml as A
 
 -- | Represents the data types found in an environment.
 --
--- This includes at least 'Data.Aeson' Value type
--- (<https://hackage.haskell.org/package/aeson/docs/Data-Aeson.html#t:Value here>),
--- plus other useful ones.
+-- This includes at least 'Data.Aeson' 'Data.Aeson.Types.Value' types, plus other
+-- useful ones.
 data Value =
     VNull -- JSON null
   | VText T.Text
@@ -68,29 +67,6 @@ toDateTime s =
 -- https://hackage.haskell.org/package/time-1.9/docs/Data-Time-Format.html#v:iso8601DateFormat
 parseIso8601 :: Maybe String -> String -> Maybe TC.UTCTime
 parseIso8601 f = TF.parseTimeM True TF.defaultTimeLocale (TF.iso8601DateFormat f)
-
--- | Defines an ordering for possibly-missing Value. Nothings are ordered last.
-maybeOrdering :: (Value -> Value -> Ordering)
-              -> Maybe Value -> Maybe Value -> Ordering
-maybeOrdering _ Nothing Nothing = EQ
-maybeOrdering _ (Just _) Nothing = GT
-maybeOrdering _ Nothing (Just _) = LT
-maybeOrdering o (Just a) (Just b) = o a b
-
--- | Sort by newest first.
-dateOrdering :: Value -> Value -> Ordering
-dateOrdering (VDateTime a) (VDateTime b) = compare b a
-dateOrdering _ _ = EQ
-
--- | Returns true if the given @Value@ is a @VArray@ that contains the given
--- string.
-arrayContainsString :: T.Text -> Value -> Bool
-arrayContainsString t (VArray arr) =
-  any (\d -> case d of
-               VText t' -> t == t'
-               _ -> False)
-      arr
-arrayContainsString _ _ = False
 
 -- | Gets the nodes from the env, from the @this.nodes@ variable. Returns empty
 -- list if this variable is missing.

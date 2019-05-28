@@ -41,6 +41,7 @@ easy. Please email me if you are having problems!
 - Renamed `updateEnvVal` to `adjust`.
 - Renamed `insertEnv` to `insert`.
 - Renamed `injectTagsEnv` to `injectTags`.
+- Renamed `arrayContainsString` to `arrayContainsText`.
 - Changed how structures work internally to allow collection values into structures.
 - Examples now match the tutorials. This is the start of merging the tutorials into the pencil
   repo itself, instead of living somewhere else.

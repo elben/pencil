@@ -2,7 +2,8 @@
 Functions that manipulate the environment.
 -}
 module Pencil.Env
-  ( withEnv
+  ( Value(..)
+  , withEnv
   , insert
   , insertText
   -- , insertPages
@@ -10,6 +11,10 @@ module Pencil.Env
   , merge
   , toText
   , toTextRss
+
+  , arrayContainsText
+  , dateOrdering
+  , maybeOrdering
   ) where
 
 import Pencil.Env.Internal
@@ -68,3 +73,26 @@ insertText var val = H.insert var (VText val)
 --
 withEnv :: Env -> PencilApp a -> PencilApp a
 withEnv env = Reader.local (setEnv env)
+
+-- | Returns true if the given @Value@ is a @VArray@ that contains the given
+-- text.
+arrayContainsText :: T.Text -> Value -> Bool
+arrayContainsText t (VArray arr) =
+  any (\d -> case d of
+               VText t' -> t == t'
+               _ -> False)
+      arr
+arrayContainsText _ _ = False
+
+-- | Defines an ordering for possibly-missing Value. Nothings are ordered last.
+maybeOrdering :: (Value -> Value -> Ordering)
+              -> Maybe Value -> Maybe Value -> Ordering
+maybeOrdering _ Nothing Nothing = EQ
+maybeOrdering _ (Just _) Nothing = GT
+maybeOrdering _ Nothing (Just _) = LT
+maybeOrdering o (Just a) (Just b) = o a b
+
+-- | Sort by newest first.
+dateOrdering :: Value -> Value -> Ordering
+dateOrdering (VDateTime a) (VDateTime b) = compare b a
+dateOrdering _ _ = EQ

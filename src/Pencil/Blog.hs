@@ -62,7 +62,6 @@ module Pencil.Blog
 
 import Pencil.Config
 import Pencil.Env
-import Pencil.Env.Internal
 import Pencil.App
 import Pencil.Content
 import Control.Monad (foldM)
