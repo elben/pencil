@@ -3,10 +3,8 @@
 Pencil's run and error types.
 -}
 module Pencil.App
-  (
-  -- | Re-exports the internal module.
-    module Pencil.App.Internal
-  , module Pencil.App
+  ( PencilApp
+  , run
   ) where
 
 import Pencil.App.Internal
@@ -52,18 +50,6 @@ run app config = do
     -- Force program to exit with error state
     Left _ -> fail "Exception when running program!"
     _ -> return ()
-
--- | Runs the computation with the given environment. This is useful when you
--- want to render a 'Pencil.Content.Internal.Page' or 'Pencil.Content.Internal.Structure' with a modified environment.
---
--- @
--- withEnv ('Pencil.Env.insertText' "newvar" "newval" env) ('render' page)
--- @
---
--- Alternatively, use 'Reader.local', which is re-exported in the Pencil module.
---
-withEnv :: Env -> PencilApp a -> PencilApp a
-withEnv env = local (setEnv env)
 
 -- | Given a file path, look at all file paths and find the one that seems most
 -- similar.

@@ -16,6 +16,7 @@ import Pencil.Config
 
 import Data.Text.Encoding (encodeUtf8)
 
+import qualified Control.Monad.Reader as Reader
 import qualified Data.Maybe as M
 import qualified Data.HashMap.Strict as H
 import qualified Data.Yaml as A
@@ -77,3 +78,14 @@ maybeInsertIntoEnv env k v =
     Nothing -> env
     Just d -> H.insert k d env
 
+-- | Runs the computation with the given environment. This is useful when you
+-- want to render a 'Pencil.Content.Internal.Page' or 'Pencil.Content.Internal.Structure' with a modified environment.
+--
+-- @
+-- withEnv ('Pencil.Env.insertText' "newvar" "newval" env) ('render' page)
+-- @
+--
+-- Alternatively, use 'Reader.local', which is re-exported in the Pencil module.
+--
+withEnv :: Env -> PencilApp a -> PencilApp a
+withEnv env = Reader.local (setEnv env)

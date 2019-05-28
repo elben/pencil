@@ -3,17 +3,16 @@ Internal implementation of Pencil's main functionality.
 -}
 module Pencil.App.Internal where
 
-
 import Pencil.Config
 
 import Control.Monad.Except
-import Control.Monad.Reader
+import Control.Monad.Reader (ReaderT(..))
 import Data.Typeable (Typeable)
 import GHC.IO.Exception (IOException(ioe_description, ioe_filename, ioe_type), IOErrorType(NoSuchThing))
 
 import qualified Data.Text as T
 
--- | The main monad transformer stack for a Pencil application.
+-- | The primary monad transformer stack for a Pencil application.
 --
 -- This unrolls to:
 --

@@ -1,7 +1,17 @@
 {-|
 Pencil Config.
 -}
-module Pencil.Config where
+module Pencil.Config
+  ( Config(..)
+  , defaultConfig
+  , getSourceDir , setSourceDir
+  , getOutputDir , setOutputDir
+  , getEnv , setEnv , updateEnv
+  , getDisplayValue , setDisplayValue
+  , getSassOptions , setSassOptions
+  , getPandocReaderOptions , setPandocReaderOptions
+  , getPandocWriterOptions , setPandocWriterOptions
+  )where
 
 import Data.Default (Default)
 import Pencil.Env.Internal

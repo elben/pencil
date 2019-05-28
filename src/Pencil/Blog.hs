@@ -1,9 +1,64 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 {-|
-Useful functionality to make blogging easy.
+This module provides a standard way of building and generating blog posts.
+Check out the Blog example
+<https://github.com/elben/pencil/blob/master/examples/Blog/ here>. You can
+also follow the [blogging tutorial
+here](https://elbenshira.com/pencil/tutorials/03-blogging/).
+
+To generate a blog for your website, first create a @blog/@ directory in
+your web page source directory.
+
+Then, name your blog posts in this format:
+
+> yyyy-mm-dd-title-of-blog-post.markdown
+
+Where @yyyy-mm-dd@ should be something like @2019-12-30@. This isn't used for
+anything other than to keep each post ordered in the directory, for your ease
+of viewing.
+
+Each post is expected to have a preamble that has at least @postTitle@ and
+@date@ defined. The date set in the preamble is used as the sort order of the
+blog posts. The other variables are optional.
+
+> <!--PREAMBLE
+> postTitle: "The Meaning of Life"
+> date: 2010-01-30
+> draft: true
+> tags:
+>   - philosophy
+> -->
+
+You can mark a post as a draft via the @draft@ variable, so that it won't be
+loaded when you call 'loadPosts'. You can also set the post's tags using,
+as seen above in @tags@. Then, use 'loadPosts' to load the entire @blog/@
+directory.
+
+In the example below, @layout.html@ defines the outer HTML structure (with
+global components like navigation), and @blog-post.html@ is a generic blog
+post container that renders @${postTitle}@ as a header, @${date}@, and
+@${body}@ for the post body.
+
+@
+layout <- 'load' "layout.html"
+postLayout <- 'load' "blog-post.html"
+posts <- 'loadPosts' "blog/"
+render (fmap (layout <|| postLayout <|) posts)
+@
 -}
-module Pencil.Blog where
+module Pencil.Blog
+  ( loadPosts
+  , postUrl
+  , injectTitle
+
+  -- * Tags
+  -- | You can add tags to blog posts.
+  , Tag
+  , buildTagPages
+  , buildTagPagesWith
+  , injectTags
+  ) where
 
 import Pencil.Config
 import Pencil.Env
