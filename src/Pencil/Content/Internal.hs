@@ -349,8 +349,7 @@ move fp a = move' (FP.takeFileName (getFilePath a)) fp a
 -- name, then @fromFileName@ is used as the file name.
 move' :: HasFilePath a => FilePath -> FilePath -> a -> a
 move' fromFileName fp a =
-  let fromFileName = FP.takeFileName (getFilePath a)
-      toDir = FP.takeDirectory fp
+  let toDir = FP.takeDirectory fp
       fp' = if isDir fp
               then toDir ++ "/" ++ fromFileName
               else toDir ++ "/" ++ FP.takeFileName fp

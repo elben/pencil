@@ -91,6 +91,9 @@ website = do
   deep4b <- load "deep/deep4b.md"
   render $ layout <|| deep1 <| deep2 <| move "deep/index.html" deep3 <<| coll "deep4s" [deep4a, deep4b]
 
+  toPage <- to "to/" <$> load "deep/deep1.md"
+  render $ struct toPage
+
 main :: IO ()
 main = run website config
 
