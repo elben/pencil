@@ -3,13 +3,62 @@
 {-# LANGUAGE FlexibleInstances #-}
 
 {-|
-Load, manipulate and render content.
+Load, compose and render content.
 -}
 module Pencil.Content
-  ( 
-  -- | Re-exports the internal module.
-    module Pencil.Content.Internal
-  , module Pencil.Content
+  (
+  -- ** Page
+
+    Page
+  , load
+  , load'
+  , loadDir
+  , loadDir'
+  , loadAndRender
+  , rename
+  , to
+  , move
+  , useFilePath
+  , escapeXml
+  , getPageEnv, setPageEnv
+  , filterByVar
+  , sortByVar
+  , groupByElements
+  , insertPages
+
+  -- ** Structure
+
+  , Structure
+  , struct
+  , (<||)
+  , (<|)
+  , (<<|)
+  , coll
+
+  -- ** Resource
+
+  , Resource
+  , passthrough
+  , loadResource
+  , loadResources
+
+  -- ** Render
+
+  , Render(..)
+
+  -- ** File paths and types
+
+  , listDir
+  , toExpected
+  , toHtml
+  , toCss
+  , toDir
+
+  , FileType
+  , fileType
+  , toExtension
+
+  , HasFilePath(..)
   ) where
 
 import Pencil.App.Internal
@@ -20,29 +69,19 @@ import Pencil.Env
 import Pencil.Env.Internal
 import Pencil.Parser
 
-import Control.Exception (tryJust)
 import Control.Monad (forM_, foldM, filterM)
 import Control.Monad.Except
 import Control.Monad.Reader
-import Data.Char (toLower)
-import Data.Hashable (Hashable)
 import Data.List.NonEmpty (NonEmpty(..)) -- Import the NonEmpty data constructor, (:|)
-import Data.Typeable (Typeable)
-import GHC.IO.Exception (IOException(ioe_description, ioe_filename, ioe_type), IOErrorType(NoSuchThing))
-import Text.EditDistance (levenshteinDistance, defaultEditCosts)
 import qualified Data.HashMap.Strict as H
 import qualified Data.List as L
 import qualified Data.List.NonEmpty as NE
 import qualified Data.Maybe as M
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
-import qualified Data.Time.Format as TF
-import qualified Data.Yaml as A
 import qualified System.Directory as D
 import qualified System.FilePath as FP
-import qualified Text.Pandoc as P
 import qualified Text.Pandoc.XML as XML
-import qualified Text.Sass as Sass
 
 
 -- | Lists files in given directory. The file paths returned is prefixed with the
@@ -145,7 +184,7 @@ apply structure = do
 -- HTML layout).
 --
 apply_ :: NE.NonEmpty Node -> PencilApp Page
-apply_ (Node name page :| []) = do
+apply_ (Node _ page :| []) = do
   env <- asks getEnv
 
   -- Evaluate this page's nodes using the combined env
@@ -228,7 +267,7 @@ nodesToText escXml nodes =
 escapeForXml :: T.Text -> T.Text
 escapeForXml text = T.pack (XML.escapeStringForXML (T.unpack text))
 
--- | Sorts given @Page@s by the specified ordering function.
+-- | Sorts pages by an ordering function.
 sortByVar :: T.Text
           -- ^ Environment variable name.
           -> (Value -> Value -> Ordering)
@@ -241,7 +280,7 @@ sortByVar var ordering =
     (\a b ->
       maybeOrdering ordering (H.lookup var (getPageEnv a)) (H.lookup var (getPageEnv b)))
 
--- | Filters by a variable's value in the environment.
+-- | Filters pages by a variable's value in the environment.
 filterByVar :: Bool
             -- ^ If true, include pages without the specified variable.
             -> T.Text
@@ -370,7 +409,7 @@ loadResources recursive pass dir = do
 passthrough :: FilePath -> PencilApp Resource
 passthrough fp = return $ Passthrough fp fp
 
--- | Loads a file into a Page, rendering the file (as determined by the file
+-- | Loads a file as a page, rendering the file (as determined by the file
 -- extension) into the proper output format (e.g. Markdown rendered to
 -- HTML, SCSS to CSS). Parses the template directives and preamble variables
 -- into its environment.
@@ -386,13 +425,13 @@ passthrough fp = return $ Passthrough fp fp
 -- Using 'rename' and 'toDir', the destination file path becomes @pages\/about\/index.html@:
 --
 -- @
--- 'rename' 'toDir' <$> load "pages/about.markdown"
+-- 'render' $ 'rename' 'toDir' \<$\> load "pages/about.markdown"
 -- @
 --
 load :: FilePath -> PencilApp Page
 load fp = rename toExpected <$> load' fp
 
--- | Like 'load', loads a file into a Page. Unlike 'load', the source file path
+-- | Like 'load', loads a file as a page. Unlike 'load', the source file path
 -- is used as the destination file path (i.e. the extension name is not changed).
 --
 load' :: FilePath -> PencilApp Page
@@ -416,7 +455,7 @@ loadDir :: Bool
         -> PencilApp [Page]
 loadDir = loadDirWith load
 
--- | A version of 'load'' for directories. Loads the files in the specified
+-- | A version of load' for directories. Loads the files in the specified
 -- directory as pages. Keeps the original file path.
 --
 -- @
@@ -438,8 +477,8 @@ loadDirWith :: (FilePath -> PencilApp Page)
 loadDirWith loadF recur fp = do
   fps <- listDir recur fp
   foldM
-    (\acc fp -> do
-      mp <- (loadF fp >>= return . Just) `catchError` handle
+    (\acc fpath -> do
+      mp <- (loadF fpath >>= return . Just) `catchError` handle
       return (maybe acc (\p -> p : acc) mp))
     []
     (reverse fps)
@@ -541,24 +580,6 @@ struct p = Structure
   , structureFilePathFrozen = pageUseFilePath p
   }
 
-----------------------------------------------------------------------
--- HasFilePath class
-----------------------------------------------------------------------
-
-instance HasFilePath Page where
-  getFilePath = pageFilePath
-  setFilePath fp p = p { pageFilePath = fp }
-
-instance HasFilePath Resource where
-  getFilePath (Single p) = getFilePath p
-  getFilePath (Passthrough _ fp) = fp
-
-  setFilePath fp (Single p) = Single $ setFilePath fp p
-  setFilePath fp (Passthrough ofp _) = Passthrough ofp fp
-
-instance HasFilePath Structure where
-  getFilePath = structureFilePath
-  setFilePath fp s = s { structureFilePath = fp }
 
 ----------------------------------------------------------------------
 -- Render class

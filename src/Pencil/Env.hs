@@ -13,17 +13,11 @@ module Pencil.Env
   ) where
 
 import Pencil.Env.Internal
-import Pencil.Parser
-import Pencil.Content.Internal
 import Pencil.App.Internal
 import Pencil.Config
 
-import Data.Text.Encoding (encodeUtf8)
-
 import qualified Control.Monad.Reader as Reader
-import qualified Data.Maybe as M
 import qualified Data.HashMap.Strict as H
-import qualified Data.Yaml as A
 import qualified Data.Text as T
 
 -- | Inserts @Value@ into the given @Env@.
@@ -67,7 +61,7 @@ insertText var val = H.insert var (VText val)
 -- want to render a 'Pencil.Content.Internal.Page' or 'Pencil.Content.Internal.Structure' with a modified environment.
 --
 -- @
--- withEnv ('Pencil.Env.insertText' "newvar" "newval" env) ('render' page)
+-- withEnv ('Pencil.Env.insertText' "newvar" "newval" env) ('Pencil.Content.render' page)
 -- @
 --
 -- Alternatively, use 'Reader.local', which is re-exported in the Pencil module.

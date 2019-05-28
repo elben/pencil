@@ -3,58 +3,22 @@ Main Pencil module. This module re-exports most functions, so you should only ne
 -}
 module Pencil
   (
-    -- * Getting started
-    --
-    -- $gettingstarted
+  -- * Getting started
+  --
+  -- $gettingstarted
 
-    -- * Templates
-    --
-    -- $templates
+  -- * Templates
+  --
+  -- $templates
 
   -- * Pages, Structures and Resources
   --
   -- $pagesStructuresResources
-
-    Render(..)
-
-  -- ** Page
-
-  , Page
-  , load
-  , loadDir
-  , loadAndRender
-  , rename
-  , to
-  , move
-  , useFilePath
-  , escapeXml
-  , getPageEnv, setPageEnv
-
-  -- ** Structure
-
-  , Structure
-  , struct
-  , (<||)
-  , (<|)
-  , (<<|)
-  , coll
-
-  -- ** Resource
-
-  , Resource
-  , passthrough
-  , loadResource
-  , loadResources
-
-  -- ** Utilities
-
-  , listDir
-  , toExpected
-  , toHtml
-  , toCss
-  , toDir
+    module Pencil.Content
 
   -- * Blogging
+  --
+  -- $blogging
   , module Pencil.Blog
 
   -- * Environment Manipulation
@@ -66,18 +30,13 @@ module Pencil
 
   , module Pencil.Config
 
-  -- * Utilities and Re-exports
+  -- * The Pencil Type
+  -- | Provides the main Pencil type that everything runs in.
+  , module Pencil.App
 
-  , FileType
-  , fileType
-  , toExtension
-
-  -- Re-exports
+  -- * Re-exports
   , Reader.asks
   , Reader.local
-
-  -- * Running blah blah
-  , module Pencil.App
   ) where
 
 import Pencil.App
@@ -130,9 +89,9 @@ import Control.Monad.Reader as Reader
 -- common HTML template.
 --
 -- Pencil's templating engine comes with variables, if blocks, for loops, and
--- partials. Read the
--- [Templates](https://elbenshira.com/pencil/guides/templates/) guide for a
--- thorough walk-through.
+-- partials. Read the [templates
+-- guide](https://elbenshira.com/pencil/guides/templates/) for a thorough
+-- walk-through.
 --
 -- Example:
 --
@@ -156,6 +115,13 @@ import Control.Monad.Reader as Reader
 
 ----------------------------------------------------------------------
 
+-- $blogging
+--
+-- This module provides out-of-the-box blogging functionality. Read through the
+-- [blogging tutorial](http://elbenshira.com/pencil/tutorials/03-blogging/) to
+-- learn how to use it.
+
+----------------------------------------------------------------------
 
 -- $environment
 --

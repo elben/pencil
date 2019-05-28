@@ -8,7 +8,6 @@ module Pencil.App
   ) where
 
 import Pencil.App.Internal
-import Pencil.Env.Internal
 import Pencil.Content
 import Pencil.Config
 

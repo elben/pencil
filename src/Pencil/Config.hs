@@ -22,7 +22,6 @@ import qualified Data.Text as T
 import qualified Text.Pandoc as P
 import qualified Text.Pandoc.Highlighting
 import qualified Text.Sass as Sass
-import qualified Text.Sass as Sass
 
 -- | The main @Config@ needed to build your website. Your app's @Config@ is
 -- passed into the 'Pencil.App.PencilApp' monad transformer.

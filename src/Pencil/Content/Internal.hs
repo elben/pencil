@@ -223,14 +223,6 @@ extensionMap = H.fromList
   [ (Markdown, "html")
   , (Sass, "css")]
 
--- | Class for types that has a final file path for rendering.
---
--- This allows file-path-changing methods to be re-used across 'Pencil.Content.Internal.Page',
--- 'Pencil.Content.Internal.Structure' and 'Pencil.Content.Internal.Resource' types.
-class HasFilePath a where
-  getFilePath :: a -> FilePath
-  setFilePath :: FilePath -> a -> a
-
 -- | Converts a 'FileType' into its converted webpage extension, if Pencil would
 -- convert it (e.g. Markdown to HTML).
 --
@@ -349,8 +341,35 @@ move fp a = move' (FP.takeFileName (getFilePath a)) fp a
 -- name, then @fromFileName@ is used as the file name.
 move' :: HasFilePath a => FilePath -> FilePath -> a -> a
 move' fromFileName fp a =
-  let toDir = FP.takeDirectory fp
+  let dir = FP.takeDirectory fp
       fp' = if isDir fp
-              then toDir ++ "/" ++ fromFileName
-              else toDir ++ "/" ++ FP.takeFileName fp
+              then dir ++ "/" ++ fromFileName
+              else dir ++ "/" ++ FP.takeFileName fp
   in setFilePath fp' a
+
+----------------------------------------------------------------------
+-- HasFilePath class
+----------------------------------------------------------------------
+
+-- | Class for types that has a final file path for rendering.
+--
+-- This allows file-path-changing methods to be re-used across 'Pencil.Content.Internal.Page',
+-- 'Pencil.Content.Internal.Structure' and 'Pencil.Content.Internal.Resource' types.
+class HasFilePath a where
+  getFilePath :: a -> FilePath
+  setFilePath :: FilePath -> a -> a
+
+instance HasFilePath Page where
+  getFilePath = pageFilePath
+  setFilePath fp p = p { pageFilePath = fp }
+
+instance HasFilePath Resource where
+  getFilePath (Single p) = getFilePath p
+  getFilePath (Passthrough _ fp) = fp
+
+  setFilePath fp (Single p) = Single $ setFilePath fp p
+  setFilePath fp (Passthrough ofp _) = Passthrough ofp fp
+
+instance HasFilePath Structure where
+  getFilePath = structureFilePath
+  setFilePath fp s = s { structureFilePath = fp }

@@ -142,10 +142,12 @@ nix-channel --add https://nixos.org/channels/nixos-19.03 nixpkgs
 
 Check for newer dependency versions: http://packdeps.haskellers.com/feed?needle=pencil
 
-Make sure it builds, passes tests, and works:
+Make sure it builds, check for warnings, passes tests, and works:
 
 ```
 [nix-shell]$ cabal configure
+
+[nix-shell]$ cabal build --ghc-options="-fforce-recomp -Wall -fno-code"
 
 [nix-shell]$ doctest src/
 

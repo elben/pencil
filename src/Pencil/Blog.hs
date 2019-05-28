@@ -65,12 +65,10 @@ import Pencil.Env
 import Pencil.Env.Internal
 import Pencil.App
 import Pencil.Content
-import Pencil.Parser as Parser
-import Control.Monad (liftM, foldM)
+import Control.Monad (foldM)
 import Control.Monad.Reader (asks)
 import qualified Data.HashMap.Strict as H
 import qualified Data.List as L
-import qualified Data.Maybe as M
 import qualified Data.Text as T
 import qualified System.FilePath as FP
 
