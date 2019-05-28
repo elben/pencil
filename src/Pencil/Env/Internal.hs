@@ -7,6 +7,8 @@ module Pencil.Env.Internal where
 
 import qualified Pencil.Parser as P
 
+import Data.Text.Encoding (encodeUtf8)
+
 import qualified Data.HashMap.Strict as H
 import qualified Data.Maybe as M
 import qualified Data.Text as T
@@ -97,6 +99,26 @@ getNodes env =
   case H.lookup "this.nodes" env of
     Just (VNodes nodes) -> nodes
     _ -> []
+
+-- | Find preamble node, and load as an Env. If no preamble is found, return a
+-- blank Env.
+findEnv :: [P.PNode] -> Env
+findEnv nodes =
+  aesonToEnv $ M.fromMaybe H.empty (P.findPreambleText nodes >>= (A.decodeThrow . encodeUtf8 . T.strip))
+
+-- | Converts an Aeson Object to an Env.
+aesonToEnv :: A.Object -> Env
+aesonToEnv = H.foldlWithKey' maybeInsertIntoEnv H.empty
+
+-- | Convert known Aeson 'Aeson.Value' into a Pencil
+-- 'Pencil.Env.Internal.Value', and insert into the env. If there is no
+-- conversion possible, the env is not modified.
+maybeInsertIntoEnv :: Env -> T.Text -> A.Value -> Env
+maybeInsertIntoEnv env k v =
+  case toValue v of
+    Nothing -> env
+    Just d -> H.insert k d env
+
 
 -- | Gets the rendered content from the env, from the @this.content@ variable.
 -- Returns empty is the variable is missing (e.g. has not been rendered).

@@ -2,10 +2,14 @@
 Functions that manipulate the environment.
 -}
 module Pencil.Env
-  (
-  -- | Re-exports the internal module.
-    module Pencil.Env.Internal
-  , module Pencil.Env
+  ( withEnv
+  , insert
+  , insertText
+  -- , insertPages
+  , adjust
+  , merge
+  , toText
+  , toTextRss
   ) where
 
 import Pencil.Env.Internal
@@ -58,25 +62,6 @@ insertText :: T.Text
            -- ^ Environment to modify.
            -> Env
 insertText var val = H.insert var (VText val)
-
--- | Find preamble node, and load as an Env. If no preamble is found, return a
--- blank Env.
-findEnv :: [PNode] -> Env
-findEnv nodes =
-  aesonToEnv $ M.fromMaybe H.empty (findPreambleText nodes >>= (A.decodeThrow . encodeUtf8 . T.strip))
-
--- | Converts an Aeson Object to an Env.
-aesonToEnv :: A.Object -> Env
-aesonToEnv = H.foldlWithKey' maybeInsertIntoEnv H.empty
-
--- | Convert known Aeson 'Aeson.Value' into a Pencil
--- 'Pencil.Env.Internal.Value', and insert into the env. If there is no
--- conversion possible, the env is not modified.
-maybeInsertIntoEnv :: Env -> T.Text -> A.Value -> Env
-maybeInsertIntoEnv env k v =
-  case toValue v of
-    Nothing -> env
-    Just d -> H.insert k d env
 
 -- | Runs the computation with the given environment. This is useful when you
 -- want to render a 'Pencil.Content.Internal.Page' or 'Pencil.Content.Internal.Structure' with a modified environment.

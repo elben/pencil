@@ -17,7 +17,7 @@ import Pencil.Config
 import Pencil.Content.Internal
 import Pencil.Content.Nodes
 import Pencil.Env
-import Pencil.Env.Internal (getNodes)
+import Pencil.Env.Internal
 import Pencil.Parser
 
 import Control.Exception (tryJust)

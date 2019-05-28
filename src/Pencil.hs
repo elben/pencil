@@ -60,17 +60,7 @@ module Pencil
   -- * Environment Manipulation
   --
   -- $environment
-
-  , merge
-  , adjust
-  , insert
-  , insertText
-  , insertPages
-  , sortByVar
-  , filterByVar
-  , groupByElements
-  , toTextRss
-  , withEnv
+  , module Pencil.Env
 
   -- * Configuration
 
