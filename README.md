@@ -46,7 +46,7 @@ main = run website config
 
 You can check out other [examples](https://github.com/elben/pencil/tree/master/examples). The [Blog](https://github.com/elben/pencil/tree/master/examples/Blog) is a good one.
 
-My personal website (http://elbenshira.com) uses Pencil ([source here](https://github.com/elben/elben.github.io)). And so does Pencil's website at (http://elbenshira.com/pencil) ([source here](https://github.com/elben/pencil/tree/master/examples/Docs)).
+My personal website (http://elbenshira.com) uses Pencil ([source here](https://github.com/elben/elben.github.io)). And so does Pencil's website at [elbenshira.com/pencil](http://elbenshira.com/pencil) ([source here](https://github.com/elben/pencil/tree/master/examples/Docs)).
 
 # Development
 
