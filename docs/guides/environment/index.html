@@ -93,8 +93,8 @@ if (true) {
 <a class="sourceLine" id="cb3-3" title="3">  (updateEnv (insertText <span class="st">&quot;title&quot;</span> <span class="st">&quot;My Awesome Website&quot;</span>)</a>
 <a class="sourceLine" id="cb3-4" title="4">   defaultConfig</a></code></pre></div>
 <p>These variables follow the same rule as page-defined variables. Think of them as a part of a “Page 0” that begins every structure.</p>
-<p>You can use <code>updateEnv</code> with methods like <code>insertEnv</code>, <code>insertText</code>, <code>insertPages</code>, <code>updateEnvVal</code>.</p>
-<p>You can also use <code>getPageEnv</code> and <code>setPageEnv</code>, along with the functions above, to manipulate each page’s environment to your liking. These are the functions that <code>Pencil.Internal.Blog</code> uses to build up the default blogging functionality.</p>
+<p>You can use <code>updateEnv</code> with methods like <code>insert</code>, <code>insertText</code>, <code>insertPages</code>, <code>adjust</code>.</p>
+<p>You can also use <code>getPageEnv</code> and <code>setPageEnv</code>, along with the functions above, to manipulate each page’s environment to your liking. These are the functions that <code>Pencil.Blog</code> uses to build up the default blogging functionality.</p>
 <h2 id="running-inside-a-modified-environment">Running inside a modified environment</h2>
 <p>If you modify an environment, you’ll want to run code <em>inside</em> that environment. Pencil provides <code>withEnv</code>, which is one way to do it:</p>
 <div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb4-1" title="1">postsEnv <span class="ot">&lt;-</span> (insertPages <span class="st">&quot;posts&quot;</span> posts env <span class="op">&gt;&gt;=</span> insertPages <span class="st">&quot;recommendedPosts&quot;</span> recommendedPosts)</a>

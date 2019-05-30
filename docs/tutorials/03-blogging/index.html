@@ -119,7 +119,7 @@
 <a class="sourceLine" id="cb2-23" title="23">  layout <span class="ot">&lt;-</span> load <span class="st">&quot;layout.html&quot;</span></a>
 <a class="sourceLine" id="cb2-24" title="24">  postLayout <span class="ot">&lt;-</span> load <span class="st">&quot;post-layout.html&quot;</span></a>
 <a class="sourceLine" id="cb2-25" title="25"></a>
-<a class="sourceLine" id="cb2-26" title="26">  posts <span class="ot">&lt;-</span> loadBlogPosts <span class="st">&quot;blog/&quot;</span></a>
+<a class="sourceLine" id="cb2-26" title="26">  posts <span class="ot">&lt;-</span> loadPosts <span class="st">&quot;blog/&quot;</span></a>
 <a class="sourceLine" id="cb2-27" title="27">  </a>
 <a class="sourceLine" id="cb2-28" title="28">  render <span class="op">$</span> <span class="fu">fmap</span> ((layout <span class="op">&lt;||</span> postLayout <span class="op">&lt;|</span>)) posts</a>
 <a class="sourceLine" id="cb2-29" title="29">  </a>
@@ -129,14 +129,14 @@
 <pre><code>stack exec my-website
 cd out &amp;&amp; python -m SimpleHTTPServer 8000</code></pre>
 <p>And you should see our blog posts rendered! For example: <a href="http://localhost:8000/blog/code-related-stuff/">http://localhost:8000/blog/code-related-stuff/</a>. Of course it’s not listing any tags yet, and we don’t have a blog index or anything. But it’s a start.</p>
-<p>Now, you should be familiar with the <code>load</code> function by now. But here we see <code>loadBlogPosts</code>. This is a helper function provided by Pencil to do the following:</p>
+<p>Now, you should be familiar with the <code>load</code> function by now. But here we see <code>loadPosts</code>. This is a helper function provided by Pencil to do the following:</p>
 <ul>
 <li>Load all pages found in the <code>blog/</code> folder.</li>
 <li>Rename the file path from <code>blog/2018-01-31-ramblings.markdown</code> to <code>blog/ramblings/</code>.</li>
 <li>Sort by the date specified in each page’s <code>date</code> variable found in the preamble.</li>
 <li>And return the list of <code>Page</code>s.</li>
 </ul>
-<p>Don’t be shy about reading the source code. You’ll find that I sent more characters explaining it above than the actual source of <code>loadBlogPosts</code>.</p>
+<p>Don’t be shy about reading the source code. You’ll find that I sent more characters explaining it above than the actual source of <code>loadPosts</code>.</p>
 <p>To render each post, we had this:</p>
 <div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb4-1" title="1">render <span class="op">$</span> <span class="fu">fmap</span> ((layout <span class="op">&lt;||</span> postLayout <span class="op">&lt;|</span>)) posts</a></code></pre></div>
 <p>This converts a list of <code>Page</code>s into a list of <code>Structure</code>s, pushing each page into the layout structure. We then render the list of <code>Structure</code>.</p>
@@ -189,15 +189,15 @@ render (layout &lt;|| index &lt;&lt;| coll &quot;posts&quot; posts)</code></pre>
 <p>So as an example, the value for the key <code>"awesome"</code> is a <code>Page</code> where the <code>posts</code> variable contain <code>Page</code>s containing the posts from <code>2018-01-30-code-related-stuff.markdown</code> and <code>2018-02-01-more-ramblings.markdown</code>, since they were both tagged with <code>awesome</code>. The URL for the page is <code>blog/tags/awesome/</code>.</p>
 <p>We actually can now page for each tag, listing out all the posts tagged with the tag. This is what <code>render $ fmap (layout &lt;||) (H.elems tagPages)</code> does. It takes each <code>Page</code>, which is a version of <code>tag-list.html</code>, and renders it.</p>
 <p>Re-build your website, and check out <a href="http://localhost:8000/blog/tags/awesome/">localhost:8000/blog/tags/awesome/</a>.</p>
-<p>OK that’s pretty sweet. But we also want to list out the tags on each of the blog post page that we rendered. And not only that, but we want to link each tag to the tag listing page. This is common-enough and confusing-enough to warrant a built-in method. We can use <code>injectTagsEnv</code> during the blog post render, like this:</p>
+<p>OK that’s pretty sweet. But we also want to list out the tags on each of the blog post page that we rendered. And not only that, but we want to link each tag to the tag listing page. This is common-enough and confusing-enough to warrant a built-in method. We can use <code>injectTags</code> during the blog post render, like this:</p>
 <pre><code>render $
   fmap ((layout &lt;|| postLayout &lt;|)
-        . injectTagsEnv tagPages
+        . injectTags tagPages
         . injectTitle websiteTitle)
     posts</code></pre>
 <p>Basically we’re giving each post the entire mapping of tags to posts. Open <code>post-layout.html</code> and notice this:</p>
 <pre><code></code></pre>
-<p><code>injectTagsEnv</code> filters out the <code>tagPages</code> you passed in only to the tags found in the current page. Thus we can loop through <code>tags</code> and link to the tag listing page, just like that.</p>
+<p><code>injectTags</code> filters out the <code>tagPages</code> you passed in only to the tags found in the current page. Thus we can loop through <code>tags</code> and link to the tag listing page, just like that.</p>
 <p>There ya go. Tags. It’s complicated underneath the hood, but at least the method are easy to use, right? As always, if you’re interested in learning more, the source code is always available. If you want a more interesting tagging system (sub-tags?), the existing implementation would serve as a good starting point.</p>
 <h2 id="rss">RSS</h2>
 <p>The final thing we’ll tackle is RSS. Let’s look at <code>rss.xml</code>:</p>
@@ -229,7 +229,7 @@ render (layout &lt;|| index &lt;&lt;| coll &quot;posts&quot; posts)</code></pre>
 <li><code>struct page</code> initializes the page in a structure. Then we push the collection element into the structure using <code>&lt;&lt;|</code>.</li>
 </ul>
 <p>So now we have a structure containing all of the RSS posts we want to render. Can’t we call <code>render rssFeedStruct</code>? Well, almost.</p>
-<p>The RSS specification expects the <code>&lt;pubDate&gt;</code> value to be in the RFC 822 date format (e.g. <code>Wed, 31 Jan 2018 00:00:00 +0000</code>). But Pencil’s default renderer will render a <code>VDateTime</code> in <code>YYYY-MM-DD</code> format. The transformation of <code>Value</code>s to their final string outputs is defined in the config by <a href="http://hackage.haskell.org/package/pencil/docs/Pencil-Internal-Pencil.html#v:configDisplayValue"><code>configDisplayValue</code></a>. As you can see in the Hackage documentation, the default value is <a href="http://hackage.haskell.org/package/pencil/docs/Pencil-Internal-Env.html#v:toText"><code>toText</code></a>. We need to replace <code>toText</code> with a different one, a Pencil-supplied one called <a href="http://hackage.haskell.org/package/pencil/docs/src/Pencil.Internal.Env.html#toTextRss"><code>toTextRss</code></a>. The only difference between the two is how <code>VDateTime</code> values are rendered.</p>
+<p>The RSS specification expects the <code>&lt;pubDate&gt;</code> value to be in the RFC 822 date format (e.g. <code>Wed, 31 Jan 2018 00:00:00 +0000</code>). But Pencil’s default renderer will render a <code>VDateTime</code> in <code>YYYY-MM-DD</code> format. The transformation of <code>Value</code>s to their final string outputs is defined in the config by <a href="http://hackage.haskell.org/package/pencil/docs/Pencil-Internal-Pencil.html#v:configDisplayValue"><code>configDisplayValue</code></a>. As you can see in the Hackage documentation, the default value is <a href="http://hackage.haskell.org/package/pencil/docs/Pencil-Internal-Env.html#v:toText"><code>toText</code></a>. We need to replace <code>toText</code> with a different one, a Pencil-supplied one called <a href="http://hackage.haskell.org/package/pencil/docs/src/Pencil.Env.Internal.html#toTextRss"><code>toTextRss</code></a>. The only difference between the two is how <code>VDateTime</code> values are rendered.</p>
 <p>We could update our <code>config</code> value to:</p>
 <div class="sourceCode" id="cb15"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb15-1" title="1"><span class="ot">config ::</span> <span class="dt">Config</span></a>
 <a class="sourceLine" id="cb15-2" title="2">config <span class="ot">=</span></a>
