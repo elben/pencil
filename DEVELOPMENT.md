@@ -185,7 +185,11 @@ Check that tutorials are updated.
 
 Update the CHANGELOG.md.
 
-Update the version number in `pencil.cabal`.
+Update the version number in `pencil.cabal`. Build a new `pencil.nix`:
+
+```
+cabal2nix . > pencil.nix
+```
 
 Commit the changes.
 

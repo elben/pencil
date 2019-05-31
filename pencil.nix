@@ -5,7 +5,7 @@
 }:
 mkDerivation {
   pname = "pencil";
-  version = "1.0.0";
+  version = "1.0.1";
   src = ./.;
   libraryHaskellDepends = [
     base data-default directory edit-distance filepath hashable hsass

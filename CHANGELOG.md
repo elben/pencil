@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.0.1]
+
+Tests were failing from the sdist distribution due to missing files in
+`extra-source-files`. Add them.
+
 ## [1.0.0]
 
 This is a milestone release! Version 1.0.0. Several breaking changes, but if you
@@ -94,7 +99,8 @@ easy. Please email me if you are having problems!
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
-[Unreleased]: https://github.com/elben/pencil/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/elben/pencil/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/elben/pencil/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/elben/pencil/compare/v0.1.3...v1.0.0
 [0.1.3]: https://github.com/elben/pencil/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/elben/pencil/compare/v0.1.1...v0.1.2
