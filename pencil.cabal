@@ -23,7 +23,35 @@ extra-source-files:  README.md
                    , examples/Simple/site/*.scss
                    , examples/Simple/site/*.markdown
                    , examples/Blog/site/*.html
+                   , examples/Blog/site/assets/*.scss
+                   , examples/Blog/site/*.xml
                    , examples/Blog/site/blog/*.markdown
+                   , examples/Complex/site/*.html
+                   , examples/Complex/site/*.xml
+                   , examples/Complex/site/assets/*.markdown
+                   , examples/Complex/site/assets/*.jpg
+                   , examples/Complex/site/assets/*.scss
+                   , examples/Complex/site/assets/conversions/*.markdown
+                   , examples/Complex/site/assets/conversions/*.jpg
+                   , examples/Complex/site/assets/conversions/*.scss
+                   , examples/Complex/site/assets/fun/*.markdown
+                   , examples/Complex/site/assets/fun/*.jpg
+                   , examples/Complex/site/assets/fun/*.pdf
+                   , examples/Complex/site/assets/passthroughs/*.markdown
+                   , examples/Complex/site/assets/passthroughs/*.jpg
+                   , examples/Complex/site/assets/passthroughs/*.pdf
+                   , examples/Complex/site/assets/passthroughs/*.scss
+                   , examples/Complex/site/blog/*.markdown
+                   , examples/Complex/site/deep/*.markdown
+                   , examples/Complex/site/deep/*.md
+                   , examples/Complex/site/deep/*.html
+                   , examples/Docs/site/*.markdown
+                   , examples/Docs/site/*.scss
+                   , examples/Docs/site/*.html
+                   , examples/Docs/site/guides/*.markdown
+                   , examples/Docs/site/guides/images/*.png
+                   , examples/Docs/site/tutorials/*.markdown
+                   , examples/Docs/site/tutorials/images/*.png
 
                   --  Once cabal 2.4 is enforced, we could just list them out as:
                   --  , examples/**/*.html

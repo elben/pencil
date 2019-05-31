@@ -227,6 +227,21 @@ cabal install http://hackage.haskell.org/package/pencil-0.1.3/candidate/pencil-0
 nix-shell -p zlib libiconv ghc
 ```
 
+Also make sure that everything works with the zipped up distribution. For
+example, there may be some files missing in the extra-source-files section of
+the cabal file that makes tests fail. To do this:
+
+```
+mkdir -p ~/code/pencil-test
+cp ~/code/pencil/dist/pencil-1.0.0.tar.gz ~/code/pencil-test
+cd ~/code/pencil-test
+tar -xf pencil-1.0.0.tar.gz
+cp ~/code/pencil/*.nix ~/code/pencil-test/pencil-1.0.0/
+cd ~/code/pencil-test/pencil-1.0.0/
+nix-shell --attr env default.nix
+cabal test
+```
+
 Finally, to publish a new version:
 
 Tag the release:
