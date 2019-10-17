@@ -9,10 +9,10 @@ First, install and set up `nix`:
 curl https://nixos.org/nix/install | sh
 ```
 
-Pin nixpkgs to version 19.03:
+Pin nixpkgs to version 19.09:
 
 ```bash
-nix-channel --add https://nixos.org/channels/nixos-19.03 nixpkgs
+nix-channel --add https://nixos.org/channels/nixos-19.09 nixpkgs
 nix-channel --update
 ```
 
@@ -135,7 +135,7 @@ nix-channel --update
 
 # Pinning the current channel to a specific version
 # Available channels: https://nixos.org/channels/
-nix-channel --add https://nixos.org/channels/nixos-19.03 nixpkgs
+nix-channel --add https://nixos.org/channels/nixos-19.09 nixpkgs
 ```
 
 ## Release

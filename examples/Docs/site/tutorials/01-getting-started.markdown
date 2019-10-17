@@ -12,7 +12,7 @@ We'll be using [stack](http://haskellstack.org) in this tutorial, so make sure
 you have it installed. Let's create our project:
 
 ```sh
-stack new my-website simple --resolver=lts-13.21
+stack new my-website simple
 cd my-website
 ```
 
@@ -135,8 +135,7 @@ main = run website defaultConfig
 Let's build our project and try it out.
 
 ```
-stack build
-stack exec my-website
+stack run
 ```
 
 This should create an `out/` directory with an `index.html` file, which contains
@@ -264,8 +263,7 @@ provided by Pencil, `defaultConfig`.
 To generate and serve our website, run the following commands:
 
 ```
-stack build
-stack exec my-website
+stack run
 cd out && python -m SimpleHTTPServer 8000
 ```
 

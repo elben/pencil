@@ -126,7 +126,7 @@
 <a class="sourceLine" id="cb2-30" title="30"><span class="ot">main ::</span> <span class="dt">IO</span> ()</a>
 <a class="sourceLine" id="cb2-31" title="31">main <span class="ot">=</span> run website config</a></code></pre></div>
 <p>With these first few lines of code, you should be able to see something working. As usual:</p>
-<pre><code>stack exec my-website
+<pre><code>stack run
 cd out &amp;&amp; python -m SimpleHTTPServer 8000</code></pre>
 <p>And you should see our blog posts rendered! For example: <a href="http://localhost:8000/blog/code-related-stuff/">http://localhost:8000/blog/code-related-stuff/</a>. Of course it’s not listing any tags yet, and we don’t have a blog index or anything. But it’s a start.</p>
 <p>Now, you should be familiar with the <code>load</code> function by now. But here we see <code>loadPosts</code>. This is a helper function provided by Pencil to do the following:</p>

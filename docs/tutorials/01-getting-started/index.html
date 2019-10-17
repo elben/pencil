@@ -68,7 +68,7 @@
 <p>This tutorial walks you through our first Pencil website. At the end of this tutorial, you’ll understand some of the core Pencil concepts and have the beginnings of a website built out.</p>
 <p>You may find it useful to also have <a href="https://hackage.haskell.org/package/pencil/docs/Pencil.html">Pencil’s Haddock page</a> open as a reference.</p>
 <p>We’ll be using <a href="http://haskellstack.org">stack</a> in this tutorial, so make sure you have it installed. Let’s create our project:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode sh"><code class="sourceCode bash"><a class="sourceLine" id="cb1-1" title="1"><span class="ex">stack</span> new my-website simple --resolver=lts-13.21</a>
+<div class="sourceCode" id="cb1"><pre class="sourceCode sh"><code class="sourceCode bash"><a class="sourceLine" id="cb1-1" title="1"><span class="ex">stack</span> new my-website simple</a>
 <a class="sourceLine" id="cb1-2" title="2"><span class="bu">cd</span> my-website</a></code></pre></div>
 <p>Open <code>my-website.cabal</code> and look for the <code>executable my-website-exe</code> section. Add <code>pencil</code> into the <code>build-depends</code> section. It should look something like this:</p>
 <pre><code>executable my-website
@@ -138,8 +138,7 @@ Welcome to my *awesome* [website](http://example.com)!</code></pre>
 <a class="sourceLine" id="cb9-12" title="12"><span class="ot">main ::</span> <span class="dt">IO</span> ()</a>
 <a class="sourceLine" id="cb9-13" title="13">main <span class="ot">=</span> run website defaultConfig</a></code></pre></div>
 <p>Let’s build our project and try it out.</p>
-<pre><code>stack build
-stack exec my-website</code></pre>
+<pre><code>stack run</code></pre>
 <p>This should create an <code>out/</code> directory with an <code>index.html</code> file, which contains our Markdown content rendered as HTML. It’s basic stuff, but we’re getting somewhere.</p>
 <h2 id="rendering-pages">Rendering Pages</h2>
 <p>Let’s look at what’s happening inside the <code>website</code> function:</p>
@@ -191,8 +190,7 @@ stack exec my-website</code></pre>
 </div>
 <h1 id="generating-our-website">Generating our website</h1>
 <p>To generate and serve our website, run the following commands:</p>
-<pre><code>stack build
-stack exec my-website
+<pre><code>stack run
 cd out &amp;&amp; python -m SimpleHTTPServer 8000</code></pre>
 <p>Go to <a href="http://localhost:8000">http://localhost:8000</a>. Note that we’re using Python’s HTTP server to serve our HTML files so that our relative URLs work correctly.</p>
 <p>And that’s it! In this tutorial, you learned several important concepts:</p>

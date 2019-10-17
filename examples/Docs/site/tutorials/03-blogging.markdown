@@ -78,7 +78,7 @@ main = run website config
 With these first few lines of code, you should be able to see something working. As usual:
 
 ```
-stack exec my-website
+stack run
 cd out && python -m SimpleHTTPServer 8000
 ```
 
