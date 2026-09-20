@@ -1,4 +1,4 @@
-[![CircleCI](https://circleci.com/gh/elben/pencil/tree/master.svg?style=svg)](https://circleci.com/gh/elben/pencil/tree/master)
+[![CI](https://github.com/elben/pencil/actions/workflows/ci.yml/badge.svg)](https://github.com/elben/pencil/actions/workflows/ci.yml)
 
 # Pencil
 

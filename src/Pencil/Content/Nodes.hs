@@ -9,6 +9,7 @@ import Pencil.Parser
 import Pencil.Content.Internal
 import Pencil.Config
 
+import Control.Monad (foldM)
 import Control.Monad.Reader
 import Control.Monad.Except
 import Control.Exception (tryJust)

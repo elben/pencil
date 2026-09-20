@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+- Modernize the build: target GHC 9.6 and build with `cabal` via a `cabal.project`.
+  This drops the Nix, Stack and Travis/CircleCI setup in favor of GitHub Actions.
+- Update dependency bounds for current releases, notably Pandoc 3, `text` 2 and
+  `aeson` 2. Removed the unused `semigroups` dependency.
+- Run the full doctests through Cabal (`cabal repl --with-compiler=doctest`,
+  exposed as `make doctest`).
+
 ## [1.0.1]
 
 Tests were failing from the sdist distribution due to missing files in

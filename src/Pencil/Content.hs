@@ -69,7 +69,7 @@ import Pencil.Env
 import Pencil.Env.Internal
 import Pencil.Parser
 
-import Control.Monad (forM_, foldM, filterM)
+import Control.Monad (forM_, foldM, filterM, when)
 import Control.Monad.Except
 import Control.Monad.Reader
 import Data.List.NonEmpty (NonEmpty(..)) -- Import the NonEmpty data constructor, (:|)
@@ -265,7 +265,7 @@ nodesToText escXml nodes =
 
 -- | Escape XML tags in the given Text.
 escapeForXml :: T.Text -> T.Text
-escapeForXml text = T.pack (XML.escapeStringForXML (T.unpack text))
+escapeForXml = XML.escapeStringForXML
 
 -- | Sorts pages by an ordering function.
 sortByVar :: T.Text

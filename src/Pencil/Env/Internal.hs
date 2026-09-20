@@ -9,6 +9,8 @@ import qualified Pencil.Parser as P
 
 import Data.Text.Encoding (encodeUtf8)
 
+import qualified Data.Aeson.Key as K
+import qualified Data.Aeson.KeyMap as KM
 import qualified Data.HashMap.Strict as H
 import qualified Data.Maybe as M
 import qualified Data.Text as T
@@ -80,11 +82,11 @@ getNodes env =
 -- blank Env.
 findEnv :: [P.PNode] -> Env
 findEnv nodes =
-  aesonToEnv $ M.fromMaybe H.empty (P.findPreambleText nodes >>= (A.decodeThrow . encodeUtf8 . T.strip))
+  aesonToEnv $ M.fromMaybe KM.empty (P.findPreambleText nodes >>= (A.decodeThrow . encodeUtf8 . T.strip))
 
 -- | Converts an Aeson Object to an Env.
 aesonToEnv :: A.Object -> Env
-aesonToEnv = H.foldlWithKey' maybeInsertIntoEnv H.empty
+aesonToEnv = KM.foldrWithKey (\k v env -> maybeInsertIntoEnv env (K.toText k) v) H.empty
 
 -- | Convert known Aeson 'Aeson.Value' into a Pencil
 -- 'Pencil.Env.Internal.Value', and insert into the env. If there is no
