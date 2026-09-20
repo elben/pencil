@@ -1,11 +1,8 @@
 all: build test docs
 	@true
 
-shell:
-	nix-shell --attr env
-
 build:
-	cabal build
+	cabal build all
 
 haddock:
 	cabal haddock
@@ -20,9 +17,13 @@ docs:
 	cabal test pencil-docs
 .PHONY: docs
 
-test:
+# Full doctests over all of src. Requires `cabal install doctest --ignore-project`
+# so that `doctest` is on PATH.
+doctest:
+	cabal repl --with-compiler=doctest --repl-options='-w -Wdefault'
+
+test: doctest
 	cabal test
-	doctest src/
 
 example-simple:
 	rm -rf examples/Simple/out/*
@@ -38,6 +39,4 @@ example-complex:
 
 candidate:
 	cabal check
-	FILENAME=`cabal sdist | grep "Source tarball created" | awk '{ print $4 }'`
-	# echo ${$FILENAME}
-	# cabal upload ${FILENAME}
+	cabal sdist

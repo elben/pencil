@@ -57,7 +57,7 @@ instance Default Config where
 --  , 'configPandocReaderOptions' = Text.Pandoc.def {
 --       Text.Pandoc.readerExtensions = 'Text.Pandoc.Extensions.disableExtension' 'Text.Pandoc.Extensions.Ext_tex_math_dollars' ('Text.Pandoc.Extensions.getDefaultExtensions' "markdown")
 --    }
---  , 'configPandocWriterOptions' = Text.Pandoc.def { Text.Pandoc.writerHighlightStyle = Just Text.Pandoc.Highlighting.monochrome }
+--  , 'configPandocWriterOptions' = Text.Pandoc.def { Text.Pandoc.writerHighlightMethod = Text.Pandoc.Skylighting Text.Pandoc.Highlighting.monochrome }
 --  , 'configDisplayValue = 'toText'
 --  }
 -- @
@@ -81,10 +81,10 @@ defaultConfig = Config
   -- directives. For example, this renders weird (as of Pandoc 2.7.2):
   -- > **${name}** and **${age}**
   , configPandocReaderOptions = P.def {
-      P.readerExtensions = disableExtension Ext_tex_math_dollars (P.getDefaultExtensions "markdown")
+      P.readerExtensions = disableExtension Ext_tex_math_dollars (P.getDefaultExtensions (T.pack "markdown"))
   }
   , configPandocWriterOptions = P.def {
-      P.writerHighlightStyle = Just Text.Pandoc.Highlighting.monochrome
+      P.writerHighlightMethod = P.Skylighting Text.Pandoc.Highlighting.monochrome
   }
   , configDisplayValue = toText
   }

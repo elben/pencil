@@ -8,7 +8,7 @@ import Pencil.Config
 import Control.Monad.Except
 import Control.Monad.Reader (ReaderT(..))
 import Data.Typeable (Typeable)
-import GHC.IO.Exception (IOException(ioe_description, ioe_filename, ioe_type), IOErrorType(NoSuchThing))
+import GHC.IO.Exception (IOException(ioe_filename, ioe_type), IOErrorType(InvalidArgument, NoSuchThing))
 
 import qualified Data.Text as T
 
@@ -59,7 +59,7 @@ toPencilException e
 -- | Returns true if the IOError is an invalid byte sequence error. This
 -- suggests that the file is a binary file.
 isInvalidByteSequence :: IOError -> Bool
-isInvalidByteSequence e = ioe_description e == "invalid byte sequence"
+isInvalidByteSequence e = ioe_type e == InvalidArgument
 
 -- | Returns true if the IOError is due to missing file.
 isNoSuchFile :: IOError -> Bool
